@@ -1,19 +1,62 @@
-# 🧠 Claude Code Skills
+# 🧠 Claude Code Next.js Skills
 
-Ready-to-use skills for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+> Build production-ready AI applications with Claude Code skills.
 
-## 📦 Skills
+## 🚀 Quick Start
 
-| Skill | Description | Source |
-|-------|-------------|--------|
-| [cache-components](skills/cache-components/) | Next.js Cache Components & PPR | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) |
-| [nextjs-shadcn](skills/nextjs-shadcn/) | Next.js 16 + shadcn/ui + bun | |
-| [skill-creator](skills/skill-creator/) | Create skills, hooks, MCP configs (enhanced with ralph-loop, MCP, hooks) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) |
-| [ai-sdk-6](skills/ai-sdk-6/) | AI SDK v6 agents & streaming | |
+```bash
+# In Claude Code, just say:
+/ai-app
 
-## 🔧 MCP Server
+# Or describe what you want:
+"Create a chatbot with reasoning and file attachments"
+"Build an agent dashboard with web search and calculator tools"
+```
 
-Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp) configuration:
+This creates a full-stack AI application with:
+- Next.js 16 + React 19
+- AI SDK 6 (Vercel)
+- ai-elements UI components
+- shadcn/ui + Tailwind
+- bun runtime
+
+## 📖 Continue Building with Skills
+
+After scaffolding, use skill references for guidance:
+
+```bash
+/ai-elements         # UI component patterns
+/ai-sdk-6            # Agent & streaming patterns
+/nextjs-shadcn       # Next.js + shadcn patterns
+/cache-components    # Caching & PPR
+```
+
+## 📦 All Skills
+
+| Skill | Description |
+|-------|-------------|
+| [ai-app](skills/ai-app/) | 🚀 Full-stack AI app generator |
+| [ai-elements](skills/ai-elements/) | 🎨 AI Elements UI components |
+| [ai-sdk-6](skills/ai-sdk-6/) | 🤖 AI SDK v6 agents & streaming |
+| [nextjs-shadcn](skills/nextjs-shadcn/) | ⚡ Next.js 16 + shadcn/ui |
+| [cache-components](skills/cache-components/) | 📦 Cache Components & PPR |
+| [skill-creator](skills/skill-creator/) | 🛠️ Create custom skills |
+
+## 🔧 Installation
+
+Copy skills to your Claude Code skills directory:
+
+```bash
+# Global (all projects)
+cp -r skills/* ~/.claude/skills/
+
+# Or project-specific
+cp -r skills/* .claude/skills/
+```
+
+## 🔌 MCP Server
+
+Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
 
 ```json
 // .mcp.json
@@ -26,24 +69,6 @@ Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp) configur
   }
 }
 ```
-
-## 🚀 Installation
-
-Copy or symlink skills to:
-
-- **Global**: `~/.claude/skills/`
-- **Project**: `.claude/skills/` in your project root
-
-## 📖 Usage
-
-```bash
-/cache-components
-/nextjs-shadcn
-/skill-creator
-/ai-sdk-6
-```
-
-Skills also activate automatically based on context.
 
 ## 📄 License
 

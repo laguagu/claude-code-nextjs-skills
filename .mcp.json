@@ -4,5 +4,9 @@
       "command": "npx",
       "args": ["-y", "next-devtools-mcp@latest"]
     }
+  },
+  "ai-elements": {
+    "command": "npx",
+    "args": ["-y", "mcp-remote", "https://registry.ai-sdk.dev/api/mcp"]
   }
 }
