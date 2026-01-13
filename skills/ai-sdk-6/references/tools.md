@@ -170,7 +170,10 @@ const agent = new ToolLoopAgent({
     calculate: tool({
       description: "Perform calculations",
       inputSchema: z.object({ expression: z.string() }),
-      execute: async ({ expression }) => eval(expression),
+      execute: async ({ expression }) => {
+        const { evaluate } = await import("mathjs");
+        return evaluate(expression);
+      },
     }),
     weather: tool({
       description: "Get weather data",

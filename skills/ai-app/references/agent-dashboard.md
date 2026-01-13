@@ -34,9 +34,14 @@ export const assistantAgent = new ToolLoopAgent({
         expression: z.string().describe('Math expression to evaluate'),
       }),
       execute: async ({ expression }) => {
-        // Simple eval (use a proper math library in production)
-        const result = eval(expression);
-        return { result };
+        // Use mathjs for safe expression evaluation
+        const { evaluate } = await import('mathjs');
+        try {
+          const result = evaluate(expression);
+          return { result: String(result) };
+        } catch {
+          return { error: 'Invalid expression' };
+        }
       },
     }),
     getCurrentTime: tool({
@@ -346,11 +351,13 @@ sendMessage(
 
 ---
 
-## Tool Approval Flow
+## Tool Approval Flow (Human-in-the-Loop)
 
-For sensitive tools that require user confirmation.
+For sensitive tools that require user confirmation before execution.
 
-### Agent with Approval
+In AI SDK, tools requiring approval **omit the `execute` function**. The agent loop pauses when such a tool is called, allowing the client to handle approval.
+
+### Agent with Approval Tools
 
 ```typescript
 // ai/admin-agent.ts
@@ -362,18 +369,16 @@ export const adminAgent = new ToolLoopAgent({
   model: anthropic('claude-sonnet-4-5-20250929'),
   instructions: 'You are an admin assistant with access to sensitive operations.',
   tools: {
+    // Tool requiring approval - NO execute function
     deleteFile: tool({
       description: 'Delete a file (requires approval)',
       inputSchema: z.object({
         path: z.string().describe('File path to delete'),
       }),
-      // Mark as requiring approval
-      requiresApproval: true,
-      execute: async ({ path }) => {
-        // Actual deletion logic
-        return { deleted: path };
-      },
+      outputSchema: z.string(),
+      // NO execute - agent loop pauses, client handles approval
     }),
+    // Tool with automatic execution
     readFile: tool({
       description: 'Read file contents',
       inputSchema: z.object({
@@ -391,6 +396,7 @@ export const adminAgent = new ToolLoopAgent({
 ### Approval UI
 
 ```tsx
+import { useChat } from '@ai-sdk/react';
 import {
   Confirmation,
   ConfirmationTitle,
@@ -401,10 +407,13 @@ import {
   ConfirmationAction,
 } from '@/components/ai-elements/confirmation';
 
-// In message parts rendering:
-if (part.type === 'tool-invocation' && part.state === 'approval-requested') {
+// In your component:
+const { messages, sendMessage, addToolOutput } = useChat();
+
+// In message parts rendering - check for 'input-available' state
+if (part.type === 'tool-invocation' && part.state === 'input-available') {
   return (
-    <Confirmation key={i} approval={part.approval} state={part.state}>
+    <Confirmation key={i} state={part.state}>
       <ConfirmationTitle>
         Tool <code>{part.toolName}</code> requires approval
       </ConfirmationTitle>
@@ -415,12 +424,30 @@ if (part.type === 'tool-invocation' && part.state === 'approval-requested') {
         <ConfirmationActions>
           <ConfirmationAction
             variant="outline"
-            onClick={() => respondToApproval(part.approval.id, false)}
+            onClick={() => {
+              addToolOutput({
+                toolCallId: part.toolCallId,
+                output: 'Denied by user',
+              });
+              sendMessage();
+            }}
           >
             Deny
           </ConfirmationAction>
           <ConfirmationAction
-            onClick={() => respondToApproval(part.approval.id, true)}
+            onClick={async () => {
+              // Execute the actual operation after approval
+              const result = await fetch('/api/delete-file', {
+                method: 'POST',
+                body: JSON.stringify({ path: part.input.path }),
+              }).then((r) => r.json());
+
+              addToolOutput({
+                toolCallId: part.toolCallId,
+                output: JSON.stringify(result),
+              });
+              sendMessage();
+            }}
           >
             Allow
           </ConfirmationAction>
@@ -436,6 +463,8 @@ if (part.type === 'tool-invocation' && part.state === 'approval-requested') {
   );
 }
 ```
+
+See [Human-in-the-Loop Cookbook](https://ai-sdk.dev/cookbook/next/human-in-the-loop) for more details.
 
 ---
 

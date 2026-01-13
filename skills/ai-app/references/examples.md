@@ -336,9 +336,10 @@ Always explain what you're doing before using a tool.`,
         expression: z.string().describe('Math expression (e.g., "2 + 2")'),
       }),
       execute: async ({ expression }) => {
-        // Use a proper math library in production (e.g., mathjs)
+        // Use mathjs for safe expression evaluation
+        const { evaluate } = await import('mathjs');
         try {
-          const result = Function(`"use strict"; return (${expression})`)();
+          const result = evaluate(expression);
           return { result: String(result) };
         } catch {
           return { error: 'Invalid expression' };

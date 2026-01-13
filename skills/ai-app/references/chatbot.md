@@ -330,7 +330,7 @@ export default function ChatPage() {
 
 ## Web Search Chatbot
 
-With Perplexity integration for web search.
+With Perplexity integration for web search. Perplexity has built-in web search and returns sources automatically.
 
 ### API Route
 
@@ -338,6 +338,7 @@ With Perplexity integration for web search.
 // app/api/chat/route.ts
 import { streamText, UIMessage, convertToModelMessages } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
+import { perplexity } from '@ai-sdk/perplexity';
 
 export const maxDuration = 30;
 
@@ -352,7 +353,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     // Use Perplexity for web search, Claude otherwise
-    model: webSearch ? 'perplexity/sonar' : anthropic('claude-sonnet-4-5-20250929'),
+    model: webSearch ? perplexity('sonar-pro') : anthropic('claude-sonnet-4-5-20250929'),
     messages: convertToModelMessages(messages),
     system: webSearch
       ? 'Search the web and provide accurate, up-to-date information with sources.'
@@ -365,6 +366,8 @@ export async function POST(req: Request) {
   });
 }
 ```
+
+Available Perplexity models: `sonar`, `sonar-pro`, `sonar-reasoning`, `sonar-reasoning-pro`, `sonar-deep-research`
 
 ### Chat Page Addition
 

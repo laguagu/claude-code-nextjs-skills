@@ -181,9 +181,24 @@ PERPLEXITY_API_KEY=pplx-...
 }
 ```
 
+### Optional Dependencies
+
+```json
+{
+  "dependencies": {
+    "@ai-sdk/perplexity": "latest",
+    "mathjs": "latest"
+  }
+}
+```
+
+- `@ai-sdk/perplexity` - Web search chatbot (Perplexity provider)
+- `mathjs` - Safe math expression evaluation for calculator tools
+
 ### AI Elements Dependencies
 
 Installed automatically with `bunx --bun ai-elements@latest`:
+
 - `use-stick-to-bottom` - Auto-scroll
 - `streamdown` - Markdown streaming
 - `shiki` - Syntax highlighting (for CodeBlock)
