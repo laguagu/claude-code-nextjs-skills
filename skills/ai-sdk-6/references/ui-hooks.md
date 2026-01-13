@@ -49,26 +49,31 @@ export function Chat() {
 
 ## useChat Parameters
 
-| Parameter    | Type            | Description                             |
-| ------------ | --------------- | --------------------------------------- |
-| `id`         | `string`        | Unique chat identifier                  |
-| `messages`   | `UIMessage[]`   | Initial messages                        |
-| `transport`  | `ChatTransport` | Custom transport (default: `/api/chat`) |
-| `onToolCall` | `function`      | Called when tool call received          |
-| `onFinish`   | `function`      | Called when response finished           |
-| `onError`    | `function`      | Error callback                          |
+| Parameter               | Type            | Description                             |
+| ----------------------- | --------------- | --------------------------------------- |
+| `id`                    | `string`        | Unique chat identifier                  |
+| `messages`              | `UIMessage[]`   | Initial messages                        |
+| `transport`             | `ChatTransport` | Custom transport (default: `/api/chat`) |
+| `onToolCall`            | `function`      | Called when tool call received          |
+| `onFinish`              | `function`      | Called when response finished           |
+| `onError`               | `function`      | Error callback                          |
+| `sendAutomaticallyWhen` | `function`      | Condition for auto-submitting messages  |
+| `resume`                | `boolean`       | Enable stream resumption for recovery   |
 
 ## useChat Return Values
 
-| Property      | Type                                               | Description              |
-| ------------- | -------------------------------------------------- | ------------------------ |
-| `messages`    | `UIMessage[]`                                      | Current messages         |
-| `status`      | `'submitted' \| 'streaming' \| 'ready' \| 'error'` | Chat status              |
-| `error`       | `Error \| undefined`                               | Error if any             |
-| `sendMessage` | `function`                                         | Send new message         |
-| `regenerate`  | `function`                                         | Regenerate last response |
-| `stop`        | `function`                                         | Stop streaming           |
-| `setMessages` | `function`                                         | Update messages locally  |
+| Property        | Type                                               | Description               |
+| --------------- | -------------------------------------------------- | ------------------------- |
+| `messages`      | `UIMessage[]`                                      | Current messages          |
+| `status`        | `'submitted' \| 'streaming' \| 'ready' \| 'error'` | Chat status               |
+| `error`         | `Error \| undefined`                               | Error if any              |
+| `sendMessage`   | `function`                                         | Send new message          |
+| `regenerate`    | `function`                                         | Regenerate last response  |
+| `stop`          | `function`                                         | Stop streaming            |
+| `setMessages`   | `function`                                         | Update messages locally   |
+| `resumeStream`  | `function`                                         | Resume interrupted stream |
+| `addToolOutput` | `function`                                         | Provide tool result       |
+| `clearError`    | `function`                                         | Clear current error       |
 
 ## Status Values
 
@@ -124,6 +129,31 @@ type FileUIPart = {
   mediaType: string;
   filename?: string;
   url: string;
+};
+
+// Source references (RAG)
+type SourceUrlUIPart = {
+  type: "source-url";
+  url: string;
+  title?: string;
+};
+
+type SourceDocumentUIPart = {
+  type: "source-document";
+  documentId: string;
+  content?: string;
+};
+
+// Agent workflow boundaries
+type StepStartUIPart = {
+  type: "step-start";
+  stepId: string;
+};
+
+// Custom data
+type DataUIPart = {
+  type: string; // Custom type
+  data: unknown;
 };
 ```
 

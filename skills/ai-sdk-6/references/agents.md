@@ -206,6 +206,37 @@ const result = await supportAgent.generate({
 });
 ```
 
+### Async prepareCall with RAG
+
+`prepareCall` can be async for fetching context:
+
+```typescript
+const ragAgent = new ToolLoopAgent({
+  model: anthropic("claude-sonnet-4-5-20250929"),
+  callOptionsSchema: z.object({
+    query: z.string(),
+    complexity: z.enum(["simple", "complex"]).optional(),
+  }),
+  prepareCall: async ({ options, ...settings }) => {
+    // Fetch relevant documents (async)
+    const documents = await vectorSearch(options.query);
+
+    return {
+      ...settings,
+      // Dynamic model selection
+      model:
+        options.complexity === "complex"
+          ? anthropic("claude-sonnet-4-5-20250929")
+          : anthropic("claude-haiku-3-5-20250929"),
+      // Inject context into instructions
+      instructions: `Answer using this context:
+
+${documents.map((doc) => doc.content).join("\n\n")}`,
+    };
+  },
+});
+```
+
 ## Structured Output
 
 ```typescript

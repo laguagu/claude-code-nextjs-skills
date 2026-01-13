@@ -59,6 +59,7 @@ async function generateMarketingCopy(input: string) {
 ```typescript
 import { generateText, Output } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
 async function handleCustomerQuery(query: string) {
@@ -80,8 +81,8 @@ async function handleCustomerQuery(query: string) {
   const { text: response } = await generateText({
     model:
       classification.complexity === "simple"
-        ? "openai/gpt-4o-mini"
-        : "openai/o4-mini",
+        ? openai("gpt-4o-mini")
+        : openai("o3-mini"),
     system: {
       general: "You handle general inquiries.",
       refund: "You specialize in refund requests.",

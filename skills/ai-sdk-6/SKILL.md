@@ -1,11 +1,11 @@
 ---
 name: ai-sdk-6
-description: AI SDK v6 (Vercel) development. Use when building AI agents, chatbots, tool integrations, or streaming applications with the ai package.
+description: Vercel AI SDK v6 development. Use when building AI agents, chatbots, tool integrations, or streaming applications with the ai package.
 ---
 
-# AI SDK v6 Development Guide
+# Vercel AI SDK v6 Development Guide
 
-Use this skill when developing AI-powered features using AI SDK v6 (`ai` package).
+Use this skill when developing AI-powered features using Vercel AI SDK v6 (`ai` package).
 
 ## Quick Reference
 
@@ -125,9 +125,6 @@ For detailed information, see:
 - [middleware.md](references/middleware.md) - Custom middleware patterns
 - [mcp.md](references/mcp.md) - MCP server integration
 
-## Project Docs
+## Official Documentation
 
-Your project also has local documentation in `docs/`:
-
-- `docs/agents/` - Building agents, loop control, workflows
-- `docs/reference/` - Agent interface, useChat, UIMessage
+For the latest information, see [AI SDK docs](https://ai-sdk.dev/docs/agents).
