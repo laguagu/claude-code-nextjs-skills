@@ -262,8 +262,8 @@ claude mcp add --transport http ai-elements https://registry.ai-sdk.dev/api/mcp
 {
   "mcpServers": {
     "ai-elements": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://registry.ai-sdk.dev/api/mcp"]
+      "command": "bunx",
+      "args": ["--bun", "mcp-remote", "https://registry.ai-sdk.dev/api/mcp"]
     }
   }
 }
