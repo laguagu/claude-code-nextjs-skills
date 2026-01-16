@@ -180,6 +180,18 @@ Query type?
 ├─ Conceptual/semantic → Pure vector search
 ├─ Exact terms/names → Pure keyword search
 └─ Mixed/unknown → Hybrid search
-    ├─ Simple setup → FTS + RRF
-    └─ Best ranking → BM25 + RRF
+    ├─ Simple setup → FTS + RRF (no extra extensions)
+    ├─ Better ranking → BM25 + RRF (pg_search extension)
+    └─ Full-featured → ParadeDB (Elasticsearch alternative)
 ```
+
+## ParadeDB (Full-Featured Alternative)
+
+For comprehensive Elasticsearch-like features including BM25 ranking, faceted search, highlighting, fuzzy search, and aggregations, see [paradedb.md](paradedb.md).
+
+ParadeDB is ideal when you need:
+- Production-grade BM25 ranking (better than ts_rank)
+- Built-in highlighting with `pdb.snippet()`
+- Faceted queries with `pdb.agg()`
+- Fuzzy search with typo tolerance
+- Zero ETL - runs as Postgres extension or logical replica

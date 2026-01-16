@@ -1,14 +1,16 @@
 ---
 name: postgres-semantic-search
 description: |
-  PostgreSQL-based semantic and hybrid search with pgvector extension.
-  Use when implementing vector search, semantic search, or hybrid search
-  in PostgreSQL. Covers pgvector setup, indexing (HNSW, IVFFlat), hybrid
-  search (FTS + BM25 + RRF), and performance optimization. Supports
-  vector(1536) and halfvec(3072) types for different embedding models.
+  PostgreSQL-based semantic and hybrid search with pgvector and ParadeDB.
+  Use when implementing vector search, semantic search, hybrid search,
+  or full-text search in PostgreSQL. Covers pgvector setup, indexing
+  (HNSW, IVFFlat), hybrid search (FTS + BM25 + RRF), ParadeDB as
+  Elasticsearch alternative, and re-ranking with Cohere/cross-encoders.
+  Supports vector(1536) and halfvec(3072) types for OpenAI embeddings.
 
   Triggers: pgvector, vector search, semantic search, hybrid search,
-  embedding search, PostgreSQL RAG, BM25, RRF, HNSW index, similarity search
+  embedding search, PostgreSQL RAG, BM25, RRF, HNSW index, similarity search,
+  ParadeDB, pg_search, reranking, Cohere rerank
 ---
 
 # PostgreSQL Semantic Search
@@ -42,6 +44,30 @@ LIMIT 10;
 ```sql
 CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
 ```
+
+### Docker Quick Start
+
+```bash
+# pgvector with PostgreSQL 17
+docker run -d --name pgvector-db \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  pgvector/pgvector:pg17
+
+# Or PostgreSQL 18 (latest)
+docker run -d --name pgvector-db \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  pgvector/pgvector:pg18
+
+# ParadeDB (includes pgvector + pg_search + BM25)
+docker run -d --name paradedb \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  paradedb/paradedb:latest
+```
+
+Connect: `psql postgresql://postgres:postgres@localhost:5432/postgres`
 
 ## Cheat Sheet
 
@@ -97,7 +123,8 @@ Query type?
 ├─ Exact terms/names → Pure keyword search
 └─ Mixed/unknown → Hybrid search
     ├─ Simple setup → FTS + RRF (no extra extensions)
-    └─ Best ranking → BM25 + RRF (requires pg_search)
+    ├─ Better ranking → BM25 + RRF (pg_search extension)
+    └─ Full-featured → ParadeDB (Elasticsearch alternative)
 ```
 
 ### Choose Index Type
@@ -157,9 +184,11 @@ Two-stage retrieval improves precision: fast recall → precise rerank.
 
 | Method | Latency | Quality | Cost |
 |--------|---------|---------|------|
-| Cohere Rerank | ~200ms | Excellent | $0.001/query |
-| Cross-encoder | ~500ms | Excellent | Compute |
-| LLM rerank | ~1-2s | Good | API cost |
+| Cohere Rerank v4.0-fast | ~150ms | Excellent | $0.001/query |
+| Cohere Rerank v4.0-pro | ~300ms | Best | $0.002/query |
+| Zerank 2 | ~100ms | Best | API cost |
+| Voyage Rerank 2.5 | ~100ms | Excellent | API cost |
+| Cross-encoder (local) | ~500ms | Very Good | Compute |
 
 ### TypeScript Example (Cohere)
 
@@ -170,7 +199,7 @@ const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
 async function rerankResults(query: string, documents: string[]) {
   const response = await cohere.rerank({
-    model: 'rerank-v3.5',
+    model: 'rerank-v4.0-fast',  // or 'rerank-v4.0-pro' for best quality
     query,
     documents,
     topN: 10,
@@ -183,10 +212,11 @@ async function rerankResults(query: string, documents: string[]) {
 
 ## References
 
+- [paradedb.md](references/paradedb.md) - ParadeDB full-text search (Elasticsearch alternative)
 - [vector-types.md](references/vector-types.md) - vector vs halfvec, dimensions, storage
 - [indexing.md](references/indexing.md) - HNSW, IVFFlat, GIN parameters
 - [hybrid-search.md](references/hybrid-search.md) - FTS, BM25, RRF algorithms
-- [performance.md](references/performance.md) - Cold-start, memory, query optimization
+- [performance.md](references/performance.md) - Cold-start, memory, HNSW vs IVFFlat
 
 ## Scripts
 
@@ -246,8 +276,11 @@ const results = await db.execute(sql`
 
 ## Version Info (January 2026)
 
-- **pgvector 0.8.x**: Iterative scans, PostgreSQL 18 support, halfvec up to 4000 dims
-- **pg_search 0.21.0**: MVCC visibility, parallel aggregation, varchar[] indexing
+- **PostgreSQL 18.1**: Latest maintenance release with security fixes (Nov 2025)
+- **PostgreSQL 17.7**: Stable LTS option
+- **pgvector 0.8.1**: Iterative scans, PostgreSQL 18 support, halfvec up to 4000 dims
+- **pg_search 0.21.2**: MVCC visibility, parallel aggregation, varchar[] indexing
+- **Cohere Rerank v4.0**: 32K context, 100+ languages, self-learning (Dec 2025)
 
 ## External Documentation
 

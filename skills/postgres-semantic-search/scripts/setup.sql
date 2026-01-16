@@ -2,6 +2,30 @@
 -- Run this first on a new database
 
 -- ===========================================
+-- DOCKER QUICK START
+-- ===========================================
+--
+-- # pgvector with PostgreSQL 17
+-- docker run -d --name pgvector-db \
+--   -e POSTGRES_PASSWORD=postgres \
+--   -p 5432:5432 \
+--   pgvector/pgvector:pg17
+--
+-- # Or PostgreSQL 18 (latest)
+-- docker run -d --name pgvector-db \
+--   -e POSTGRES_PASSWORD=postgres \
+--   -p 5432:5432 \
+--   pgvector/pgvector:pg18
+--
+-- # ParadeDB (includes pgvector + pg_search + BM25)
+-- docker run -d --name paradedb \
+--   -e POSTGRES_PASSWORD=postgres \
+--   -p 5432:5432 \
+--   paradedb/paradedb:latest
+--
+-- Connect: psql postgresql://postgres:postgres@localhost:5432/postgres
+
+-- ===========================================
 -- 1. REQUIRED EXTENSIONS
 -- ===========================================
 

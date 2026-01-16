@@ -69,9 +69,8 @@ CREATE INDEX ON documents USING hnsw (embedding bit_hamming_ops);
 |-------|-----------|------------------|
 | text-embedding-3-small | 1536 | `vector(1536)` |
 | text-embedding-3-large | 3072 | `halfvec(3072)` |
-| text-embedding-ada-002 | 1536 | `vector(1536)` |
-| Cohere embed-v3 | 1024 | `vector(1024)` |
-| Voyage AI | 1024 | `vector(1024)` |
+
+> **Note:** For other embedding models (Cohere, Voyage AI, Mistral, etc.), consult the model provider's documentation for dimension specifications. Use `vector(dimensions)` for models with ≤ 2000 dimensions, or `halfvec(dimensions)` for larger models requiring memory optimization.
 
 ## Dimension Truncation
 
