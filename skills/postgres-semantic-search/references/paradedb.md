@@ -86,6 +86,13 @@ WITH (key_field='id');
 | `pdb.ngram(min, max)` | Partial matching, typo tolerance |
 | `pdb.simple` | Basic whitespace |
 
+### Tokenizer Parameters
+
+```sql
+-- Remove emojis from text before indexing
+(content::pdb.unicode_words('stemmer=english', 'remove_emojis=true'))
+```
+
 ### Stemmer Languages
 
 ```sql
@@ -97,6 +104,20 @@ WITH (key_field='id');
 
 -- Multiple token filters
 (content::pdb.simple('stemmer=english', 'ascii_folding=true'))
+```
+
+### JSON Field Indexing
+
+JSONB fields are automatically indexed with sub-fields. Target specific sub-fields with tokenizers:
+
+```sql
+CREATE INDEX ON documents USING bm25 (
+    id,
+    metadata,  -- Auto-indexes all sub-fields
+    ((metadata->>'title')::pdb.unicode_words('stemmer=english')),
+    ((metadata->>'tags')::pdb.ngram(2,3))
+)
+WITH (key_field='id');
 ```
 
 ## Search Operators
@@ -250,6 +271,13 @@ FROM documents d
 JOIN categories c ON d.category_id = c.id
 WHERE d.content ||| 'search query'
 ORDER BY pdb.score(d.id) DESC;
+
+-- Combined scores across tables
+SELECT d.content, c.name, pdb.score(d.id) + pdb.score(c.id) AS combined_score
+FROM documents d
+JOIN categories c ON d.category_id = c.id
+WHERE d.content ||| 'query' AND c.name ||| 'query'
+ORDER BY combined_score DESC;
 ```
 
 ## Important Considerations
