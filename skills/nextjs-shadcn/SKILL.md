@@ -58,21 +58,25 @@ function Button({ className, ...props }) {
 
 ```
 app/
-├── (marketing)/         # Route group - no URL segment
-│   ├── about/
-│   └── pricing/
-├── (dashboard)/         # Another route group
+├── (protected)/         # Auth required routes
 │   ├── dashboard/
 │   ├── settings/
 │   ├── components/      # Route-specific components
 │   └── lib/             # Route-specific utils/types
-├── (auth)/
+├── (public)/            # Public routes
 │   ├── login/
 │   └── register/
+├── actions/             # Server Actions (global)
+├── api/                 # API routes
 ├── layout.tsx           # Root layout
 └── globals.css          # Theme tokens
 components/              # Shared components
+├── ui/                  # shadcn primitives
+└── shared/              # Business components
+hooks/                   # Custom React hooks
 lib/                     # Shared utils
+data/                    # Database queries
+ai/                      # AI logic (tools, agents, prompts)
 ```
 
 ## Next.js 16 Features
@@ -118,12 +122,19 @@ export async function createPost(data: FormData) {
 
 ### Proxy API
 
-Use `proxy.ts` for request interception (replaces middleware):
+Use `proxy.ts` for request interception (replaces middleware). Place at project root:
 
 ```tsx
-// app/api/[...proxy]/proxy.ts
-export function proxy(request: Request) {
+// proxy.ts (project root, same level as app/)
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+export function proxy(request: NextRequest) {
   // Auth checks, redirects, etc.
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*'],
 }
 ```
 
@@ -132,6 +143,7 @@ export function proxy(request: Request) {
 - **Architecture**: [references/architecture.md](references/architecture.md) - Components, routing, Suspense, data patterns
 - **Styling**: [references/styling.md](references/styling.md) - Themes, animations, CSS variables
 - **Project Setup**: [references/project-setup.md](references/project-setup.md) - bun commands, presets
+- **shadcn/ui**: [llms.txt](https://ui.shadcn.com/llms.txt) - Official AI-optimized reference
 
 ## Package Manager
 

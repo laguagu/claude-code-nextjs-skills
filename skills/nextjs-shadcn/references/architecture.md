@@ -19,18 +19,23 @@ Passing data to client?
 
 ```
 app/
-├── (feature)/
-│   ├── components/          # Route-specific
-│   │   ├── feature-card.tsx
-│   │   └── feature-list.tsx
+├── (protected)/             # Auth required routes
+│   ├── dashboard/
+│   ├── settings/
+│   ├── components/          # Route-specific components
 │   └── lib/                 # Route-specific types/utils
-│       └── types.ts
+├── (public)/                # Public routes
+│   ├── login/
+│   └── register/
+├── actions/                 # Server Actions (global)
+├── api/                     # API routes
 components/                  # Shared across routes
 ├── ui/                      # shadcn primitives
 └── shared/                  # Business components
+hooks/                       # Custom React hooks
 lib/                         # Shared utilities
 data/                        # Database queries
-ai/                          # AI logic
+ai/                          # AI logic (tools, agents, prompts)
 ```
 
 ### className Pattern
@@ -66,16 +71,17 @@ Group routes without affecting URL:
 
 ```
 app/
-├── (marketing)/         # /about, /pricing
-│   ├── about/
-│   └── pricing/
-├── (dashboard)/         # /dashboard, /settings
+├── (protected)/         # Auth required - /dashboard, /settings
 │   ├── dashboard/
 │   ├── settings/
-│   └── layout.tsx       # Shared dashboard chrome
-└── (auth)/              # /login, /register
-    ├── login/
-    └── register/
+│   └── layout.tsx       # Shared chrome (sidebar, auth check)
+├── (public)/            # Public - /login, /register, /about
+│   ├── login/
+│   ├── register/
+│   └── about/
+└── (marketing)/         # Marketing - /pricing, /features
+    ├── pricing/
+    └── features/
 ```
 
 ### Layout vs Template
@@ -194,6 +200,35 @@ export function ClientChart({ dataPromise }) {
 }
 ```
 
+## State Management
+
+### useTransition Pattern
+
+Wrap non-urgent UI updates to keep interactions smooth:
+
+```tsx
+"use client"
+import { useTransition } from "react"
+
+function SubmitButton({ action }: { action: () => Promise<void> }) {
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <button
+      onClick={() => startTransition(() => action())}
+      disabled={isPending}
+    >
+      {isPending ? "Saving..." : "Save"}
+    </button>
+  )
+}
+```
+
+**Guidelines:**
+- Use `isPending` for feedback (disable buttons, show spinners)
+- Don't wrap controlled input state in transitions
+- After `await` inside transition, wrap subsequent `setState` in another `startTransition`
+
 ## Data Patterns
 
 ### "use cache" (Next.js 16)
@@ -245,27 +280,39 @@ export async function createPost(formData: FormData) {
   // Or SWR-style revalidation
   // revalidateTag("posts", "max")
 }
+
+// Refresh uncached data
+import { refresh } from "next/cache"
+
+export async function updateProfile(data: FormData) {
+  await db.update(...)
+  refresh() // Triggers client router refresh
+}
 ```
 
 ### Proxy API (Next.js 16)
 
-Replaces middleware for request interception:
+Replaces middleware for request interception. Place at project root (same level as `app/`):
 
 ```tsx
-// app/api/[...proxy]/proxy.ts
+// proxy.ts (project root)
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 
-export async function proxy(request: Request) {
+export async function proxy(request: NextRequest) {
   const cookieStore = await cookies()
   const session = cookieStore.get("session")
 
-  if (!session) {
-    redirect("/login")
+  if (!session && request.nextUrl.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // Continue to API route
-  return null
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/api/:path*'],
 }
 ```
 
