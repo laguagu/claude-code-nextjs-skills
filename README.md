@@ -41,7 +41,14 @@
 
 | Skill | Description |
 |-------|-------------|
-| [skill-creator](skills/skill-creator/) | Create custom skills |
+| [skill-creator](skills/skill-creator/) | Create custom skills ([anthropics/skills](https://github.com/anthropics/skills), Apache 2.0) |
+
+### 📦 Third-Party Skills
+
+| Skill | Source | License |
+|-------|--------|---------|
+| [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
+| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | Apache 2.0 |
 
 ## Installation
 
@@ -67,4 +74,8 @@ Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
 
 ## License
 
-MIT
+MIT (this repository)
+
+Third-party skills retain their original licenses:
+- `skill-creator`: Apache 2.0 ([anthropics/skills](https://github.com/anthropics/skills))
+- `cache-components`: MIT ([vercel/next.js](https://github.com/vercel/next.js))
