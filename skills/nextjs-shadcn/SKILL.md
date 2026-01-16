@@ -1,7 +1,6 @@
 ---
 name: nextjs-shadcn
 description: Creates Next.js 16 frontends with shadcn/ui. Use when building React UIs, components, pages, or applications with shadcn, Tailwind, or modern frontend patterns.
-user-invocable: true
 ---
 
 # Next.js 16 + shadcn/ui
@@ -24,6 +23,7 @@ bunx --bun shadcn@latest create --preset "https://ui.shadcn.com/init?style=vega&
 ## Component Rules
 
 ### Page Structure
+
 ```tsx
 // page.tsx - flat composition, no logic
 export default function Page() {
@@ -34,23 +34,23 @@ export default function Page() {
       <Features />
       <Footer />
     </>
-  )
+  );
 }
 ```
 
 ### Client Boundaries
+
 - `"use client"` only at leaf components (smallest boundary)
 - Props must be serializable (data or Server Actions, no functions/classes)
 - Pass server content via `children`
 
 ### Style Merging
+
 ```tsx
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 function Button({ className, ...props }) {
-  return (
-    <button className={cn("px-4 py-2 rounded", className)} {...props} />
-  )
+  return <button className={cn("px-4 py-2 rounded", className)} {...props} />;
 }
 ```
 
@@ -78,22 +78,24 @@ lib/                     # Shared utils
 ## Next.js 16 Features
 
 ### Async Params
+
 ```tsx
 export default async function Page({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>
-  searchParams: Promise<{ q?: string }>
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const { id } = await params
-  const { q } = await searchParams
+  const { id } = await params;
+  const { q } = await searchParams;
 }
 ```
 
 ### Caching
+
 ```tsx
-"use cache"
+"use cache";
 
 export async function getData() {
   // Cached at function level
@@ -101,20 +103,23 @@ export async function getData() {
 ```
 
 ### Server Actions
-```tsx
-"use server"
 
-import { updateTag, revalidateTag } from "next/cache"
+```tsx
+"use server";
+
+import { updateTag, revalidateTag } from "next/cache";
 
 export async function createPost(data: FormData) {
   // Validate with Zod
-  await db.insert(posts).values(parsed)
-  updateTag("posts")  // Read-your-writes
+  await db.insert(posts).values(parsed);
+  updateTag("posts"); // Read-your-writes
 }
 ```
 
 ### Proxy API
+
 Use `proxy.ts` for request interception (replaces middleware):
+
 ```tsx
 // app/api/[...proxy]/proxy.ts
 export function proxy(request: Request) {
@@ -131,6 +136,7 @@ export function proxy(request: Request) {
 ## Package Manager
 
 **Always use bun**, never npm or npx:
+
 - `bun install` (not npm install)
 - `bun add` (not npm install package)
 - `bunx --bun` (not npx)
