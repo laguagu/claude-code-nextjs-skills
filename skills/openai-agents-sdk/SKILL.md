@@ -37,7 +37,7 @@ from agents import Agent, Runner
 agent = Agent(
     name="Assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.1",  # or "gpt-5", "gpt-5.1-nano"
+    model="gpt-5.2",  # or "gpt-5", "gpt-5.2-nano"
 )
 
 # Synchronous

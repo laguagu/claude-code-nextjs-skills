@@ -20,7 +20,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 
 async function generateMarketingCopy(input: string) {
-  const model = anthropic("claude-sonnet-4-5-20250929");
+  const model = anthropic("claude-sonnet-4-5");
 
   // Step 1: Generate copy
   const { text: copy } = await generateText({
@@ -63,7 +63,7 @@ import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
 async function handleCustomerQuery(query: string) {
-  const model = anthropic("claude-sonnet-4-5-20250929");
+  const model = anthropic("claude-sonnet-4-5");
 
   // Classify the query
   const { output: classification } = await generateText({
@@ -103,7 +103,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 
 async function parallelCodeReview(code: string) {
-  const model = anthropic("claude-sonnet-4-5-20250929");
+  const model = anthropic("claude-sonnet-4-5");
 
   // Run reviews in parallel
   const [security, performance, maintainability] = await Promise.all([
@@ -167,7 +167,7 @@ import { z } from "zod";
 async function implementFeature(request: string) {
   // Orchestrator: Plan the implementation
   const { output: plan } = await generateText({
-    model: anthropic("claude-sonnet-4-5-20250929"),
+    model: anthropic("claude-sonnet-4-5"),
     output: Output.object({
       schema: z.object({
         files: z.array(
@@ -187,7 +187,7 @@ async function implementFeature(request: string) {
   const changes = await Promise.all(
     plan.files.map(async (file) => {
       const { output: change } = await generateText({
-        model: anthropic("claude-sonnet-4-5-20250929"),
+        model: anthropic("claude-sonnet-4-5"),
         output: Output.object({
           schema: z.object({
             explanation: z.string(),
@@ -218,7 +218,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 
 async function translateWithFeedback(text: string, targetLanguage: string) {
-  const model = anthropic("claude-sonnet-4-5-20250929");
+  const model = anthropic("claude-sonnet-4-5");
   let currentTranslation = "";
   let iterations = 0;
   const MAX_ITERATIONS = 3;

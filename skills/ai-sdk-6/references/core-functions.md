@@ -9,7 +9,7 @@ import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
 const { text, usage, finishReason } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   prompt: "Write a vegetarian lasagna recipe for 4 people.",
 });
 ```
@@ -18,7 +18,7 @@ const { text, usage, finishReason } = await generateText({
 
 ```typescript
 const { text } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   system: "You are an expert chef specializing in Italian cuisine.",
   prompt: "Write a vegetarian lasagna recipe.",
 });
@@ -28,7 +28,7 @@ const { text } = await generateText({
 
 ```typescript
 const { text } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   messages: [
     { role: "user", content: "Hello!" },
     { role: "assistant", content: "Hi! How can I help?" },
@@ -67,7 +67,7 @@ import { streamText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   prompt: "Write a poem about AI.",
 });
 
@@ -88,7 +88,7 @@ for await (const chunk of result.textStream) {
 
 ```typescript
 const result = streamText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   prompt: "Hello",
   onChunk: ({ chunk }) => {
     // chunk types: 'text', 'reasoning', 'source', 'tool-call',
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-5-20250929"),
+    model: anthropic("claude-sonnet-4-5"),
     messages,
   });
 
@@ -138,7 +138,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 
 const { output } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   output: Output.object({
     schema: z.object({
       sentiment: z.enum(["positive", "neutral", "negative"]),
@@ -160,7 +160,7 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 
 const { output } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   output: Output.array({
     element: z.object({
       title: z.string(),
@@ -179,7 +179,7 @@ const { output } = await generateText({
 import { generateText, Output } from "ai";
 
 const { output } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   output: Output.choice({
     options: ["bug", "feature", "question", "documentation"],
   }),
@@ -195,7 +195,7 @@ const { output } = await generateText({
 import { generateText, Output } from "ai";
 
 const { output } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   output: Output.json(),
   prompt: "Return user data as JSON",
 });
@@ -210,7 +210,7 @@ import { streamText, Output } from "ai";
 import { z } from "zod";
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   output: Output.object({
     schema: z.object({
       recipe: z.object({
@@ -242,7 +242,7 @@ import { generateText, Output, tool } from "ai";
 import { z } from "zod";
 
 const { output, steps } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   tools: {
     getWeather: tool({
       description: "Get weather for a location",
@@ -273,7 +273,7 @@ console.log(output.recommendation);
 import { generateObject } from "ai";
 
 const { object } = await generateObject({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   schema: z.object({ ... }),
   prompt: "...",
 });
@@ -282,7 +282,7 @@ const { object } = await generateObject({
 import { generateText, Output } from "ai";
 
 const { output } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   output: Output.object({ schema: z.object({ ... }) }),
   prompt: "...",
 });
@@ -294,7 +294,7 @@ All core functions support these options:
 
 ```typescript
 {
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   prompt: "...",
   system: "...",
   messages: [...],

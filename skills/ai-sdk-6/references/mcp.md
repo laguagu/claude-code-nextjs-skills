@@ -106,7 +106,7 @@ const tools = await mcpClient.tools({
 });
 
 const result = await streamText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   tools,
   prompt: "What is the weather in Brooklyn?",
   onFinish: async () => {
@@ -133,7 +133,7 @@ const combinedTools = {
 
 try {
   await streamText({
-    model: anthropic("claude-sonnet-4-5-20250929"),
+    model: anthropic("claude-sonnet-4-5"),
     tools: combinedTools,
     prompt: "Fetch and analyze data",
   });
@@ -199,7 +199,7 @@ try {
 
   const tools = await mcpClient.tools();
   await streamText({
-    model: anthropic("claude-sonnet-4-5-20250929"),
+    model: anthropic("claude-sonnet-4-5"),
     tools,
     prompt: "Your prompt here",
   });

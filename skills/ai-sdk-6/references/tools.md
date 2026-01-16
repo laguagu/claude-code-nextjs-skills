@@ -38,7 +38,7 @@ import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
 const { text, toolCalls, toolResults } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   prompt: "What's the weather in Tokyo?",
   tools: {
     weather: weatherTool,
@@ -56,7 +56,7 @@ import { streamText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   prompt: "What's the weather in Tokyo?",
   tools: {
     weather: weatherTool,
@@ -115,7 +115,7 @@ const confirmTool = tool({
 });
 
 const { toolCalls } = await generateText({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   prompt: "Delete all files?",
   tools: { confirm: confirmTool },
 });
@@ -160,7 +160,7 @@ const createTaskTool = tool({
 import { ToolLoopAgent } from "ai";
 
 const agent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   tools: {
     search: tool({
       description: "Search the web",

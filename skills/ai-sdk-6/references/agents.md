@@ -12,7 +12,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 
 const codeAgent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   instructions: `You are a senior software engineer.
     Focus on security, performance, and maintainability.`,
   tools: {
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
 import { ToolLoopAgent, stepCountIs, hasToolCall } from "ai";
 
 const agent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   tools: {
     /* ... */
   },
@@ -130,7 +130,7 @@ const budgetExceeded: StopCondition<typeof tools> = ({ steps }) => {
 
 ```typescript
 const agent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   tools: {
     search: searchTool,
     analyze: analyzeTool,
@@ -179,7 +179,7 @@ Type-safe runtime configuration:
 
 ```typescript
 const supportAgent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   callOptionsSchema: z.object({
     userId: z.string(),
     accountType: z.enum(["free", "pro", "enterprise"]),
@@ -212,7 +212,7 @@ const result = await supportAgent.generate({
 
 ```typescript
 const ragAgent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   callOptionsSchema: z.object({
     query: z.string(),
     complexity: z.enum(["simple", "complex"]).optional(),
@@ -226,7 +226,7 @@ const ragAgent = new ToolLoopAgent({
       // Dynamic model selection
       model:
         options.complexity === "complex"
-          ? anthropic("claude-sonnet-4-5-20250929")
+          ? anthropic("claude-sonnet-4-5")
           : anthropic("claude-haiku-3-5-20250929"),
       // Inject context into instructions
       instructions: `Answer using this context:
@@ -243,7 +243,7 @@ ${documents.map((doc) => doc.content).join("\n\n")}`,
 import { Output } from "ai";
 
 const analysisAgent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   output: Output.object({
     schema: z.object({
       sentiment: z.enum(["positive", "neutral", "negative"]),

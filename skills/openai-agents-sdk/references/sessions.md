@@ -115,7 +115,7 @@ base_session = SQLiteSession("long_conversation")
 session = CompactionSession(
     base_session=base_session,
     max_messages=20,  # Compact after 20 messages
-    summary_model="gpt-5.1-nano",  # Model for summarization
+    summary_model="gpt-5.2-mini",  # Model for summarization
 )
 
 agent = Agent(name="LongChatBot", instructions="Have long conversations.")

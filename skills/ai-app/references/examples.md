@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const result = streamText({
-    model: anthropic('claude-sonnet-4-5-20250929'),
+    model: anthropic('claude-sonnet-4-5'),
     messages: convertToModelMessages(messages),
   });
 
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const result = streamText({
-    model: anthropic('claude-sonnet-4-5-20250929'),
+    model: anthropic('claude-sonnet-4-5'),
     messages: convertToModelMessages(messages),
     system: `You are a helpful AI assistant. When appropriate:
 - Use extended thinking to reason through complex problems
@@ -308,7 +308,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 
 export const assistantAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5-20250929'),
+  model: anthropic('claude-sonnet-4-5'),
   instructions: `You are a helpful assistant with access to tools.
 When you need current information, use the searchWeb tool.
 When calculating, use the calculator tool.
@@ -510,7 +510,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 
 export const researchAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5-20250929'),
+  model: anthropic('claude-sonnet-4-5'),
   instructions: 'You are a research assistant. Find and summarize information.',
   tools: {
     search: tool({
@@ -532,7 +532,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 
 export const codeAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5-20250929'),
+  model: anthropic('claude-sonnet-4-5'),
   instructions: 'You are a coding assistant. Write and explain code.',
   tools: {
     runCode: tool({
@@ -556,7 +556,7 @@ import { ToolLoopAgent, stepCountIs } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 
 export const writingAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5-20250929'),
+  model: anthropic('claude-sonnet-4-5'),
   instructions: 'You are a writing assistant. Help with content creation.',
   tools: {},
   stopWhen: stepCountIs(10),

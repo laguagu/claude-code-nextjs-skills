@@ -18,7 +18,7 @@ Language model middleware for intercepting and modifying model behavior.
 import { wrapLanguageModel, extractReasoningMiddleware } from "ai";
 
 const model = wrapLanguageModel({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   middleware: extractReasoningMiddleware({ tagName: "think" }),
 });
 ```
@@ -40,7 +40,7 @@ const model = wrapLanguageModel({
 import { wrapLanguageModel, defaultSettingsMiddleware } from "ai";
 
 const model = wrapLanguageModel({
-  model: anthropic("claude-sonnet-4-5-20250929"),
+  model: anthropic("claude-sonnet-4-5"),
   middleware: defaultSettingsMiddleware({
     settings: {
       temperature: 0.5,
@@ -144,7 +144,7 @@ Pass context through `providerOptions`:
 ```typescript
 const { text } = await generateText({
   model: wrapLanguageModel({
-    model: anthropic("claude-sonnet-4-5-20250929"),
+    model: anthropic("claude-sonnet-4-5"),
     middleware: customMiddleware,
   }),
   prompt: "Your prompt...",
