@@ -8,6 +8,9 @@
 # Start a full-stack AI app
 /ai-app
 
+# Start autonomous Ralph Loop for complex apps
+/ralph-loop:ralph-loop "/ai-app @spec/PLAN.md build this app" --max-iterations 50 --completion-promise "DONE"
+
 # Or use individual skills as needed
 /ai-sdk-6              # AI agents & streaming
 /postgres-semantic-search  # Vector/hybrid search
