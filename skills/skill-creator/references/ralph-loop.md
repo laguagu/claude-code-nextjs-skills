@@ -1,6 +1,6 @@
 # Ralph Loop - Autonomous Iteration
 
-Ralph is a technique for autonomous software development using continuous iteration.
+Ralph Loop implements the Ralph Wiggum technique - an iterative development methodology based on continuous AI loops, pioneered by Geoffrey Huntley.
 
 ## Official Plugin
 
@@ -13,18 +13,31 @@ claude plugin install ralph-loop@claude-plugins-official
 Usage:
 
 ```bash
-/ralph-loop "Build a REST API" --max-iterations 50 --completion-promise "DONE"
-/cancel-ralph  # Cancel active loop
+/ralph-loop:ralph-loop "Build a REST API" --max-iterations 50 --completion-promise "DONE"
+/ralph-loop:cancel-ralph  # Cancel active loop
+/ralph-loop:help          # Show help
 ```
 
 ## Core Concept
 
-Ralph creates a self-referential loop where Claude:
+```bash
+while :; do
+  cat PROMPT.md | claude-code --continue
+done
+```
 
-1. Works on the task
-2. Tries to exit
-3. Stop hook blocks exit and feeds the prompt back
-4. Repeats until completion promise is detected
+The same prompt is fed to Claude repeatedly. The "self-referential" aspect comes from Claude seeing its own previous work in the files and git history, not from feeding output back as input.
+
+Each Iteration:
+
+1. Claude receives the SAME prompt
+2. Works on the task, modifying files
+3. Tries to exit
+4. Stop hook intercepts and feeds the same prompt again
+5. Claude sees its previous work in the files
+6. Iteratively improves until completion
+
+The technique is described as "deterministically bad in an undeterministic world" - failures are predictable, enabling systematic improvement through prompt tuning.
 
 ## When to Use
 
@@ -43,14 +56,22 @@ Ralph creates a self-referential loop where Claude:
 
 ## Completion Promises
 
-Tell Claude how to signal completion:
+To signal completion, output a `<promise>` tag:
 
-```markdown
-When the task is complete, output exactly:
-<promise>TASK_COMPLETE</promise>
-
-Do not output this until ALL requirements are verified.
+```xml
+<promise>TASK COMPLETE</promise>
 ```
+
+The stop hook looks for this specific tag. Without it (or `--max-iterations`), Ralph runs infinitely.
+
+## Self-Reference Mechanism
+
+The "loop" doesn't mean Claude talks to itself. It means:
+
+- Same prompt repeated
+- Claude's work persists in files
+- Each iteration sees previous attempts
+- Builds incrementally toward goal
 
 ## Custom Implementation
 
@@ -87,6 +108,7 @@ cat PROMPT.md
 echo '{"continue": true}'
 ```
 
-## Philosophy
+## Learn More
 
-Ralph requires "faith and a belief in eventual consistency." Each failure is a tuning opportunity - refine prompts iteratively and treat failures as feedback.
+- [Original technique](https://ghuntley.com/ralph/)
+- [Ralph Orchestrator](https://github.com/mikeyobrien/ralph-orchestrator)

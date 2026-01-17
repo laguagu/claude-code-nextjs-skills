@@ -41,7 +41,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [skill-creator](skills/skill-creator/) | Create custom skills (extended from [anthropics/skills](https://github.com/anthropics/skills)) |
+| [skill-creator](skills/skill-creator/) | Create custom skills - includes [Ralph Loop](skills/skill-creator/references/ralph-loop.md) docs |
 
 ### 📦 Based On
 
