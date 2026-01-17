@@ -22,6 +22,7 @@
 | [ai-app](skills/ai-app/) | Full-stack AI app (chatbots, agents, dashboards) |
 | [nextjs-shadcn](skills/nextjs-shadcn/) | Next.js 16 + shadcn/ui + bun |
 | [cache-components](skills/cache-components/) | Next.js Cache Components & PPR |
+| [nextjs-seo](skills/nextjs-seo/) | SEO optimization (metadata, sitemaps, JSON-LD) |
 
 ### 🤖 AI SDKs
 
