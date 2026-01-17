@@ -36,6 +36,19 @@ Instructions for Claude to follow.
 - **Ralph Loop**: See [references/ralph-loop.md](references/ralph-loop.md) for autonomous iteration
 - **Examples**: See [references/examples.md](references/examples.md) for complete examples
 
+## Scripts
+
+```bash
+# Initialize new skill
+python scripts/init_skill.py my-skill --path ~/.claude/skills/
+
+# Validate SKILL.md
+python scripts/quick_validate.py path/to/skill
+
+# Package for distribution
+python scripts/package_skill.py path/to/skill
+```
+
 ## Quality Checklist
 
 Before deploying a skill, verify:
