@@ -145,10 +145,6 @@ export default function AgentDashboard() {
 
       {/* Main Chat */}
       <main className="flex flex-1 flex-col">
-        <header className="border-b p-4">
-          <h1 className="text-lg font-semibold">Agent Dashboard</h1>
-        </header>
-
         <Conversation className="flex-1 p-4">
           <ConversationContent>
             {messages.map((message) => (

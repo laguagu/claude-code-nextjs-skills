@@ -205,10 +205,69 @@ Installed automatically with `bunx --bun ai-elements@latest`:
 - `motion` - Animations (for Shimmer)
 - `@xyflow/react` - Canvas/workflow (optional)
 
+## Layout Patterns
+
+Choose based on your app's needs:
+
+| Pattern | When to use |
+|---------|-------------|
+| Root layout only | Minimal apps, providers only |
+| Nested layouts | Shared UI per section (sidebar, navigation) |
+| `template.tsx` | Reset state/effects on navigation |
+
+### Root Layout Only
+
+For simple single-page apps:
+
+```tsx
+// app/layout.tsx - minimal, just providers
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+### Nested Layouts
+
+For apps with sections that share UI:
+
+```
+app/
+├── layout.tsx           # Root (html, body, providers)
+├── (chat)/
+│   ├── layout.tsx       # Chat chrome (sidebar, header)
+│   └── page.tsx         # Chat content only
+└── (dashboard)/
+    ├── layout.tsx       # Dashboard chrome
+    └── page.tsx         # Dashboard content only
+```
+
+### template.tsx
+
+Use when state/effects should reset on navigation:
+
+```tsx
+// app/template.tsx - resets on every navigation
+export default function Template({ children }: { children: React.ReactNode }) {
+  return <AnimatedContainer>{children}</AnimatedContainer>;
+}
+```
+
+**Decision guide:**
+- State should persist → `layout.tsx`
+- State should reset → `template.tsx`
+- Per-page analytics/animations → `template.tsx`
+
+Reference: https://nextjs.org/docs/app/api-reference/file-conventions/template
+
 ## Best Practices
 
 1. **Keep agents separate** - One file per agent in `ai/`
 2. **Use route groups** - `(chat)/`, `(dashboard)/` for organization
-3. **Extract components** - Move complex UI to `components/chat/`
-4. **Environment safety** - Never commit `.env.local`
-5. **Type safety** - Use `InferAgentUIMessage` for typed messages
+3. **Use nested layouts** - Avoid repeating header/footer in pages
+4. **Extract components** - Move complex UI to `components/chat/`
+5. **Environment safety** - Never commit `.env.local`
+6. **Type safety** - Use `InferAgentUIMessage` for typed messages
