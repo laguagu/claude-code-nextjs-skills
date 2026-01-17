@@ -6,7 +6,7 @@
 
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?style=vega&iconLibrary=lucide" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=vega&iconLibrary=lucide" \
   --template next
 ```
 
@@ -31,21 +31,21 @@ https://ui.shadcn.com/init?
 **Minimal (vega + lucide)**:
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?style=vega&iconLibrary=lucide&font=inter" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=vega&iconLibrary=lucide&font=inter" \
   --template next
 ```
 
 **Bold (nova + tabler)**:
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?style=nova&iconLibrary=tabler&theme=violet" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=nova&iconLibrary=tabler&theme=violet" \
   --template next
 ```
 
 **Soft (maia + phosphor)**:
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?style=maia&iconLibrary=phosphor&radius=lg" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=maia&iconLibrary=phosphor&radius=lg" \
   --template next
 ```
 
@@ -69,7 +69,7 @@ bunx --bun shadcn@latest add --all
 bun add react-hook-form @hookform/resolvers zod
 
 # AI
-bun add ai @ai-sdk/openai
+bun add ai @ai-sdk/anthropic
 
 # Animation
 bun add motion              # For Motion

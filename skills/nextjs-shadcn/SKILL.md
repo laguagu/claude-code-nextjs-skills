@@ -17,7 +17,7 @@ Build distinctive, production-grade interfaces that avoid generic "AI slop" aest
 ## Quick Start
 
 ```bash
-bunx --bun shadcn@latest create --preset "https://ui.shadcn.com/init?style=vega&iconLibrary=lucide" --template next
+bunx --bun shadcn@latest create --preset "https://ui.shadcn.com/init?base=radix&style=vega&iconLibrary=lucide" --template next
 ```
 
 ## Component Rules
@@ -25,13 +25,23 @@ bunx --bun shadcn@latest create --preset "https://ui.shadcn.com/init?style=vega&
 ### Page Structure
 
 ```tsx
-// page.tsx - flat composition, no logic
+// page.tsx - content only, no layout chrome
 export default function Page() {
   return (
     <>
-      <Header />
       <HeroSection />
       <Features />
+      <Testimonials />
+    </>
+  );
+}
+
+// layout.tsx - shared UI (header, footer, sidebar)
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <Header />
+      <main>{children}</main>
       <Footer />
     </>
   );

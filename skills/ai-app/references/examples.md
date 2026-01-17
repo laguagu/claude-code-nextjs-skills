@@ -199,10 +199,6 @@ export default function ChatPage() {
 
   return (
     <div className="mx-auto flex h-screen max-w-3xl flex-col p-4">
-      <header className="mb-4 border-b pb-4">
-        <h1 className="text-xl font-semibold">AI Assistant</h1>
-      </header>
-
       <Conversation className="flex-1">
         <ConversationContent>
           {messages.map((message) => (
@@ -426,13 +422,6 @@ export default function AgentPage() {
 
   return (
     <div className="mx-auto flex h-screen max-w-3xl flex-col p-4">
-      <header className="mb-4 border-b pb-4">
-        <h1 className="text-xl font-semibold">AI Agent</h1>
-        <p className="text-sm text-muted-foreground">
-          Search the web, calculate, and more
-        </p>
-      </header>
-
       <Conversation className="flex-1">
         <ConversationContent>
           {messages.map((message) => (
@@ -664,10 +653,9 @@ export default function MultiAgentPage() {
 
   return (
     <div className="mx-auto flex h-screen max-w-3xl flex-col p-4">
-      <header className="mb-4 space-y-3 border-b pb-4">
-        <h1 className="text-xl font-semibold">Multi-Agent Assistant</h1>
+      <div className="mb-4">
         <AgentSelector value={agentType} onChange={setAgentType} />
-      </header>
+      </div>
 
       {/* Rest of chat UI same as Agent with Tools example */}
     </div>
