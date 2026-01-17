@@ -7,6 +7,17 @@ description: Creates Claude Code skills, hooks, MCP configs, and custom agents. 
 
 Create high-quality Claude Code skills, hooks, MCP configurations, and custom agents.
 
+## About Skills
+
+Skills are modular packages that extend Claude's capabilities with:
+
+- **Specialized workflows** - Multi-step procedures for specific domains
+- **Tool integrations** - Instructions for file formats or APIs
+- **Domain expertise** - Company-specific knowledge, schemas, business logic
+- **Bundled resources** - Scripts, references, and assets
+
+Think of skills as "onboarding guides" that transform Claude from general-purpose to specialized.
+
 ## Quick Start: Create a Skill
 
 1. Create directory: `~/.claude/skills/your-skill-name/`
@@ -36,18 +47,14 @@ Instructions for Claude to follow.
 - **Ralph Loop**: See [references/ralph-loop.md](references/ralph-loop.md) for autonomous iteration
 - **Examples**: See [references/examples.md](references/examples.md) for complete examples
 
-## Scripts
+## Skill Creation Process
 
-```bash
-# Initialize new skill
-python scripts/init_skill.py my-skill --path ~/.claude/skills/
-
-# Validate SKILL.md
-python scripts/quick_validate.py path/to/skill
-
-# Package for distribution
-python scripts/package_skill.py path/to/skill
-```
+1. **Understand** - Gather concrete examples of skill usage
+2. **Plan** - Identify reusable scripts, references, assets
+3. **Initialize** - `python scripts/init_skill.py my-skill --path ~/.claude/skills/`
+4. **Edit** - Implement resources, write SKILL.md
+5. **Validate** - `python scripts/quick_validate.py path/to/skill`
+6. **Iterate** - Test with real usage, refine based on feedback
 
 ## Quality Checklist
 
@@ -63,7 +70,8 @@ Before deploying a skill, verify:
 ## Common Patterns
 
 **Skill with references:**
-```
+
+```text
 skill-name/
 ├── SKILL.md
 └── references/
@@ -72,7 +80,8 @@ skill-name/
 ```
 
 **Skill with scripts:**
-```
+
+```text
 skill-name/
 ├── SKILL.md
 └── scripts/
@@ -80,7 +89,9 @@ skill-name/
 ```
 
 **Skill with hooks:**
+
 Add to `settings.json`:
+
 ```json
 {
   "hooks": {
