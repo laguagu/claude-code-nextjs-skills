@@ -147,14 +147,38 @@ bun add motion
 ```tsx
 "use client"
 
-import { motion } from "motion/react"
+import { motion, HTMLMotionProps } from "motion/react"
 
-export function FadeIn({ children }) {
+interface FadeInProps extends HTMLMotionProps<"div"> {
+  delay?: number
+  duration?: number
+  direction?: "up" | "down" | "left" | "right" | "none"
+}
+
+export function FadeIn({
+  children,
+  className,
+  delay = 0,
+  duration = 0.5,
+  direction = "up",
+  ...props
+}: FadeInProps) {
+  const directions = {
+    up: { y: 20, x: 0 },
+    down: { y: -20, x: 0 },
+    left: { x: 20, y: 0 },
+    right: { x: -20, y: 0 },
+    none: { x: 0, y: 0 },
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, ...directions[direction] }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration, delay, ease: "easeOut" }}
+      className={className}
+      {...props}
     >
       {children}
     </motion.div>
@@ -200,7 +224,7 @@ export function ScrollReveal({ children }) {
 
 ## Animation Decision Tree
 
-```
+```text
 Simple fade/slide on mount?
 ├── Yes → CSS animation in globals.css
 └── No ↓
@@ -231,6 +255,148 @@ const MotionDiv = dynamic(
   () => import("motion/react").then((mod) => mod.motion.div),
   { ssr: false }
 )
+```
+
+## Decorative Backgrounds
+
+Reusable patterns for visual atmosphere and section hierarchy.
+
+### Grid Pattern
+
+```tsx
+import { cn } from "@/lib/utils"
+
+export function GridBackground({
+  children,
+  className,
+  size = 20
+}: {
+  children: React.ReactNode
+  className?: string
+  size?: number
+}) {
+  return (
+    <div className={cn("relative", className)}>
+      <div
+        className={cn(
+          "absolute inset-0 -z-10",
+          "[background-image:linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)]"
+        )}
+        style={{ backgroundSize: `${size}px ${size}px` }}
+      />
+      {children}
+    </div>
+  )
+}
+```
+
+### Dot Pattern
+
+```tsx
+export function DotBackground({
+  children,
+  className
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn("relative", className)}>
+      <div
+        className={cn(
+          "absolute inset-0 -z-10",
+          "[background-size:20px_20px]",
+          "[background-image:radial-gradient(hsl(var(--muted-foreground)/0.3)_1px,transparent_1px)]"
+        )}
+      />
+      {children}
+    </div>
+  )
+}
+```
+
+### Radial Gradient Hero
+
+```tsx
+export function GradientHero({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative min-h-screen">
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-10"
+        style={{
+          background: "radial-gradient(125% 125% at 50% 10%, hsl(var(--background)) 40%, hsl(var(--primary)) 100%)"
+        }}
+      />
+      {children}
+    </div>
+  )
+}
+```
+
+### Faded Edge Effect
+
+Combine with grid/dot for vignette:
+
+```tsx
+<div className="relative">
+  <GridBackground className="absolute inset-0" />
+  <div className="pointer-events-none absolute inset-0 bg-background [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
+  {/* Content */}
+</div>
+```
+
+### Section Wrapper
+
+For sections that need different theme context:
+
+```tsx
+type SectionProps = {
+  children: React.ReactNode
+  variant?: "default" | "muted" | "inverted"
+  className?: string
+}
+
+export function Section({ children, variant = "default", className }: SectionProps) {
+  return (
+    <section
+      className={cn(
+        "relative py-24",
+        variant === "muted" && "bg-muted",
+        variant === "inverted" && "bg-foreground text-background [&_*]:border-background/20",
+        className
+      )}
+    >
+      {children}
+    </section>
+  )
+}
+```
+
+### Background Decision Tree
+
+```text
+Full-page ambient effect?
+├── Yes → Fixed radial gradient (GradientHero)
+└── No ↓
+
+Subtle texture for depth?
+├── Grid → Technical/dashboard feel
+├── Dots → Softer/organic feel
+└── No ↓
+
+Section contrast needed?
+├── Yes → Section wrapper with variant
+└── No → Standard bg-background
+```
+
+### File Organization
+
+```text
+components/
+├── ui/           # shadcn primitives
+├── backgrounds/  # Grid, Dot, Gradient patterns
+└── animations/   # FadeIn, ScrollReveal
 ```
 
 ## Optional Utilities
