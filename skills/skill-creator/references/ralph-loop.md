@@ -108,7 +108,48 @@ cat PROMPT.md
 echo '{"continue": true}'
 ```
 
+## Windows Troubleshooting
+
+The official plugin uses `.sh` (Bash) scripts which don't work natively on Windows. If you get an error like:
+
+```
+Error: Bash command failed for pattern "```!
+"/usr/bin/bash: command not found
+```
+
+**Fix:** Convert the plugin scripts to PowerShell:
+
+1. **Create PowerShell versions** of the scripts in the plugin cache:
+   - `C:\Users\<USER>\.claude\plugins\cache\claude-plugins-official\ralph-loop\<hash>\scripts\setup-ralph-loop.ps1`
+   - `C:\Users\<USER>\.claude\plugins\cache\claude-plugins-official\ralph-loop\<hash>\hooks\stop-hook.ps1`
+
+2. **Update hooks.json** to use PowerShell:
+   ```json
+   {
+     "hooks": {
+       "Stop": [{
+         "hooks": [{
+           "type": "command",
+           "command": "powershell -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.ps1\""
+         }]
+       }]
+     }
+   }
+   ```
+
+3. **Update ralph-loop.md** command:
+   ```markdown
+   ```!
+   powershell -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.ps1" $ARGUMENTS
+   ```
+   ```
+
+4. **Restart Claude Code** to apply changes.
+
+The PowerShell scripts implement the same logic as Bash versions but use native Windows commands.
+
 ## Learn More
 
 - [Original technique](https://ghuntley.com/ralph/)
 - [Ralph Orchestrator](https://github.com/mikeyobrien/ralph-orchestrator)
+- [Awesome Claude - Ralph Wiggum](https://awesomeclaude.ai/ralph-wiggum)
