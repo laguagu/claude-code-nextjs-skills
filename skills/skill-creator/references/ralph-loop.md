@@ -137,14 +137,36 @@ Error: Bash command failed for pattern "```!
    }
    ```
 
-3. **Update ralph-loop.md** command:
+3. **Update ralph-loop.md** command (use `-Command` instead of `-File` for proper argument passing):
    ```markdown
    ```!
-   powershell -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.ps1" $ARGUMENTS
+   powershell -ExecutionPolicy Bypass -Command "& '${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.ps1' $ARGUMENTS"
    ```
    ```
 
-4. **Restart Claude Code** to apply changes.
+4. **Add argument parsing to setup-ralph-loop.ps1** (handles single-string arguments):
+
+   ```powershell
+   # Add after param() block:
+   if ($Arguments.Count -eq 1 -and $Arguments[0] -match '\s') {
+       $RawInput = $Arguments[0]
+       $Parsed = [System.Management.Automation.PSParser]::Tokenize($RawInput, [ref]$null) |
+           Where-Object { $_.Type -eq 'String' -or $_.Type -eq 'CommandArgument' } |
+           ForEach-Object { $_.Content }
+       if ($Parsed -and $Parsed.Count -gt 0) {
+           $Arguments = $Parsed
+       } else {
+           $Arguments = $RawInput -split '\s+'
+       }
+   }
+   ```
+
+5. **Restart Claude Code** to apply changes.
+
+**Common Windows errors:**
+
+- `"Error: No prompt provided"` → Arguments not passing correctly, use `-Command` syntax above
+- `"Bash command permission check failed"` → Claude Code blocking multi-part commands
 
 The PowerShell scripts implement the same logic as Bash versions but use native Windows commands.
 
