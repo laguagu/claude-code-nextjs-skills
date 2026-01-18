@@ -150,8 +150,9 @@ export const config = {
 
 ## References
 
-- **Architecture**: [references/architecture.md](references/architecture.md) - Components, routing, Suspense, data patterns
-- **Styling**: [references/styling.md](references/styling.md) - Themes, animations, CSS variables
+- **Architecture**: [references/architecture.md](references/architecture.md) - Components, routing, Suspense, data patterns, AI directory structure
+- **Styling**: [references/styling.md](references/styling.md) - Themes, fonts, radius, animations, CSS variables
+- **Sidebar**: [references/sidebar.md](references/sidebar.md) - shadcn sidebar with nested layouts
 - **Project Setup**: [references/project-setup.md](references/project-setup.md) - bun commands, presets
 - **shadcn/ui**: [llms.txt](https://ui.shadcn.com/llms.txt) - Official AI-optimized reference
 

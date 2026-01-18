@@ -226,7 +226,8 @@ For detailed patterns, see:
 Ask user:
 - What type of AI app? (chatbot, agent, custom)
 - What features? (reasoning, sources, tools, file upload)
-- What styling? (minimal, full-featured)
+- What theme/colors? (zinc, neutral, blue, violet, green, orange)
+- What border radius style? (sharp 0.25rem, default 0.5rem, rounded 0.75rem, pill 1.3rem)
 
 ### Phase 2: Scaffold Project
 

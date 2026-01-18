@@ -34,6 +34,34 @@ shadcn generates base variables automatically based on your chosen preset. Custo
 
 **Choose preset**: Use [ui.shadcn.com/create](https://ui.shadcn.com/create) to select theme (vega, nova, maia, lyra, mira) and colors.
 
+### Theme Customization
+
+Quick customizations in `globals.css`:
+
+```css
+:root {
+  /* Typography - change fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: "Fira Code", ui-monospace, monospace;
+
+  /* Border radius - affects all rounded corners */
+  --radius: 0.5rem;       /* Default */
+  /* --radius: 0.25rem;   /* Sharp */
+  /* --radius: 0.75rem;   /* More rounded */
+  /* --radius: 1rem;      /* Very rounded */
+  /* --radius: 1.3rem;    /* Pill-like buttons */
+}
+```
+
+| Variable | Effect |
+|----------|--------|
+| `--font-sans` | Body text, buttons, inputs |
+| `--font-mono` | Code blocks, technical content |
+| `--radius` | All rounded corners (buttons, cards, inputs) |
+
+**Tip**: Larger `--radius` values (1rem+) give a softer, more modern look. Smaller values (0.25rem) feel sharper and technical.
+
 ### Using Theme Colors
 
 ```tsx

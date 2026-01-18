@@ -1,5 +1,12 @@
 # Architecture
 
+## Best Practices
+
+- Avoid `useEffect` - prefer Server Components, Server Actions, or event handlers
+- `"use client"` only at leaf components (smallest boundary)
+- Props must be serializable (data or Server Actions, no functions/classes)
+- Prefer Tailwind v4 `globals.css` theme variables over hardcoded values
+
 ## Component Patterns
 
 ### Server vs Client Decision Tree
@@ -36,6 +43,57 @@ hooks/                       # Custom React hooks
 lib/                         # Shared utilities
 data/                        # Database queries
 ai/                          # AI logic (tools, agents, prompts)
+```
+
+### AI Directory Structure
+
+When building AI applications, organize the `ai/` directory:
+
+```
+ai/
+├── model-names.ts      # Model definitions & DEFAULT_MODEL_NAME
+├── actions/            # AI-related server actions
+│   ├── model.ts        # saveModelId, getModelId (cookie-based)
+│   └── chat.ts         # Chat-related actions
+├── utils.ts            # findSources, getLastUserMessageText, etc.
+├── agents/             # Agent definitions (if using agents)
+│   └── assistant.ts
+└── tools/              # Tool definitions (if using tools)
+```
+
+**model-names.ts example:**
+
+```ts
+export interface Model {
+  id: string
+  label: string
+  description: string
+}
+
+export const models: Model[] = [
+  { id: "gpt-4o-mini", label: "GPT 4o mini", description: "Fast, lightweight tasks" },
+  { id: "gpt-4o", label: "GPT 4o", description: "Complex, multi-step tasks" },
+]
+
+export const DEFAULT_MODEL_NAME = "gpt-4o-mini"
+```
+
+**Cookie-based model storage:**
+
+```ts
+// ai/actions/model.ts
+"use server"
+import { cookies } from "next/headers"
+
+export async function saveModelId(model: string) {
+  const cookieStore = await cookies()
+  cookieStore.set("model-id", model)
+}
+
+export async function getModelId() {
+  const cookieStore = await cookies()
+  return cookieStore.get("model-id")?.value ?? DEFAULT_MODEL_NAME
+}
 ```
 
 ### className Pattern
