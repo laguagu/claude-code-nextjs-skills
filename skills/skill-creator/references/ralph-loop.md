@@ -108,67 +108,16 @@ cat PROMPT.md
 echo '{"continue": true}'
 ```
 
-## Windows Troubleshooting
+## Windows Known Issue
 
-The official plugin uses `.sh` (Bash) scripts which don't work natively on Windows. If you get an error like:
+The official plugin uses `.sh` (Bash) scripts which don't work natively on Windows. You may encounter errors like:
 
 ```
 Error: Bash command failed for pattern "```!
 "/usr/bin/bash: command not found
 ```
 
-**Fix:** Convert the plugin scripts to PowerShell:
-
-1. **Create PowerShell versions** of the scripts in the plugin cache:
-   - `C:\Users\<USER>\.claude\plugins\cache\claude-plugins-official\ralph-loop\<hash>\scripts\setup-ralph-loop.ps1`
-   - `C:\Users\<USER>\.claude\plugins\cache\claude-plugins-official\ralph-loop\<hash>\hooks\stop-hook.ps1`
-
-2. **Update hooks.json** to use PowerShell:
-   ```json
-   {
-     "hooks": {
-       "Stop": [{
-         "hooks": [{
-           "type": "command",
-           "command": "powershell -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.ps1\""
-         }]
-       }]
-     }
-   }
-   ```
-
-3. **Update ralph-loop.md** command (use `-Command` instead of `-File` for proper argument passing):
-   ```markdown
-   ```!
-   powershell -ExecutionPolicy Bypass -Command "& '${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.ps1' $ARGUMENTS"
-   ```
-   ```
-
-4. **Add argument parsing to setup-ralph-loop.ps1** (handles single-string arguments):
-
-   ```powershell
-   # Add after param() block:
-   if ($Arguments.Count -eq 1 -and $Arguments[0] -match '\s') {
-       $RawInput = $Arguments[0]
-       $Parsed = [System.Management.Automation.PSParser]::Tokenize($RawInput, [ref]$null) |
-           Where-Object { $_.Type -eq 'String' -or $_.Type -eq 'CommandArgument' } |
-           ForEach-Object { $_.Content }
-       if ($Parsed -and $Parsed.Count -gt 0) {
-           $Arguments = $Parsed
-       } else {
-           $Arguments = $RawInput -split '\s+'
-       }
-   }
-   ```
-
-5. **Restart Claude Code** to apply changes.
-
-**Common Windows errors:**
-
-- `"Error: No prompt provided"` → Arguments not passing correctly, use `-Command` syntax above
-- `"Bash command permission check failed"` → Claude Code blocking multi-part commands
-
-The PowerShell scripts implement the same logic as Bash versions but use native Windows commands.
+This is a known limitation. The plugin requires Bash scripts that are not compatible with Windows environments. Consider using WSL or a Linux/macOS environment for Ralph Loop.
 
 ## Learn More
 
