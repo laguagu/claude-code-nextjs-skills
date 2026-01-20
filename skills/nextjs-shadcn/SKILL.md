@@ -56,17 +56,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
 ### Import Aliases
 
-Always use `@/` alias instead of relative paths:
-
-```tsx
-// GOOD - @ alias
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-// BAD - relative paths
-import { Button } from "../../components/ui/button";
-import { cn } from "../../../lib/utils";
-```
+Always use `@/` alias (e.g., `@/lib/utils`) instead of relative paths (`../../lib/utils`).
 
 ### Style Merging
 
