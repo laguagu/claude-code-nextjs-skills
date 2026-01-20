@@ -220,6 +220,7 @@ export default function Page() {
 - "use client" at non-leaf components (should be at smallest boundary)
 - Missing className prop with cn() merging in components
 - Non-serializable props passed to client components
+- Missing `@` import alias usage (should use `@/` instead of relative paths like `../../`)
 
 **className pattern:**
 ```tsx
@@ -554,6 +555,7 @@ When invoked, scan the project using this sequence:
 - Missing cacheTag()/cacheLife()
 - Missing `connection()` for non-deterministic operations
 - Server Actions returning data that could be fetched in Server Component
+- Relative imports instead of `@/` alias
 
 **UI/UX (human decision):**
 - Gradient choices

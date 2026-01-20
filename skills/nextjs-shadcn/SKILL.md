@@ -54,6 +54,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 - Props must be serializable (data or Server Actions, no functions/classes)
 - Pass server content via `children`
 
+### Import Aliases
+
+Always use `@/` alias instead of relative paths:
+
+```tsx
+// GOOD - @ alias
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+// BAD - relative paths
+import { Button } from "../../components/ui/button";
+import { cn } from "../../../lib/utils";
+```
+
 ### Style Merging
 
 ```tsx
