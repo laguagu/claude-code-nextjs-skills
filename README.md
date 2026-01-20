@@ -54,6 +54,17 @@
 | [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
 | [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
 
+## Custom Agents
+
+Example agents for common workflows. Copy to `.claude/agents/` to use.
+
+| Agent | Description |
+|-------|-------------|
+| [code-simplifier](agents/code-simplifier.md) | Refines code for clarity (DRY/KISS/YAGNI) after coding sessions |
+| [nextjs-reviewer](agents/nextjs-reviewer.md) | Generates review reports for Next.js projects |
+
+See [sub-agents reference](skills/skill-creator/references/sub-agents.md) for creating custom agents.
+
 ## Installation
 
 Copy or symlink skills to:
