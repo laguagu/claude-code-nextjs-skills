@@ -569,6 +569,105 @@ export async function updateBlog() {
 
 ---
 
+## Function: `connection()`
+
+Explicitly defers rendering to request time without accessing runtime APIs like `cookies()` or `headers()`.
+
+### Import
+
+```tsx
+import { connection } from 'next/server'
+```
+
+### Signature
+
+```tsx
+function connection(): Promise<void>
+```
+
+### Usage
+
+```tsx
+import { connection } from 'next/server'
+import { Suspense } from 'react'
+
+async function UniqueContent() {
+  await connection() // Defer to request time
+
+  // Non-deterministic operations that need fresh values per request
+  const uuid = crypto.randomUUID()
+  const timestamp = Date.now()
+  const random = Math.random()
+
+  return (
+    <div>
+      <p>UUID: {uuid}</p>
+      <p>Generated: {timestamp}</p>
+      <p>Random: {random}</p>
+    </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <UniqueContent />
+    </Suspense>
+  )
+}
+```
+
+### When to Use `connection()`
+
+| Scenario                                                  | Use `connection()`? |
+| --------------------------------------------------------- | ------------------- |
+| Need unique values per request (`crypto.randomUUID()`)    | ✅ Yes              |
+| Using `Math.random()`, `Date.now()`                       | ✅ Yes              |
+| Non-deterministic operations that shouldn't be cached     | ✅ Yes              |
+| Already using `cookies()` or `headers()`                  | ❌ No (not needed)  |
+| Data is cacheable (same for all users)                    | ❌ No (use `'use cache'`) |
+
+### Why `connection()` Exists
+
+Without `connection()`, non-deterministic operations in Server Components might execute at build time and get baked into the static shell:
+
+```tsx
+// ❌ Problem: UUID generated once at build time
+async function BadExample() {
+  const uuid = crypto.randomUUID() // Same value for all users!
+  return <div>{uuid}</div>
+}
+
+// ✅ Solution: UUID generated per request
+async function GoodExample() {
+  await connection()
+  const uuid = crypto.randomUUID() // Unique per request
+  return <div>{uuid}</div>
+}
+```
+
+### `connection()` vs Runtime APIs
+
+If you're already accessing `cookies()` or `headers()`, you don't need `connection()`:
+
+```tsx
+// No need for connection() - cookies() already makes this dynamic
+async function UserContent() {
+  const session = (await cookies()).get('session')
+  const timestamp = Date.now() // Already dynamic due to cookies()
+  return <div>{timestamp}</div>
+}
+
+// Need connection() - no other dynamic API used
+async function AnonymousContent() {
+  await connection() // Explicit dynamic
+  const timestamp = Date.now()
+  return <div>{timestamp}</div>
+}
+```
+
+---
+
 ## Configuration: `next.config.ts`
 
 ### Enable Cache Components

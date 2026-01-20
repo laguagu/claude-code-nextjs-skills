@@ -81,7 +81,7 @@ export const DEFAULT_MODEL_NAME = "gpt-4o-mini"
 **Cookie-based model storage:**
 
 ```ts
-// ai/actions/model.ts
+// ai/actions/model.ts - Server Action for MUTATION only
 "use server"
 import { cookies } from "next/headers"
 
@@ -90,9 +90,17 @@ export async function saveModelId(model: string) {
   cookieStore.set("model-id", model)
 }
 
-export async function getModelId() {
+// ❌ WRONG: Don't use Server Action for reading data
+// export async function getModelId() { ... }
+
+// ✅ CORRECT: Read cookies directly in Server Component
+// page.tsx
+import { cookies } from "next/headers"
+
+export default async function Page() {
   const cookieStore = await cookies()
-  return cookieStore.get("model-id")?.value ?? DEFAULT_MODEL_NAME
+  const modelId = cookieStore.get("model-id")?.value ?? DEFAULT_MODEL_NAME
+  return <Chat modelId={modelId} />
 }
 ```
 
@@ -120,6 +128,91 @@ export function Card({ className, variant = "default", ...props }: CardProps) {
   )
 }
 ```
+
+## Data Fetching Patterns
+
+### Server Component (default)
+
+Fetch data directly in Server Components:
+
+```tsx
+export default async function Page() {
+  const data = await fetchData()
+  return <Component data={data} />
+}
+```
+
+### Cached Data Function
+
+Use `'use cache'` for reusable cached queries:
+
+```tsx
+// data/products.ts
+export async function getProducts() {
+  "use cache"
+  cacheTag("products")
+  cacheLife("hours")
+  return await db.products.findMany()
+}
+```
+
+### Streaming to Client (React `use` hook)
+
+Pass promises to Client Components for streaming:
+
+```tsx
+// Server Component
+export default function Page() {
+  const dataPromise = fetchData() // Don't await
+  return (
+    <Suspense fallback={<Loading />}>
+      <ClientDisplay dataPromise={dataPromise} />
+    </Suspense>
+  )
+}
+
+// Client Component
+"use client"
+import { use } from "react"
+
+export function ClientDisplay({ dataPromise }: { dataPromise: Promise<Data> }) {
+  const data = use(dataPromise) // Suspends until resolved
+  return <Chart data={data} />
+}
+```
+
+### Explicit Request-time with connection()
+
+Use `connection()` to explicitly defer to request time without accessing runtime APIs:
+
+```tsx
+import { connection } from "next/server"
+import { Suspense } from "react"
+
+async function UniqueContent() {
+  await connection() // Defer to request time
+  const uuid = crypto.randomUUID()
+  const timestamp = Date.now()
+  return <div>{uuid} - {timestamp}</div>
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <UniqueContent />
+    </Suspense>
+  )
+}
+```
+
+**When to use `connection()`:**
+
+| Scenario | Use connection()? |
+|----------|-------------------|
+| Need unique values per request | ✅ Yes |
+| Using `Math.random()`, `Date.now()`, `crypto.randomUUID()` | ✅ Yes |
+| Already using `cookies()` or `headers()` | ❌ No (not needed) |
+| Data is cacheable | ❌ No (use `'use cache'`) |
 
 ## Routing
 

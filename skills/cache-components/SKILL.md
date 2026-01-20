@@ -152,6 +152,62 @@ export default async function BlogPage() {
 }
 ```
 
+## Server Actions vs Data Fetching (Critical Rule)
+
+**Server Actions are for MUTATIONS ONLY** - never for data fetching:
+
+| Purpose         | Use                              | Example Functions                        |
+| --------------- | -------------------------------- | ---------------------------------------- |
+| **Data fetch**  | Server Component / `'use cache'` | `getProducts()`, `getUser(id)`           |
+| **Mutation**    | Server Action (`'use server'`)   | `createProduct()`, `updateUser()`, `deletePost()` |
+
+### ❌ WRONG: Server Action for Data Fetching
+
+```tsx
+"use server"
+export async function getProducts() {
+  return await db.products.findMany() // NO! This is not a mutation
+}
+
+"use server"
+export async function getTheme() {
+  return (await cookies()).get("theme")?.value // NO! Just reading data
+}
+```
+
+### ✅ CORRECT: Data Function + Server Component
+
+```tsx
+// data/products.ts - Cached data function
+export async function getProducts() {
+  "use cache"
+  cacheTag("products")
+  cacheLife("hours")
+  return await db.products.findMany()
+}
+
+// page.tsx - Server Component reads data directly
+import { cookies } from "next/headers"
+
+export default async function Page() {
+  const products = await getProducts()
+  const theme = (await cookies()).get("theme")?.value ?? "light"
+  return <ProductList products={products} theme={theme} />
+}
+```
+
+### ✅ CORRECT: Server Action for Mutation
+
+```tsx
+"use server"
+import { updateTag } from "next/cache"
+
+export async function createProduct(formData: FormData) {
+  await db.products.create({ data: formData })
+  updateTag("products") // Invalidate cache after mutation
+}
+```
+
 ## Core APIs
 
 ### 1. `'use cache'` Directive

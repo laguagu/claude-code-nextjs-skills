@@ -106,25 +106,69 @@ export default async function Page({
 }
 ```
 
+### Data Fetching vs Server Actions
+
+**CRITICAL RULE:**
+- **Server Actions** = ONLY for mutations (create, update, delete)
+- **Data fetching** = In Server Components or `'use cache'` functions
+
+```tsx
+// ❌ WRONG: Server Action for data fetching
+"use server"
+export async function getUsers() {
+  return await db.users.findMany()
+}
+
+// ✅ CORRECT: Data function with caching
+// data/users.ts
+export async function getUsers() {
+  "use cache"
+  cacheTag("users")
+  cacheLife("hours")
+  return await db.users.findMany()
+}
+
+// ✅ CORRECT: Read cookies in Server Component directly
+export default async function Page() {
+  const theme = (await cookies()).get("theme")?.value ?? "light"
+  return <App theme={theme} />
+}
+```
+
 ### Caching
 
 ```tsx
 "use cache";
 
-export async function getData() {
-  // Cached at function level
+import { cacheTag, cacheLife } from "next/cache";
+
+export async function getProducts() {
+  cacheTag("products");
+  cacheLife("hours");
+  return await db.products.findMany();
 }
 ```
 
-### Server Actions
+### Server Actions (Mutations Only)
 
 ```tsx
 "use server";
 
 import { updateTag, revalidateTag } from "next/cache";
+import { z } from "zod";
 
-export async function createPost(data: FormData) {
-  // Validate with Zod
+const schema = z.object({
+  title: z.string().min(1),
+  content: z.string(),
+});
+
+export async function createPost(formData: FormData) {
+  // Always validate input
+  const parsed = schema.parse({
+    title: formData.get("title"),
+    content: formData.get("content"),
+  });
+
   await db.insert(posts).values(parsed);
   updateTag("posts"); // Read-your-writes
 }
