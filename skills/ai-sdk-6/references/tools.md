@@ -25,11 +25,13 @@ const weatherTool = tool({
 
 ## Tool Properties
 
-| Property      | Required | Description                               |
-| ------------- | -------- | ----------------------------------------- |
-| `description` | No       | Helps model decide when to use tool       |
-| `inputSchema` | Yes      | Zod schema for input validation           |
-| `execute`     | No       | Async function to run when tool is called |
+| Property        | Required | Description                                      |
+| --------------- | -------- | ------------------------------------------------ |
+| `description`   | No       | Helps model decide when to use tool              |
+| `inputSchema`   | Yes      | Zod schema for input validation                  |
+| `outputSchema`  | No       | Zod schema for output type safety                |
+| `execute`       | No       | Async function to run when tool is called        |
+| `needsApproval` | No       | Require user approval before execution (boolean or function) |
 
 ## Using Tools with generateText
 
@@ -101,9 +103,50 @@ Control how the model uses tools:
 }
 ```
 
-## Tools Without Execute
+## Tool Execution Approval
 
-For client-side tool handling:
+Require user confirmation before server-side tools execute:
+
+### Basic Approval
+
+```typescript
+const deleteFileTool = tool({
+  description: "Delete a file from the system",
+  inputSchema: z.object({
+    filename: z.string(),
+  }),
+  needsApproval: true, // Always require approval
+  execute: async ({ filename }) => {
+    await fs.unlink(filename);
+    return { deleted: true };
+  },
+});
+```
+
+### Dynamic Approval
+
+```typescript
+const transferTool = tool({
+  description: "Transfer funds",
+  inputSchema: z.object({
+    amount: z.number(),
+    to: z.string(),
+  }),
+  // Only require approval for large amounts
+  needsApproval: ({ amount }) => amount > 1000,
+  execute: async ({ amount, to }) => {
+    return await transferFunds(amount, to);
+  },
+});
+```
+
+### Client-Side Approval Handling
+
+See [ui-hooks.md](ui-hooks.md#tool-approval-needsapproval) for client-side approval UI.
+
+## Client-Side Tools (No execute)
+
+For tools that run in the browser:
 
 ```typescript
 const confirmTool = tool({
@@ -111,22 +154,218 @@ const confirmTool = tool({
   inputSchema: z.object({
     message: z.string(),
   }),
+  // No execute - handled by client via onToolCall
+});
+
+const getLocationTool = tool({
+  description: "Get user's current location",
+  inputSchema: z.object({}),
   // No execute - handled by client
 });
+```
 
-const { toolCalls } = await generateText({
+## Tool Part States
+
+When rendering tool calls in the UI, handle these states:
+
+| State              | Description                                    |
+| ------------------ | ---------------------------------------------- |
+| `input-streaming`  | Tool input is being streamed (partial args)    |
+| `input-available`  | Tool input is complete, awaiting execution     |
+| `approval-requested` | Awaiting user approval (needsApproval: true) |
+| `output-available` | Tool execution completed successfully          |
+| `output-error`     | Tool execution failed                          |
+
+```typescript
+{message.parts.map((part) => {
+  if (part.type === "tool-weather") {
+    switch (part.state) {
+      case "input-streaming":
+        return <div>Preparing request...</div>;
+      case "input-available":
+        return <div>Getting weather for {part.input.location}...</div>;
+      case "approval-requested":
+        return <ApprovalDialog part={part} />;
+      case "output-available":
+        return <WeatherCard data={part.output} />;
+      case "output-error":
+        return <div>Error: {part.errorText}</div>;
+    }
+  }
+})}
+```
+
+## Dynamic Tools
+
+Tools with unknown schemas at compile time use the `dynamic-tool` type:
+
+```typescript
+// Server-side: Tools loaded at runtime (e.g., from MCP)
+const dynamicTools = await loadMCPTools();
+
+const result = streamText({
   model: anthropic("claude-sonnet-4-5"),
-  prompt: "Delete all files?",
-  tools: { confirm: confirmTool },
+  tools: dynamicTools,
+  // ...
 });
 
-// Handle tool calls client-side
-for (const call of toolCalls) {
-  if (call.toolName === "confirm") {
-    const confirmed = await showConfirmDialog(call.args.message);
-    // Continue with confirmation result
+// Client-side: Handle dynamic-tool type
+{message.parts.map((part) => {
+  if (part.type === "dynamic-tool") {
+    return (
+      <div key={part.toolCallId}>
+        <h4>Tool: {part.toolName}</h4>
+        {part.state === "input-streaming" && (
+          <pre>{JSON.stringify(part.input, null, 2)}</pre>
+        )}
+        {part.state === "output-available" && (
+          <pre>{JSON.stringify(part.output, null, 2)}</pre>
+        )}
+        {part.state === "output-error" && (
+          <div>Error: {part.errorText}</div>
+        )}
+      </div>
+    );
   }
-}
+})}
+```
+
+### Dynamic Tool Check in onToolCall
+
+```typescript
+async onToolCall({ toolCall }) {
+  // IMPORTANT: Check dynamic first for TypeScript type narrowing
+  if (toolCall.dynamic) {
+    // Handle unknown tools
+    console.log("Dynamic tool:", toolCall.toolName, toolCall.args);
+    return;
+  }
+
+  // TypeScript now knows this is a static tool
+  if (toolCall.toolName === "getLocation") {
+    addToolOutput({
+      tool: "getLocation",
+      toolCallId: toolCall.toolCallId,
+      output: "Helsinki",
+    });
+  }
+},
+```
+
+## Tool Call Streaming
+
+Tool call streaming is **enabled by default** in AI SDK v6:
+
+```typescript
+// Tool inputs stream as they're generated
+{message.parts.map((part) => {
+  if (part.type === "tool-search") {
+    if (part.state === "input-streaming") {
+      // Show partial input as it streams
+      return <pre>{JSON.stringify(part.input, null, 2)}</pre>;
+    }
+    if (part.state === "input-available") {
+      return <div>Searching for: {part.input.query}</div>;
+    }
+  }
+})}
+```
+
+## Multi-Step Tool Calls
+
+### Server-Side Multi-Step
+
+```typescript
+import { streamText, stepCountIs } from "ai";
+
+const result = streamText({
+  model: anthropic("claude-sonnet-4-5"),
+  messages: await convertToModelMessages(messages),
+  tools: {
+    search: searchTool,
+    calculate: calculateTool,
+  },
+  stopWhen: stepCountIs(5), // Max 5 tool call iterations
+});
+
+return result.toUIMessageStreamResponse();
+```
+
+### Step Boundaries in UI
+
+```typescript
+{message.parts.map((part, index) => {
+  switch (part.type) {
+    case "step-start":
+      // Show step boundaries as horizontal lines
+      return index > 0 ? <hr key={index} /> : null;
+    case "text":
+      return <p key={index}>{part.text}</p>;
+    case "tool-search":
+    case "tool-calculate":
+      return <ToolDisplay key={index} part={part} />;
+  }
+})}
+```
+
+### Client-Side Auto-Submit
+
+```typescript
+import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
+
+const { messages, sendMessage, addToolOutput } = useChat({
+  transport: new DefaultChatTransport({ api: "/api/chat" }),
+
+  // Auto-resubmit when all tool results available
+  sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+
+  async onToolCall({ toolCall }) {
+    if (toolCall.dynamic) return;
+    // Provide tool result...
+  },
+});
+```
+
+## Error Handling
+
+### Client-Side Tool Errors
+
+```typescript
+async onToolCall({ toolCall }) {
+  if (toolCall.dynamic) return;
+
+  if (toolCall.toolName === "fetchData") {
+    try {
+      const data = await fetchData(toolCall.input);
+      addToolOutput({
+        tool: "fetchData",
+        toolCallId: toolCall.toolCallId,
+        output: data,
+      });
+    } catch (err) {
+      // Report error state
+      addToolOutput({
+        tool: "fetchData",
+        toolCallId: toolCall.toolCallId,
+        state: "output-error",
+        errorText: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  }
+},
+```
+
+### Server-Side Error Handling
+
+```typescript
+return result.toUIMessageStreamResponse({
+  onError: (error) => {
+    if (error == null) return "Unknown error";
+    if (typeof error === "string") return error;
+    if (error instanceof Error) return error.message;
+    return JSON.stringify(error);
+  },
+});
 ```
 
 ## Complex Tool Schemas
@@ -154,7 +393,28 @@ const createTaskTool = tool({
 });
 ```
 
-## Multiple Tools
+## Typed Tool Results
+
+```typescript
+const weatherTool = tool({
+  description: "Get weather",
+  inputSchema: z.object({
+    location: z.string(),
+  }),
+  outputSchema: z.object({
+    temperature: z.number(),
+    conditions: z.string(),
+  }),
+  execute: async ({ location }) => {
+    return {
+      temperature: 22,
+      conditions: "sunny",
+    };
+  },
+});
+```
+
+## Multiple Tools with Agent
 
 ```typescript
 import { ToolLoopAgent } from "ai";
@@ -226,23 +486,21 @@ const schema = jsonSchema({
 });
 ```
 
-## Typed Tool Results
+## Type Inference
 
 ```typescript
-const weatherTool = tool({
-  description: "Get weather",
-  inputSchema: z.object({
-    location: z.string(),
-  }),
-  outputSchema: z.object({
-    temperature: z.number(),
-    conditions: z.string(),
-  }),
-  execute: async ({ location }) => {
-    return {
-      temperature: 22,
-      conditions: "sunny",
-    };
-  },
-});
+import { InferUITool, InferUITools, ToolSet } from "ai";
+
+// Single tool
+type WeatherUITool = InferUITool<typeof weatherTool>;
+// { input: { location: string }; output: { temperature: number; conditions: string } }
+
+// Tool set
+const tools = {
+  weather: weatherTool,
+  search: searchTool,
+} satisfies ToolSet;
+
+type MyUITools = InferUITools<typeof tools>;
+// { weather: { input: ...; output: ... }; search: { input: ...; output: ... } }
 ```

@@ -96,23 +96,50 @@ export async function POST(request: Request) {
 ```typescript
 "use client";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { useState } from "react";
 
 export function Chat() {
-  const { messages, sendMessage, status } = useChat();
+  const [input, setInput] = useState("");
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+    }),
+  });
 
   return (
-    <div>
+    <>
       {messages.map((msg) => (
         <div key={msg.id}>
-          {msg.parts.map((part) =>
-            part.type === "text" ? part.text : null
+          {msg.parts.map((part, i) =>
+            part.type === "text" ? <span key={i}>{part.text}</span> : null
           )}
         </div>
       ))}
-    </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (input.trim()) {
+            sendMessage({ text: input });
+            setInput("");
+          }
+        }}
+      >
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={status !== "ready"}
+        />
+        <button type="submit" disabled={status !== "ready"}>
+          Send
+        </button>
+      </form>
+    </>
   );
 }
 ```
+
+> **v6 Note**: `useChat` no longer manages input state internally. Use `useState` for controlled inputs.
 
 ## Reference Documentation
 
