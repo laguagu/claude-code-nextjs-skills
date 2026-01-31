@@ -257,17 +257,41 @@ export async function getData() {
   const session = await cookies(); // ERROR: can't use cookies() inside cache
   return fetchUserData(session);
 }
+
+// ALTERNATIVE: 'use cache: private' - allows cookies/headers
+"use cache: private";
+export async function getPrivateData() {
+  const session = await cookies(); // OK in private cache
+  return fetchUserData(session);
+}
+
+// ALTERNATIVE: 'use cache: remote' - persistent cache (Redis, KV)
+"use cache: remote";
+export async function getRemoteData() {
+  return db.query.products.findMany(); // Cached across instances
+}
 ```
+
+**Cache directive variants:**
+- `'use cache'` - Default, in-memory cache
+- `'use cache: private'` - Allows cookies()/headers() inside scope
+- `'use cache: remote'` - Persistent cache (Redis, KV) across instances
 
 **Check for:**
 - `'use cache'` NOT as first statement (must be first)
-- `cookies()`/`headers()` inside cache scope (extract outside)
+- `cookies()`/`headers()` inside `'use cache'` scope (use `'use cache: private'` or extract outside)
 - Missing `cacheTag()` (makes invalidation impossible)
 - Missing `cacheLife()` (uses defaults which may not fit)
-- Server Actions without `updateTag()`/`revalidateTag()` after mutations
+- Server Actions without `updateTag()` after mutations (prefer `updateTag()` for immediate invalidation)
 - Dynamic content not wrapped in `<Suspense>`
 - Deprecated: `export const revalidate` → use `cacheLife()`
 - Deprecated: `export const dynamic` → use `'use cache'` + Suspense
+
+**`updateTag()` vs `revalidateTag()`:**
+- `updateTag()` = Server Actions ONLY, immediate invalidation (read-your-own-writes)
+- `revalidateTag()` = Server Actions + Route Handlers, stale-while-revalidate
+
+Suositus: Käytä `updateTag()` Server Actioneissa oletuksena.
 
 **For detailed guidance:** Invoke `/cache-components` skill when deeper analysis needed.
 
