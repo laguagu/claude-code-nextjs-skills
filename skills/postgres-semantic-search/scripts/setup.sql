@@ -32,8 +32,14 @@
 -- pgvector: Vector similarity search
 CREATE EXTENSION IF NOT EXISTS vector;
 
+-- pg_trgm: Trigram similarity, fuzzy search, LIKE/ILIKE optimization
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- unaccent: Language-agnostic text normalization (for FTS)
 CREATE EXTENSION IF NOT EXISTS unaccent;
+
+-- fuzzystrmatch (optional): Levenshtein distance, Soundex, Metaphone
+-- CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 
 -- pg_search (optional): BM25 ranking - uncomment if available
 -- CREATE EXTENSION IF NOT EXISTS pg_search;
@@ -97,7 +103,7 @@ CREATE TRIGGER documents_updated_at
 -- Check installed extensions
 SELECT extname, extversion
 FROM pg_extension
-WHERE extname IN ('vector', 'unaccent', 'pg_search');
+WHERE extname IN ('vector', 'pg_trgm', 'unaccent', 'pg_search');
 
 -- Check pgvector version (should be 0.8.x for latest features)
 -- SELECT vector_version();

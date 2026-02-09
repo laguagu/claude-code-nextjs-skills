@@ -10,7 +10,8 @@ description: |
 
   Triggers: pgvector, vector search, semantic search, hybrid search,
   embedding search, PostgreSQL RAG, BM25, RRF, HNSW index, similarity search,
-  ParadeDB, pg_search, reranking, Cohere rerank
+  ParadeDB, pg_search, reranking, Cohere rerank, pg_trgm, trigram,
+  fuzzy search, LIKE, ILIKE, autocomplete, typo tolerance, fuzzystrmatch
 ---
 
 # PostgreSQL Semantic Search
@@ -120,7 +121,10 @@ SET ivfflat.iterative_scan = on;
 ```
 Query type?
 ├─ Conceptual/meaning-based → Pure vector search
-├─ Exact terms/names → Pure keyword search
+├─ Exact terms/names → Pure keyword search (FTS)
+├─ Fuzzy/typo-tolerant → pg_trgm trigram similarity
+├─ Autocomplete/prefix → pg_trgm + prefix index
+├─ Substring (LIKE/ILIKE) → pg_trgm GIN index
 └─ Mixed/unknown → Hybrid search
     ├─ Simple setup → FTS + RRF (no extra extensions)
     ├─ Better ranking → BM25 + RRF (pg_search extension)
@@ -159,6 +163,12 @@ Embedding model?
 - `match_documents(query_vec, threshold, limit)` - Basic search
 - `match_documents_filtered(query_vec, metadata_filter, threshold, limit)` - With JSONB filter
 - `match_chunks(query_vec, threshold, limit)` - Search document chunks
+
+### Fuzzy Search (pg_trgm)
+- `fuzzy_search_trigram(query_text, threshold, limit)` - Trigram similarity search
+- `autocomplete_search(prefix, limit)` - Prefix + fuzzy autocomplete
+- `hybrid_search_fuzzy_semantic(query_text, query_vec, limit, rrf_k)` - Fuzzy + vector RRF
+- `weighted_fts_search(query_text, language, limit)` - FTS with title/content weighting
 
 ### Hybrid Search (FTS)
 - `hybrid_search_fts(query_vec, query_text, limit, rrf_k, language)` - FTS + RRF
@@ -212,6 +222,7 @@ async function rerankResults(query: string, documents: string[]) {
 
 ## References
 
+- [fuzzy-search.md](references/fuzzy-search.md) - pg_trgm, fuzzy matching, LIKE/ILIKE, autocomplete, advanced FTS
 - [paradedb.md](references/paradedb.md) - ParadeDB full-text search (Elasticsearch alternative)
 - [vector-types.md](references/vector-types.md) - vector vs halfvec, dimensions, storage
 - [indexing.md](references/indexing.md) - HNSW, IVFFlat, GIN parameters
@@ -224,6 +235,7 @@ async function rerankResults(query: string, documents: string[]) {
 - [semantic_search.sql](scripts/semantic_search.sql) - Semantic search functions
 - [hybrid_search_fts.sql](scripts/hybrid_search_fts.sql) - FTS hybrid functions
 - [hybrid_search_bm25.sql](scripts/hybrid_search_bm25.sql) - BM25 hybrid functions
+- [fuzzy_search.sql](scripts/fuzzy_search.sql) - pg_trgm fuzzy search, autocomplete, weighted FTS
 - [indexes.sql](scripts/indexes.sql) - Index creation scripts
 
 ## Common Patterns
@@ -273,6 +285,9 @@ const results = await db.execute(sql`
 | Memory error on index build | maintenance_work_mem too low | Increase to 2GB+ |
 | Cosine similarity > 1 | Vectors not normalized | Normalize before insert or use L2 |
 | Slow inserts | Index overhead | Batch inserts, consider IVFFlat |
+| Fuzzy search slow | Missing trigram index | `CREATE INDEX USING gin (col gin_trgm_ops)` |
+| ILIKE '%x%' slow | No pg_trgm GIN index | Enable pg_trgm + create GIN trigram index |
+| `%` operator error | pg_trgm not installed | `CREATE EXTENSION IF NOT EXISTS pg_trgm` |
 
 ## Version Info (January 2026)
 

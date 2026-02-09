@@ -85,7 +85,33 @@ CREATE INDEX IF NOT EXISTS chunks_content_fts_idx
 ON chunks USING GIN (to_tsvector('simple', content));
 
 -- ===========================================
--- 6. METADATA INDEXES (GIN for JSONB)
+-- 6. TRIGRAM INDEXES (pg_trgm - fuzzy search & LIKE/ILIKE)
+-- ===========================================
+
+-- GIN trigram indexes enable fast:
+--   - Fuzzy search with % operator (similarity)
+--   - LIKE/ILIKE pattern matching (no more seq scans!)
+--   - Word similarity with <% operator
+
+-- Requires: CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS documents_title_trgm_idx
+ON documents USING gin (title gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS documents_content_trgm_idx
+ON documents USING gin (content gin_trgm_ops);
+
+-- B-tree for fast prefix search (autocomplete)
+CREATE INDEX IF NOT EXISTS documents_title_prefix_idx
+ON documents (title text_pattern_ops);
+
+-- GiST alternative (supports ORDER BY similarity, KNN)
+-- CREATE INDEX IF NOT EXISTS documents_title_trgm_gist_idx
+-- ON documents USING gist (title gist_trgm_ops);
+
+-- ===========================================
+-- 7. METADATA INDEXES (GIN for JSONB)
+-- (Renumbered: sections 8-12 follow below)
 -- ===========================================
 
 -- GIN index for JSONB metadata queries
