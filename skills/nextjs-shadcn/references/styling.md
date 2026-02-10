@@ -81,11 +81,29 @@ Available styles at ui.shadcn.com/create:
 
 | Preset | Character |
 |--------|-----------|
-| vega | Clean, minimal |
-| nova | Bold, modern |
-| maia | Soft, organic |
-| lyra | Sharp, technical |
-| mira | Balanced, neutral |
+| vega | Classic shadcn/ui look. Clean, neutral, familiar |
+| nova | Reduced padding and margins for compact layouts |
+| maia | Soft and rounded, with generous spacing |
+| lyra | Boxy and sharp. Pairs well with mono fonts |
+| mira | Compact. Made for dense interfaces |
+
+### Fonts
+
+Available fonts via `shadcn create` preset URL:
+
+| Font | Type | Character |
+|------|------|-----------|
+| geist-sans | Sans | Vercel's modern geometric sans |
+| inter | Sans | Clean, versatile (classic default) |
+| figtree | Sans | Friendly, geometric |
+| dm-sans | Sans | Compact geometric with character |
+| outfit | Sans | Modern, soft |
+| noto-sans | Sans | Universal language support |
+| nunito-sans | Sans | Rounded, approachable |
+| roboto | Sans | Google's versatile sans |
+| raleway | Sans | Elegant, thin-weight display |
+| public-sans | Sans | US government standard, neutral |
+| jetbrains-mono | Mono | Developer-focused monospace |
 
 ## Icon Libraries
 

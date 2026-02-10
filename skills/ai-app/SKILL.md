@@ -17,7 +17,7 @@ Build full-stack AI applications with Next.js, AI SDK, and ai-elements.
 ### 1. Scaffold Project
 
 ```bash
-bunx --bun shadcn@latest create --preset "https://ui.shadcn.com/init?base=radix&style=vega&baseColor=zinc&iconLibrary=lucide&font=inter" --template next my-ai-app
+bunx --bun shadcn@latest create --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&theme=neutral&iconLibrary=lucide&font=geist-sans&menuAccent=subtle&menuColor=default&radius=default" --template next my-ai-app
 cd my-ai-app
 ```
 
@@ -226,8 +226,12 @@ For detailed patterns, see:
 Ask user:
 - What type of AI app? (chatbot, agent, custom)
 - What features? (reasoning, sources, tools, file upload)
-- What theme/colors? (zinc, neutral, blue, violet, green, orange)
-- What border radius style? (sharp 0.25rem, default 0.5rem, rounded 0.75rem, pill 1.3rem)
+- What style? (vega=classic, nova=compact, maia=soft/rounded, lyra=boxy/sharp, mira=dense) — default: nova
+- What font? (geist-sans, inter, jetbrains-mono, figtree, dm-sans, outfit, noto-sans, nunito-sans, roboto, raleway, public-sans) — default: geist-sans
+- What base color? (neutral, zinc, slate, gray, stone) — default: neutral
+- What theme accent? (neutral, blue, green, orange, red, rose, violet) — default: neutral
+- What border radius style? (default, sm, md, lg, xl)
+- Component library? (radix=default, base-ui)
 
 ### Phase 2: Scaffold Project
 

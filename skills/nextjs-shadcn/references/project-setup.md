@@ -6,7 +6,7 @@
 
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?base=radix&style=vega&iconLibrary=lucide" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
   --template next
 ```
 
@@ -14,38 +14,53 @@ bunx --bun shadcn@latest create \
 
 ```
 https://ui.shadcn.com/init?
-  base=radix
+  base=radix|base-ui
   &style=vega|nova|maia|lyra|mira
   &baseColor=neutral|slate|gray|zinc|stone
   &theme=neutral|blue|green|orange|red|rose|violet
   &iconLibrary=lucide|tabler|hugeicons|phosphor
-  &font=inter|geist|system
+  &font=geist-sans|inter|noto-sans|nunito-sans|figtree|roboto|raleway|dm-sans|public-sans|outfit|jetbrains-mono
   &menuAccent=subtle|bold
   &menuColor=default|accent
   &radius=default|sm|md|lg|xl
   &template=next
+  &rtl=false|true
 ```
 
 ### Example Presets
 
-**Minimal (vega + lucide)**:
+**Classic (vega + inter)** — traditional shadcn/ui look:
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?base=radix&style=vega&iconLibrary=lucide&font=inter" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=vega&baseColor=zinc&iconLibrary=lucide&font=inter" \
   --template next
 ```
 
-**Bold (nova + tabler)**:
+**Compact (nova + geist-sans)** — reduced padding, modern feel:
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?base=radix&style=nova&iconLibrary=tabler&theme=violet" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
   --template next
 ```
 
-**Soft (maia + phosphor)**:
+**Soft (maia + figtree)** — rounded, generous spacing:
 ```bash
 bunx --bun shadcn@latest create \
-  --preset "https://ui.shadcn.com/init?base=radix&style=maia&iconLibrary=phosphor&radius=lg" \
+  --preset "https://ui.shadcn.com/init?base=radix&style=maia&baseColor=stone&iconLibrary=phosphor&font=figtree&radius=lg" \
+  --template next
+```
+
+**Sharp (lyra + jetbrains-mono)** — boxy, technical:
+```bash
+bunx --bun shadcn@latest create \
+  --preset "https://ui.shadcn.com/init?base=radix&style=lyra&baseColor=slate&iconLibrary=lucide&font=jetbrains-mono&radius=sm" \
+  --template next
+```
+
+**Dense (mira + dm-sans)** — compact data interfaces:
+```bash
+bunx --bun shadcn@latest create \
+  --preset "https://ui.shadcn.com/init?base=radix&style=mira&baseColor=gray&iconLibrary=tabler&font=dm-sans" \
   --template next
 ```
 
