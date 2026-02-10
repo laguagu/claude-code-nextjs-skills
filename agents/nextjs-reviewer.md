@@ -7,6 +7,7 @@ skills:
   - react-best-practices
   - cache-components
   - ai-sdk-6
+  - ai-sdk
   - ai-elements
 ---
 
@@ -75,6 +76,7 @@ export default function Page() {
 ```
 
 **Check for:**
+
 - useState/useEffect in page.tsx (should be in child components)
 - Deep JSX nesting (> 2 levels)
 - Inline styling or complex className strings
@@ -105,6 +107,7 @@ ai/                      # AI logic (tools, agents, prompts)
 ```
 
 **Check for:**
+
 - AI logic outside `/ai` folder (should be in `/ai`)
 - Route-specific components in global `/components` (move to route folder)
 - Database queries outside `/data`
@@ -128,12 +131,14 @@ ai/                      # AI logic (tools, agents, prompts)
 ```
 
 **Check for:**
+
 - Hardcoded Tailwind colors (text-blue-500, bg-red-400, etc.)
 - Arbitrary color values (bg-[#hex], text-[rgb()])
 - Missing CSS variables for repeated custom colors
 - Inconsistent color usage across components
 
 **Suggestion:** If a custom color appears multiple times, add it to `globals.css`:
+
 ```css
 :root {
   --brand: 220 90% 56%;
@@ -145,19 +150,21 @@ ai/                      # AI logic (tools, agents, prompts)
 
 **Expectation:** Proper use of layout.tsx, template.tsx, and route groups.
 
-| File | Purpose |
-|------|---------|
-| `layout.tsx` | Shared chrome (nav, sidebar, footer) - state persists |
-| `template.tsx` | State reset on navigation (analytics, animations) |
-| Route groups `(name)/` | Logical grouping without URL impact |
+| File                   | Purpose                                               |
+| ---------------------- | ----------------------------------------------------- |
+| `layout.tsx`           | Shared chrome (nav, sidebar, footer) - state persists |
+| `template.tsx`         | State reset on navigation (analytics, animations)     |
+| Route groups `(name)/` | Logical grouping without URL impact                   |
 
 **Check for:**
+
 - Shared UI duplicated across pages instead of in layout
 - Missing route groups for logical sections
 - layout.tsx used where template.tsx needed (state should reset)
 - Sidebar/nav in individual pages instead of route layout
 
 **Pattern for sidebars:**
+
 ```tsx
 // app/(dashboard)/layout.tsx
 export default function DashboardLayout({ children }) {
@@ -175,6 +182,7 @@ export default function DashboardLayout({ children }) {
 **Expectation:** Distinctive design, not generic "AI slop" aesthetics.
 
 **Red flags:**
+
 - Purple/blue gradients as primary design element
 - Excessive drop shadows and glows
 - Generic "AI assistant" visual tropes
@@ -182,12 +190,14 @@ export default function DashboardLayout({ children }) {
 - Excessive labels (icons should communicate)
 
 **Good patterns to suggest:**
+
 - **Background component** for section hierarchy (dark/light sections)
 - **DashedLine** for subtle visual separation
 - Minimal text, context over labels
 - Every element serves a purpose
 
 **Package suggestions when appropriate:**
+
 - `tailwind-scrollbar-hide` - Hide scrollbar while preserving scroll functionality
 - `motion` - Complex animations with motion/react
 - `gsap` - Scroll-triggered effects and complex sequences
@@ -210,16 +220,19 @@ export default async function Page() {
 }
 
 // BAD - useEffect for data fetching
-"use client"
+("use client");
 export default function Page() {
   const [data, setData] = useState(null);
   useEffect(() => {
-    fetch('/api/data').then(r => r.json()).then(setData);
+    fetch("/api/data")
+      .then((r) => r.json())
+      .then(setData);
   }, []);
 }
 ```
 
 **Check for:**
+
 - useEffect usage (prefer Server Components, Server Actions, event handlers)
 - "use client" at non-leaf components (should be at smallest boundary)
 - Missing className prop with cn() merging in components
@@ -227,6 +240,7 @@ export default function Page() {
 - Missing `@` import alias usage (should use `@/` instead of relative paths like `../../`)
 
 **className pattern:**
+
 ```tsx
 import { cn } from "@/lib/utils";
 
@@ -252,32 +266,34 @@ export async function getProducts() {
 }
 
 // BAD - cookies inside cache scope
-"use cache";
+("use cache");
 export async function getData() {
   const session = await cookies(); // ERROR: can't use cookies() inside cache
   return fetchUserData(session);
 }
 
 // ALTERNATIVE: 'use cache: private' - allows cookies/headers
-"use cache: private";
+("use cache: private");
 export async function getPrivateData() {
   const session = await cookies(); // OK in private cache
   return fetchUserData(session);
 }
 
 // ALTERNATIVE: 'use cache: remote' - persistent cache (Redis, KV)
-"use cache: remote";
+("use cache: remote");
 export async function getRemoteData() {
   return db.query.products.findMany(); // Cached across instances
 }
 ```
 
 **Cache directive variants:**
+
 - `'use cache'` - Default, in-memory cache
 - `'use cache: private'` - Allows cookies()/headers() inside scope
 - `'use cache: remote'` - Persistent cache (Redis, KV) across instances
 
 **Check for:**
+
 - `'use cache'` NOT as first statement (must be first)
 - `cookies()`/`headers()` inside `'use cache'` scope (use `'use cache: private'` or extract outside)
 - Missing `cacheTag()` (makes invalidation impossible)
@@ -288,6 +304,7 @@ export async function getRemoteData() {
 - Deprecated: `export const dynamic` → use `'use cache'` + Suspense
 
 **`updateTag()` vs `revalidateTag()`:**
+
 - `updateTag()` = Server Actions ONLY, immediate invalidation (read-your-own-writes)
 - `revalidateTag()` = Server Actions + Route Handlers, stale-while-revalidate
 
@@ -301,33 +318,34 @@ Suositus: Käytä `updateTag()` Server Actioneissa oletuksena.
 
 ```tsx
 // ❌ CRITICAL: Server Action used for data fetching
-"use server"
+"use server";
 export async function getUsers() {
-  return await db.users.findMany() // NO! This is not a mutation
+  return await db.users.findMany(); // NO! This is not a mutation
 }
 
 // ❌ CRITICAL: Server Action reading cookies for data
-"use server"
+("use server");
 export async function getTheme() {
-  return (await cookies()).get("theme")?.value // NO! Just reading data
+  return (await cookies()).get("theme")?.value; // NO! Just reading data
 }
 
 // ✅ CORRECT: Data fetching in Server Component
 export default async function Page() {
-  const users = await db.users.findMany()
-  const theme = (await cookies()).get("theme")?.value
-  return <UserList users={users} theme={theme} />
+  const users = await db.users.findMany();
+  const theme = (await cookies()).get("theme")?.value;
+  return <UserList users={users} theme={theme} />;
 }
 
 // ✅ CORRECT: Server Action for mutation
-"use server"
+("use server");
 export async function createUser(formData: FormData) {
-  await db.users.create({ data: formData })
-  updateTag("users")
+  await db.users.create({ data: formData });
+  updateTag("users");
 }
 ```
 
 **Check for:**
+
 - Server Actions that return data without mutations (GET-like behavior)
 - `"use server"` functions that only read from database/cookies/headers
 - Missing `updateTag()`/`revalidateTag()`/`refresh()` after mutations
@@ -338,23 +356,24 @@ export async function createUser(formData: FormData) {
 
 ```tsx
 // ✅ CORRECT: refresh() in Server Action
-"use server"
-import { refresh } from "next/cache"
+"use server";
+import { refresh } from "next/cache";
 
 export async function updateProfile(formData: FormData) {
-  await db.profile.update({ data: formData })
-  refresh() // Refreshes client router
+  await db.profile.update({ data: formData });
+  refresh(); // Refreshes client router
 }
 
 // ❌ ERROR: refresh() in Route Handler
-import { refresh } from "next/cache"
+import { refresh } from "next/cache";
 
 export async function POST() {
-  refresh() // Will throw error
+  refresh(); // Will throw error
 }
 ```
 
 **Check for:**
+
 - `refresh()` used outside Server Actions
 - Missing `refresh()` when uncached data needs UI update
 - Confusion between `refresh()` and `revalidateTag()`/`updateTag()`
@@ -365,41 +384,42 @@ export async function POST() {
 
 ```tsx
 // ✅ CORRECT: Validation with Zod
-"use server"
-import { z } from "zod"
+"use server";
+import { z } from "zod";
 
 const schema = z.object({
   title: z.string().min(1).max(100),
   content: z.string().min(1),
-})
+});
 
 export async function createPost(formData: FormData) {
   const result = schema.safeParse({
     title: formData.get("title"),
     content: formData.get("content"),
-  })
+  });
 
   if (!result.success) {
-    return { error: result.error.flatten() }
+    return { error: result.error.flatten() };
   }
 
-  await db.posts.create({ data: result.data })
-  updateTag("posts")
+  await db.posts.create({ data: result.data });
+  updateTag("posts");
 }
 
 // ❌ BAD: No validation
-"use server"
+("use server");
 export async function createPost(formData: FormData) {
   await db.posts.create({
     data: {
       title: formData.get("title") as string, // Unsafe
       content: formData.get("content") as string,
-    }
-  })
+    },
+  });
 }
 ```
 
 **Check for:**
+
 - Server Actions without input validation
 - Direct `formData.get()` casts without validation
 - Missing error handling/return types
@@ -410,20 +430,21 @@ export async function createPost(formData: FormData) {
 
 ```tsx
 // ✅ CORRECT: Explicit dynamic with connection()
-import { connection } from "next/server"
+import { connection } from "next/server";
 
 async function UniqueContent() {
-  await connection() // Defer to request time
-  return <div>{crypto.randomUUID()}</div>
+  await connection(); // Defer to request time
+  return <div>{crypto.randomUUID()}</div>;
 }
 
 // Wrap in Suspense
 <Suspense fallback={<Loading />}>
   <UniqueContent />
-</Suspense>
+</Suspense>;
 ```
 
 **Check for:**
+
 - `Math.random()`, `Date.now()`, `crypto.randomUUID()` without `connection()`
 - Non-deterministic operations in cached components (may be intentional)
 
@@ -434,29 +455,30 @@ async function UniqueContent() {
 ```tsx
 // ❌ OLD (Next.js 15) - params synchronous
 export default function Page({ params }: { params: { id: string } }) {
-  return <div>{params.id}</div>
+  return <div>{params.id}</div>;
 }
 
 // ✅ NEW (Next.js 16) - params is Promise
 export default async function Page({
-  params
+  params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
-  return <div>{id}</div>
+  const { id } = await params;
+  return <div>{id}</div>;
 }
 
 // ✅ Type helpers (Next.js 16)
-import type { PageProps, LayoutProps } from "next"
+import type { PageProps, LayoutProps } from "next";
 
 export default async function Page(props: PageProps<"/users/[id]">) {
-  const { id } = await props.params
-  return <UserProfile id={id} />
+  const { id } = await props.params;
+  return <UserProfile id={id} />;
 }
 ```
 
 **Check for:**
+
 - `params` and `searchParams` not awaited (must be Promise in Next.js 16)
 - `export const revalidate` (replace with `cacheLife()`)
 - `export const dynamic` (replace with `'use cache'` or remove)
@@ -549,6 +571,7 @@ When invoked, scan the project using this sequence:
 ## Severity Guidelines
 
 **Critical (Auto-fix):**
+
 - useEffect for data fetching (Auto-fix)
 - Hardcoded colors without CSS variable fallback (Auto-fix)
 - "use client" at page or layout level (Auto-fix)
@@ -562,6 +585,7 @@ When invoked, scan the project using this sequence:
 - `runtime = "edge"` with `cacheComponents: true` (Auto-fix)
 
 **Recommendation (should consider):**
+
 - Missing route groups
 - Route-specific components in global folder
 - Complex logic in page.tsx
@@ -572,6 +596,7 @@ When invoked, scan the project using this sequence:
 - Relative imports instead of `@/` alias
 
 **UI/UX (human decision):**
+
 - Gradient choices
 - Shadow intensity
 - Decoration patterns
