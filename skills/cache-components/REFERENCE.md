@@ -25,10 +25,11 @@ async function Component() {
 
 ### Variants
 
-| Directive             | Description              | Cache Storage            |
-| --------------------- | ------------------------ | ------------------------ |
-| `'use cache'`         | Standard cache (default) | Default handler + Remote |
-| `'use cache: remote'` | Platform remote cache    | Remote handler only      |
+| Directive              | Description                    | Cache Storage            |
+| ---------------------- | ------------------------------ | ------------------------ |
+| `'use cache'`          | Standard cache (default)       | Default handler + Remote |
+| `'use cache: remote'`  | Platform remote cache          | Remote handler only      |
+| `'use cache: private'` | Per-request private cache      | Default handler (request-scoped) |
 
 ### `'use cache: remote'`
 
@@ -42,6 +43,22 @@ async function HeavyComputation() {
   return await expensiveCalculation()
 }
 ```
+
+### `'use cache: private'`
+
+Creates a per-request private cache scope. Unlike `'use cache'`, which shares cached results across all users and requests, `'use cache: private'` ensures that cached data is scoped to the current request only. This is useful for compliance scenarios where data must not leak between requests, even within the same server instance.
+
+```tsx
+async function UserComplianceData({ userId }: { userId: string }) {
+  'use cache: private'
+  cacheLife('seconds')
+
+  // Data is cached within this request only - not shared across requests
+  return await fetchSensitiveReport(userId)
+}
+```
+
+**When to use**: Only when you cannot extract runtime data as function parameters AND compliance requirements prevent sharing cached output across requests. This is a last-resort variant — prefer `'use cache'` with parameterized arguments for most cases.
 
 ### Understanding Cache Handlers
 
@@ -59,17 +76,18 @@ Next.js uses **cache handlers** to store and retrieve cached data. The directive
 
 **When to use each:**
 
-| Use Case                              | Recommended Variant   |
-| ------------------------------------- | --------------------- |
-| Most cached data                      | `'use cache'`         |
-| Heavy computations to share globally  | `'use cache: remote'` |
-| Data that must be consistent globally | `'use cache: remote'` |
+| Use Case                              | Recommended Variant    |
+| ------------------------------------- | ---------------------- |
+| Most cached data                      | `'use cache'`          |
+| Heavy computations to share globally  | `'use cache: remote'`  |
+| Data that must be consistent globally | `'use cache: remote'`  |
+| Compliance: no cross-request sharing  | `'use cache: private'` |
 
 ### Rules
 
 1. **Must be async** - All cached functions must return a Promise
 2. **First statement** - `'use cache'` must be the first statement in the function body
-3. **No runtime APIs** - Cannot call `cookies()`, `headers()`, `searchParams` directly
+3. **No runtime APIs** - Cannot call `cookies()`, `headers()`, `searchParams` directly (exception: `'use cache: private'` allows request-scoped access since it is not shared across requests)
 4. **Serializable arguments** - All arguments must be serializable (no functions, class instances)
 5. **Serializable return values** - Cached functions must return serializable data (no functions, class instances)
 
@@ -387,6 +405,41 @@ async function getData(limit: number) {
 ```
 
 > **Note:** Non-serializable values (functions, class instances, Symbols) cannot be used as arguments to cached functions and will cause errors.
+
+> **Pass-through exception:** Some non-serializable values — such as `children` (ReactNode) and Server Actions — can be passed through cached components without affecting the cache key. These values are not read or invoked inside the cached scope; they are forwarded to the output unchanged. See Pattern 12 (Interleaving with Children) in PATTERNS.md.
+
+### React.cache Isolation
+
+`React.cache()` provides per-request deduplication for regular Server Components, but it does **not** work across `'use cache'` boundaries. Each `'use cache'` function runs in its own isolated scope — `React.cache()` storage from the outer request is not available inside a cached function.
+
+```tsx
+import { cache } from 'react'
+
+const getUser = cache(async (id: string) => {
+  console.log('Fetching user', id)
+  return await db.users.findUnique({ where: { id } })
+})
+
+// Outside 'use cache' - React.cache deduplicates normally
+async function UserHeader({ userId }: { userId: string }) {
+  const user = await getUser(userId) // Fetch #1
+  return <h1>{user.name}</h1>
+}
+
+async function UserSidebar({ userId }: { userId: string }) {
+  const user = await getUser(userId) // Deduplicated - reuses Fetch #1
+  return <aside>{user.bio}</aside>
+}
+
+// Inside 'use cache' - React.cache does NOT deduplicate
+async function CachedUserCard({ userId }: { userId: string }) {
+  'use cache'
+  const user = await getUser(userId) // Separate fetch - isolated scope
+  return <div>{user.name}</div>
+}
+```
+
+**Key takeaway**: If you need deduplication inside `'use cache'`, rely on the `'use cache'` mechanism itself (same function + same arguments = cache hit). Do not depend on `React.cache()` for cross-boundary deduplication.
 
 ---
 
@@ -801,6 +854,50 @@ Without `generateStaticParams`, visiting `/products/jackets/unknown-product`:
 
 ---
 
+## GET Route Handlers with Cache Components
+
+GET Route Handlers follow the same prerendering model as pages. When `cacheComponents: true`, a GET handler without dynamic APIs is prerendered at build time:
+
+```tsx
+// app/api/products/route.ts
+import { cacheLife, cacheTag } from 'next/cache'
+
+export async function GET() {
+  'use cache'
+  cacheTag('products')
+  cacheLife('hours')
+
+  const products = await db.products.findMany()
+  return Response.json(products)
+}
+```
+
+**Key behaviors:**
+
+- GET handlers with `'use cache'` are prerendered at build time (included in static output)
+- GET handlers that call `cookies()`, `headers()`, or other dynamic APIs are rendered at request time
+- `cacheTag()` and `cacheLife()` work identically to page components
+- Non-GET methods (POST, PUT, DELETE) are always dynamic and cannot use `'use cache'`
+
+```tsx
+// Dynamic GET handler (reads request headers)
+export async function GET(request: Request) {
+  const authHeader = request.headers.get('authorization')
+  const data = await fetchProtectedData(authHeader)
+  return Response.json(data)
+}
+
+// Static GET handler with cache (no dynamic APIs)
+export async function GET() {
+  'use cache'
+  cacheLife('days')
+  const sitemap = await generateSitemapData()
+  return Response.json(sitemap)
+}
+```
+
+---
+
 ## Deprecated Segment Configurations
 
 These exports are **deprecated** when `cacheComponents: true`:
@@ -907,6 +1004,8 @@ export default async function ProductsPage() {
 | `export const dynamic = 'force-dynamic'` | Wrap in `<Suspense>` without cache                     |
 | `export const dynamic = 'auto'`          | Default behavior - not needed                          |
 | `export const dynamic = 'error'`         | Default with Cache Components (build errors guide you) |
+| `export const fetchCache`                | Not needed — `'use cache'` replaces fetch-level config |
+| `export const runtime = 'edge'`          | Not supported with Cache Components                    |
 
 ---
 
@@ -1074,6 +1173,54 @@ export async function POST(request: Request) {
 - Explicit cache tags enable targeted invalidation
 - Route Handler pattern preserved for external webhook integration
 
+### Scenario 4: Page with `fetchCache` Export
+
+**Before:**
+
+```tsx
+// app/products/page.tsx
+export const fetchCache = 'force-cache' // All fetches cached
+
+export default async function ProductsPage() {
+  const products = await fetch('/api/products').then((r) => r.json())
+  const categories = await fetch('/api/categories').then((r) => r.json())
+  return <ProductGrid products={products} categories={categories} />
+}
+```
+
+**After:**
+
+```tsx
+// app/products/page.tsx
+import { cacheLife, cacheTag } from 'next/cache'
+
+async function getProducts() {
+  'use cache'
+  cacheTag('products')
+  cacheLife('hours')
+
+  return fetch('/api/products').then((r) => r.json())
+}
+
+async function getCategories() {
+  'use cache'
+  cacheTag('categories')
+  cacheLife('days')
+
+  return fetch('/api/categories').then((r) => r.json())
+}
+
+export default async function ProductsPage() {
+  const [products, categories] = await Promise.all([
+    getProducts(),
+    getCategories(),
+  ])
+  return <ProductGrid products={products} categories={categories} />
+}
+```
+
+**Key improvement:** Each data source has independent cache lifetime and tags, replacing the blanket `fetchCache` that applied the same policy to all fetches.
+
 ---
 
 ## Runtime Behaviors
@@ -1106,6 +1253,42 @@ Cache is bypassed (not read from) when:
 | Draft Mode enabled     | `draftMode().isEnabled === true`                   |
 | On-demand revalidation | `revalidateTag()` or `revalidatePath()` was called |
 | Dev mode + no-cache    | Request includes `Cache-Control: no-cache` header  |
+
+### Metadata and Viewport
+
+`generateMetadata()` and `generateViewport()` are tracked **separately** from the page's cache. Even if a page uses `'use cache'`, these functions have their own caching behavior:
+
+```tsx
+// app/products/[id]/page.tsx
+
+// Metadata is cached independently from the page
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const product = await getProduct(id) // May use its own 'use cache'
+  return { title: product.name, description: product.summary }
+}
+
+// Viewport follows the same independent tracking
+export async function generateViewport() {
+  return { themeColor: '#000000' }
+}
+
+// Page cache is separate from metadata cache
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  return <ProductDetails productId={id} />
+}
+```
+
+**Implication**: Invalidating a page's cache tags does not automatically invalidate its metadata. If metadata depends on cached data, ensure the relevant tags cover both.
 
 ### Prerender Timeout
 
@@ -1158,6 +1341,32 @@ async function Outer() {
 ```
 
 This ensures parent caches don't outlive their dependencies.
+
+### Runtime Environment Considerations
+
+Cache behavior varies depending on your deployment target:
+
+| Environment  | Cache Persistence                           | Configuration                        |
+| ------------ | ------------------------------------------- | ------------------------------------ |
+| **Serverless** | Cache does NOT persist between invocations | Use `'use cache: remote'` for shared state |
+| **Self-hosted** | In-memory cache persists across requests   | Configure `cacheMaxMemorySize`       |
+
+**Serverless (Vercel, AWS Lambda, etc.)**: Each function invocation starts with a cold cache. The default handler's in-memory cache is lost between invocations. Use `'use cache: remote'` or a platform-specific remote cache handler for data that must persist.
+
+**Self-hosted (Node.js server)**: The default cache handler uses in-memory storage that persists across requests for the lifetime of the process. Configure the maximum memory size:
+
+```typescript
+// next.config.ts
+const nextConfig: NextConfig = {
+  cacheHandlers: {
+    default: {
+      maxMemorySize: 52428800, // 50MB (default)
+    },
+  },
+}
+```
+
+Setting `maxMemorySize: 0` disables in-memory caching entirely, which can be useful when using an external cache handler exclusively.
 
 ---
 

@@ -830,3 +830,104 @@ export default async function Page() {
   )
 }
 ```
+
+---
+
+## Pattern 12: Interleaving with Children (Pass-Through)
+
+Pass non-serializable values like `children` (ReactNode) and Server Actions through cached components. These values are forwarded to the output unchanged — they do NOT become part of the cache key and must NOT be read or invoked inside the cached scope.
+
+### Cached Wrapper Passing Through Children
+
+```tsx
+import { cacheLife, cacheTag } from 'next/cache'
+
+// Cached layout wrapper - children pass through without affecting cache
+async function CachedPageShell({
+  children,
+  category,
+}: {
+  children: React.ReactNode
+  category: string
+}) {
+  'use cache'
+  cacheTag(`shell-${category}`)
+  cacheLife('days')
+
+  const nav = await db.navigation.findFirst({ where: { category } })
+  const promo = await db.promos.findFirst({ where: { category, active: true } })
+
+  return (
+    <div>
+      <Nav items={nav.items} />
+      <PromoBanner promo={promo} />
+      {children} {/* Pass-through: NOT read by cache, just forwarded */}
+    </div>
+  )
+}
+
+// Usage: cached shell wraps dynamic content
+export default function CategoryPage({
+  params,
+}: {
+  params: Promise<{ category: string }>
+}) {
+  const { category } = React.use(params)
+
+  return (
+    <CachedPageShell category={category}>
+      <Suspense fallback={<ProductsSkeleton />}>
+        <DynamicProducts category={category} />
+      </Suspense>
+    </CachedPageShell>
+  )
+}
+```
+
+### Server Action Pass-Through to Client Component
+
+```tsx
+// Server Action defined in a server file
+'use server'
+import { updateTag } from 'next/cache'
+
+export async function addToCart(productId: string) {
+  await db.cart.add({ productId })
+  updateTag('cart')
+}
+
+// Cached component passes Server Action to Client Component
+async function CachedProductCard({ productId }: { productId: string }) {
+  'use cache'
+  cacheTag(`product-${productId}`)
+  cacheLife('hours')
+
+  const product = await db.products.findUnique({ where: { id: productId } })
+
+  // Server Action passed as prop - NOT invoked in cached scope
+  return <AddToCartButton product={product} onAdd={addToCart} />
+}
+
+// Client Component receives the action
+'use client'
+function AddToCartButton({
+  product,
+  onAdd,
+}: {
+  product: Product
+  onAdd: (id: string) => Promise<void>
+}) {
+  return (
+    <button onClick={() => onAdd(product.id)}>
+      Add {product.name} to Cart
+    </button>
+  )
+}
+```
+
+### Rules for Pass-Through
+
+1. **Do NOT read `children`** inside the cached scope — only render them in JSX output
+2. **Do NOT invoke Server Actions** inside the cached scope — only pass them as props
+3. Pass-through values do not affect the cache key — only serializable arguments do
+4. This pattern enables interleaving cached shells with dynamic or interactive content

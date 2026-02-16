@@ -470,6 +470,57 @@ async function CachedData({ limit }: { limit: number }) {
 
 ---
 
+## Issue: React.cache Deduplication Not Working Inside 'use cache'
+
+### Symptoms
+
+- `React.cache()` wrapped function is called multiple times instead of being deduplicated
+- Duplicate database queries or API calls from within `'use cache'` functions
+- Expected deduplication behavior works outside `'use cache'` but not inside
+
+### Cause
+
+`React.cache()` uses per-request storage for deduplication. `'use cache'` functions run in an isolated scope where this request-level storage is not available. The two caching mechanisms operate independently.
+
+### Solution
+
+Do not rely on `React.cache()` for deduplication inside `'use cache'` boundaries. Instead, rely on the `'use cache'` mechanism itself:
+
+```tsx
+import { cache } from 'react'
+
+const getUser = cache(async (id: string) => {
+  return await db.users.findUnique({ where: { id } })
+})
+
+// ❌ WRONG: React.cache does not deduplicate inside 'use cache'
+async function CachedProfile({ userId }: { userId: string }) {
+  'use cache'
+  const user = await getUser(userId) // React.cache is isolated here
+  const posts = await getPostsByAuthor(userId)
+  return <Profile user={user} posts={posts} />
+}
+
+// ✅ CORRECT: Extract shared data as a separate cached function
+async function getUser(id: string) {
+  'use cache'
+  cacheTag(`user-${id}`)
+  cacheLife('hours')
+  return await db.users.findUnique({ where: { id } })
+}
+
+// Both components share the same 'use cache' entry
+async function CachedProfile({ userId }: { userId: string }) {
+  'use cache'
+  const user = await getUser(userId) // Hits 'use cache' entry
+  return <Profile user={user} />
+}
+```
+
+> **See also**: The "React.cache Isolation" section in REFERENCE.md explains the technical reason for this behavior.
+
+---
+
 ## Issue: Cache Too Aggressive (Stale Data)
 
 ### Symptoms
@@ -576,6 +627,80 @@ export default function Page({
 ```
 
 > **Note:** Avoid using `export const dynamic = 'force-dynamic'` as this segment config is deprecated with Cache Components. Use Suspense boundaries and `'use cache'` for granular control instead.
+
+### Avoid Passing Runtime Data Promises as Props to Cached Components
+
+**Symptoms**: Build hangs indefinitely during prerendering, eventually timing out.
+
+**Cause**: Passing a Promise that depends on runtime data (like `params` or `searchParams`) as a prop to a `'use cache'` component. During build, the Promise never resolves because no actual request exists.
+
+```tsx
+// ❌ WRONG: Passing params Promise into cached component
+async function CachedContent({
+  paramsPromise,
+}: {
+  paramsPromise: Promise<{ id: string }>
+}) {
+  'use cache'
+  const { id } = await paramsPromise // Hangs at build time!
+  return await fetchData(id)
+}
+
+export default function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  return <CachedContent paramsPromise={params} />
+}
+
+// ✅ CORRECT: Resolve params outside cache, pass primitives
+async function CachedContent({ id }: { id: string }) {
+  'use cache'
+  cacheTag(`content-${id}`)
+  return await fetchData(id)
+}
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  return <CachedContent id={id} />
+}
+```
+
+**Rule**: Always resolve runtime Promises before passing their values into `'use cache'` functions. Pass resolved primitives, not Promises.
+
+### Avoid Shared Deduplication Storage Accessed by Cached Code
+
+**Symptoms**: Build hangs or produces inconsistent results. `React.cache()` calls inside `'use cache'` never complete.
+
+**Cause**: Code inside `'use cache'` tries to read from `React.cache()` or other per-request shared storage that doesn't exist during build-time prerendering. The deduplication mechanism waits for a request context that never arrives.
+
+```tsx
+import { cache } from 'react'
+
+const getData = cache(async () => {
+  return await db.data.findMany()
+})
+
+// ❌ WRONG: React.cache inside 'use cache' may hang during build
+async function CachedWidget() {
+  'use cache'
+  const data = await getData() // Deduplication storage not available
+  return <Widget data={data} />
+}
+
+// ✅ CORRECT: Fetch directly or use a separate 'use cache' function
+async function CachedWidget() {
+  'use cache'
+  cacheTag('widget')
+  const data = await db.data.findMany() // Direct fetch inside cache scope
+  return <Widget data={data} />
+}
+```
 
 ---
 

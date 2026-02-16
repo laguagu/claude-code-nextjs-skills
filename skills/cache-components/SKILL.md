@@ -1,14 +1,11 @@
 ---
 name: cache-components
-description: |
-  Expert guidance for Next.js Cache Components and Partial Prerendering (PPR).
-
-  **PROACTIVE ACTIVATION**: Use this skill automatically when working in Next.js projects that have `cacheComponents: true` in their next.config.ts/next.config.js. When this config is detected, proactively apply Cache Components patterns and best practices to all React Server Component implementations.
-
-  **DETECTION**: At the start of a session in a Next.js project, check for `cacheComponents: true` in next.config. If enabled, this skill's patterns should guide all component authoring, data fetching, and caching decisions.
-
-  **USE CASES**: Implementing 'use cache' directive, configuring cache lifetimes with cacheLife(), tagging cached data with cacheTag(), invalidating caches with updateTag()/revalidateTag(), optimizing static vs dynamic content boundaries, debugging cache issues, and reviewing Cache Component implementations.
+description: "Expert guidance for Next.js Cache Components and Partial Prerendering (PPR). Use when implementing 'use cache' directive, configuring cache lifetimes with cacheLife(), tagging cached data with cacheTag(), invalidating caches with updateTag()/revalidateTag(), optimizing static vs dynamic content boundaries, managing 'use cache: private' for compliance scenarios, pass-through/interleaving patterns, GET Route Handler caching, debugging cache issues, and reviewing Cache Component implementations."
 ---
+
+**PROACTIVE ACTIVATION**: Use this skill automatically when working in Next.js projects that have `cacheComponents: true` in their next.config.ts/next.config.js. When this config is detected, proactively apply Cache Components patterns and best practices to all React Server Component implementations.
+
+**DETECTION**: At the start of a session in a Next.js project, check for `cacheComponents: true` in next.config. If enabled, this skill's patterns should guide all component authoring, data fetching, and caching decisions.
 
 # Next.js Cache Components
 
@@ -31,7 +28,7 @@ If `cacheComponents: true` is found, apply this skill's patterns proactively whe
 - Optimizing page performance
 - Reviewing existing component code
 
-Cache Components enable **Partial Prerendering (PPR)** - mixing static HTML shells with dynamic streaming content for optimal performance.
+Cache Components enable **Partial Prerendering (PPR)** - mixing static HTML shells with dynamic streaming content for optimal performance. Cache Components also enable state preservation during navigation with React's `<Activity>` component, which can keep cached component trees mounted but hidden.
 
 ## Philosophy: Code Over Configuration
 
@@ -104,6 +101,17 @@ When writing a React Server Component, ask these questions in order:
          │         + cacheTag()               │
          │         + cacheLife()              │
          │                                    │
+         │    Can you extract runtime         │
+         │    data as params?                 │
+         │         │                          │
+         │    ┌────▼────┐  ┌─────▼─────┐     │
+         │    │   YES   │  │    NO     │     │
+         │    └────┬────┘  └─────┬─────┘     │
+         │         │             │            │
+         │    Pass as args  'use cache:      │
+         │    to cached fn   private'        │
+         │                  (last resort)    │
+         │                                    │
          └──────────────┬─────────────────────┘
                         │
                         ▼
@@ -111,7 +119,7 @@ When writing a React Server Component, ask these questions in order:
               (dynamic streaming)
 ```
 
-**Key insight**: The `'use cache'` directive is for data that's the _same across users_. User-specific data stays dynamic with Suspense.
+**Key insight**: The `'use cache'` directive is for data that's the _same across users_. User-specific data stays dynamic with Suspense. If you cannot extract runtime data as function parameters and compliance prevents cross-request sharing, use `'use cache: private'` as a last resort.
 
 ## Quick Start
 
@@ -447,6 +455,7 @@ When generating Cache Component code:
 4. **Tag meaningfully** - Use semantic tags that match your invalidation needs
 5. **Extract runtime data** - Move `cookies()`/`headers()` outside cached scope
 6. **Wrap dynamic content** - Use `<Suspense>` for non-cached async components
+7. **Use `'use cache: private'` as last resort** - Only when runtime data cannot be extracted as params AND compliance requires no cross-request sharing
 
 ---
 
