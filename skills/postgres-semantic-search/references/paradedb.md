@@ -1,5 +1,7 @@
 # ParadeDB - Elasticsearch Alternative for PostgreSQL
 
+> **Live docs**: ParadeDB API evolves quickly. Fetch https://docs.paradedb.com/llms-full.txt for the most current syntax. The content below is a practical guide but may lag behind.
+
 ParadeDB is a YC S23 company with 400,000+ deployments. Used in production by Alibaba Cloud, Bilt Rewards, and others.
 
 ## Why ParadeDB?
@@ -320,6 +322,7 @@ REINDEX INDEX search_idx;
 ## External Links
 
 - [ParadeDB Documentation](https://docs.paradedb.com)
-- [ParadeDB llms.txt](https://docs.paradedb.com/llms.txt) - AI-friendly docs index
+- [ParadeDB AI Docs](https://docs.paradedb.com/llms-full.txt) - Full docs for AI agents (always current)
+- [ParadeDB MCP Endpoint](https://docs.paradedb.com/mcp) - For MCP-compatible tools
 - [GitHub Repository](https://github.com/paradedb/paradedb)
 - [Quickstart Guide](https://docs.paradedb.com/documentation/getting-started/quickstart)

@@ -100,7 +100,7 @@ async function searchWithRerank(
 - **Self-learning capability** for enterprise deployments
 - **100+ language support** with state-of-the-art retrieval
 
-### Pricing (January 2026)
+### Pricing (approximate, verify with providers)
 
 - **rerank-v4.0-pro**: $0.002 per search (up to 100 docs)
 - **rerank-v4.0-fast**: $0.001 per search (up to 100 docs)

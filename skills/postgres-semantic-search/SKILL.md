@@ -192,13 +192,14 @@ Two-stage retrieval improves precision: fast recall → precise rerank.
 
 ### Options
 
-| Method | Latency | Quality | Cost |
-|--------|---------|---------|------|
-| Cohere Rerank v4.0-fast | ~150ms | Excellent | $0.001/query |
-| Cohere Rerank v4.0-pro | ~300ms | Best | $0.002/query |
-| Zerank 2 | ~100ms | Best | API cost |
-| Voyage Rerank 2.5 | ~100ms | Excellent | API cost |
-| Cross-encoder (local) | ~500ms | Very Good | Compute |
+| Method | Latency | Quality |
+|--------|---------|---------|
+| Cohere Rerank v4.0 | ~150-300ms | Best |
+| Zerank 2 | ~100ms | Best |
+| Voyage Rerank 2.5 | ~100ms | Excellent |
+| Cross-encoder (local) | ~500ms | Very Good |
+
+Check provider docs for current pricing. Cohere has a free tier (1000 searches/month).
 
 ### TypeScript Example (Cohere)
 
@@ -289,18 +290,17 @@ const results = await db.execute(sql`
 | ILIKE '%x%' slow | No pg_trgm GIN index | Enable pg_trgm + create GIN trigram index |
 | `%` operator error | pg_trgm not installed | `CREATE EXTENSION IF NOT EXISTS pg_trgm` |
 
-## Version Info (January 2026)
+## Compatibility
 
-- **PostgreSQL 18.1**: Latest maintenance release with security fixes (Nov 2025)
-- **PostgreSQL 17.7**: Stable LTS option
-- **pgvector 0.8.1**: Iterative scans, PostgreSQL 18 support, halfvec up to 4000 dims
-- **pg_search 0.21.2**: MVCC visibility, parallel aggregation, varchar[] indexing
-- **Cohere Rerank v4.0**: 32K context, 100+ languages, self-learning (Dec 2025)
+- **pgvector**: 0.8+ recommended (iterative scans, halfvec). Check [pgvector releases](https://github.com/pgvector/pgvector/releases).
+- **pg_search**: Check [ParadeDB releases](https://github.com/paradedb/paradedb/releases) for latest.
+- **PostgreSQL**: 17+ recommended. pgvector supports 13-18.
 
 ## External Documentation
 
 - [pgvector GitHub](https://github.com/pgvector/pgvector) - Official extension, latest features
 - [OpenAI Embeddings Guide](https://platform.openai.com/docs/guides/embeddings) - Embedding models and best practices
 - [Supabase Vector Guide](https://supabase.com/docs/guides/ai/vector-columns) - Supabase-specific integration
-- [ParadeDB pg_search](https://docs.paradedb.com/search/quickstart) - BM25 extension documentation
+- [ParadeDB pg_search](https://docs.paradedb.com/documentation/getting-started/quickstart) - BM25 extension documentation
+- [ParadeDB AI Docs](https://docs.paradedb.com/llms-full.txt) - Fetch for latest ParadeDB API (always current)
 - [PostgreSQL FTS](https://www.postgresql.org/docs/current/textsearch.html) - Built-in full-text search
