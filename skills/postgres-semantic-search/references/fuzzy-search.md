@@ -193,6 +193,67 @@ CREATE INDEX ON documents USING gin (title gin_trgm_ops);
 
 ## Advanced FTS Patterns
 
+### Prefix Matching for Agglutinative Languages
+
+For Finnish, Turkish, Hungarian, Estonian and other agglutinative languages where `'simple'` config
+doesn't stem, use prefix matching (`:*` operator) so "xylitol" matches "xylitolin", "xylitolia", etc.
+
+`websearch_to_tsquery` doesn't support `:*`, so build the tsquery manually:
+
+```sql
+-- Convert 'fluoridi ksylitoli' → 'fluoridi:* & ksylitoli:*'
+CREATE OR REPLACE FUNCTION prefix_tsquery(p_config regconfig, p_text TEXT)
+RETURNS tsquery
+LANGUAGE plpgsql IMMUTABLE STRICT PARALLEL SAFE
+AS $$
+DECLARE
+    v_words TEXT[];
+    v_parts TEXT[];
+    v_word TEXT;
+BEGIN
+    -- Quoted phrases → fall back to websearch_to_tsquery (no prefix benefit)
+    IF p_text LIKE '%"%' THEN
+        RETURN websearch_to_tsquery(p_config, p_text);
+    END IF;
+
+    -- Split words, strip tsquery-special chars, add :* prefix operator
+    v_words := string_to_array(trim(regexp_replace(p_text, '\s+', ' ', 'g')), ' ');
+    v_parts := ARRAY[]::TEXT[];
+
+    FOREACH v_word IN ARRAY v_words LOOP
+        v_word := regexp_replace(v_word, '[()!&|<>:?\\''"]', '', 'g');
+        IF length(v_word) > 0 THEN
+            v_parts := array_append(v_parts, v_word || ':*');
+        END IF;
+    END LOOP;
+
+    IF array_length(v_parts, 1) IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN to_tsquery(p_config, array_to_string(v_parts, ' & '));
+END;
+$$;
+```
+
+Use with `'simple'` config (no stemming, works with any language):
+
+```sql
+-- In hybrid_search, replace websearch_to_tsquery with prefix_tsquery:
+v_tsquery := prefix_tsquery('simple', p_query_text);
+
+-- Direct usage
+SELECT * FROM documents
+WHERE text_search @@ prefix_tsquery('simple', 'ksylitoli fluori')
+ORDER BY ts_rank_cd(text_search, prefix_tsquery('simple', 'ksylitoli fluori')) DESC;
+```
+
+**Key points:**
+- Sanitizes `( ) ? ! & | < > : \ '` to prevent tsquery syntax errors from user input
+- Falls back to `websearch_to_tsquery` for quoted phrases (`"exact phrase"`)
+- Works with any `'simple'` tsvector column — no schema changes needed
+- Combines well with hybrid search (RRF) alongside vector similarity
+
 ### Weighted Search (Title vs Content)
 
 ```sql
