@@ -1,5 +1,6 @@
 ---
 name: postgres-semantic-search
+argument-hint: "[question or use case]"
 description: |
   PostgreSQL-based semantic and hybrid search with pgvector and ParadeDB.
   Use when implementing vector search, semantic search, hybrid search,

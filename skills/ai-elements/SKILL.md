@@ -1,5 +1,6 @@
 ---
 name: ai-elements
+argument-hint: "[component-name]"
 description: AI Elements component library for AI-native applications. Use when building chatbots, AI workflows, or integrating with Vercel AI SDK's useChat hook.
 ---
 

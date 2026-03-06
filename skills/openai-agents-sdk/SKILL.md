@@ -1,5 +1,6 @@
 ---
 name: openai-agents-sdk
+argument-hint: "[question or feature]"
 description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent workflows, tool integrations, or streaming applications with the openai-agents package.
 ---
 

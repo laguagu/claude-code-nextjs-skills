@@ -1,5 +1,6 @@
 ---
 name: ai-app
+argument-hint: "[app-type or description]"
 description: |
   Full-stack AI application generator with Next.js, AI SDK, and ai-elements.
   Use when creating chatbots, agent dashboards, or custom AI applications.

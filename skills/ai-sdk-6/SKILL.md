@@ -1,5 +1,6 @@
 ---
 name: ai-sdk-6
+argument-hint: "[question or feature]"
 description: Vercel AI SDK v6 development. Use when building AI agents, chatbots, tool integrations, or streaming applications with the ai package.
 ---
 

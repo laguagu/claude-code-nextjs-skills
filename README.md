@@ -8,9 +8,6 @@
 # Start a full-stack AI app
 /ai-app
 
-# Start autonomous Ralph Loop for complex apps
-/ralph-loop:ralph-loop "/ai-app @spec/PLAN.md build this app" --max-iterations 50 --completion-promise "DONE"
-
 # Or use individual skills as needed
 /ai-sdk-6              # AI agents & streaming
 /postgres-semantic-search  # Vector/hybrid search
@@ -45,7 +42,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [skill-creator](skills/skill-creator/) | Create custom skills - includes [Ralph Loop](skills/skill-creator/references/ralph-loop.md) docs |
+| [skill-creator](skills/skill-creator/) | Create, test, and optimize custom skills with eval tooling |
 
 ### 📦 Based On
 
@@ -53,7 +50,7 @@
 |-------|-----------------|---------|
 | [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
 | [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
-| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
+| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | Apache 2.0 |
 
 ## Custom Agents
 
@@ -64,7 +61,7 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 | [code-simplifier](agents/code-simplifier.md) | Refines code for clarity (DRY/KISS/YAGNI) after coding sessions |
 | [nextjs-reviewer](agents/nextjs-reviewer.md) | Generates review reports for Next.js projects |
 
-See [sub-agents reference](skills/skill-creator/references/sub-agents.md) for creating custom agents.
+See the [skill-creator](skills/skill-creator/) skill for creating custom agents and skills.
 
 ## Installation
 
@@ -93,5 +90,5 @@ Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
 MIT (this repository)
 
 Some skills are extended from open source originals:
-- `skill-creator`: Extended from [anthropics/skills](https://github.com/anthropics/skills) (Apache 2.0)
+- `skill-creator`: From [anthropics/skills](https://github.com/anthropics/skills) (Apache 2.0)
 - `cache-components`: From [vercel/next.js](https://github.com/vercel/next.js) (MIT)

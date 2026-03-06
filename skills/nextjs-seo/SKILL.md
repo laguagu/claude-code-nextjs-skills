@@ -1,5 +1,6 @@
 ---
 name: nextjs-seo
+argument-hint: "[question or URL]"
 description: Next.js SEO optimization guide. Use when building Next.js apps, optimizing for search engines, fixing Google indexing issues, implementing metadata, sitemaps, robots.txt, JSON-LD, or auditing SEO.
 ---
 

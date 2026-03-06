@@ -1,5 +1,6 @@
 ---
 name: nextjs-shadcn
+argument-hint: "[component or page]"
 description: Creates Next.js 16 frontends with shadcn/ui. Use when building React UIs, components, pages, or applications with shadcn, Tailwind, or modern frontend patterns.
 ---
 
