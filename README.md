@@ -21,8 +21,10 @@
 |-------|-------------|
 | [ai-app](skills/ai-app/) | Full-stack AI app (chatbots, agents, dashboards) |
 | [nextjs-shadcn](skills/nextjs-shadcn/) | Next.js 16 + shadcn/ui + bun |
+| [next-best-practices](skills/next-best-practices/) | Next.js best practices (RSC, async APIs, routing, optimization) |
 | [cache-components](skills/cache-components/) | Next.js Cache Components & PPR |
 | [nextjs-seo](skills/nextjs-seo/) | SEO optimization (metadata, sitemaps, JSON-LD) |
+| [web-design-guidelines](skills/web-design-guidelines/) | UI/UX review against Vercel Web Interface Guidelines |
 
 ### 🤖 AI SDKs
 
@@ -51,6 +53,8 @@
 | [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
 | [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
 | [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | Apache 2.0 |
+| [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/next-skills](https://skills.sh/vercel-labs/next-skills/next-best-practices) | - |
+| [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
 
 ## Custom Agents
 
@@ -60,6 +64,7 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 |-------|-------------|
 | [code-simplifier](agents/code-simplifier.md) | Refines code for clarity (DRY/KISS/YAGNI) after coding sessions |
 | [nextjs-reviewer](agents/nextjs-reviewer.md) | Generates review reports for Next.js projects |
+| [e2e-tester](agents/e2e-tester.md) | E2E functional testing via DevTools MCP, Playwright, or Claude in Chrome |
 
 See the [skill-creator](skills/skill-creator/) skill for creating custom agents and skills.
 
