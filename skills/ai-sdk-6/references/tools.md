@@ -168,13 +168,15 @@ const getLocationTool = tool({
 
 When rendering tool calls in the UI, handle these states:
 
-| State              | Description                                    |
-| ------------------ | ---------------------------------------------- |
-| `input-streaming`  | Tool input is being streamed (partial args)    |
-| `input-available`  | Tool input is complete, awaiting execution     |
-| `approval-requested` | Awaiting user approval (needsApproval: true) |
-| `output-available` | Tool execution completed successfully          |
-| `output-error`     | Tool execution failed                          |
+| State                | Description                                    |
+| -------------------- | ---------------------------------------------- |
+| `input-streaming`    | Tool input is being streamed (partial args)    |
+| `input-available`    | Tool input is complete, awaiting execution     |
+| `approval-requested` | Awaiting user approval (needsApproval: true)   |
+| `approval-responded` | User responded, awaiting execution result      |
+| `output-available`   | Tool execution completed successfully          |
+| `output-denied`      | User denied approval (needsApproval only)      |
+| `output-error`       | Tool execution failed                          |
 
 ```typescript
 {message.parts.map((part) => {
@@ -443,6 +445,29 @@ const agent = new ToolLoopAgent({
   },
 });
 ```
+
+## Provider-Specific Tools
+
+Some providers offer built-in tools:
+
+### OpenAI Web Search
+
+```typescript
+import { openai } from "@ai-sdk/openai";
+
+const agent = new ToolLoopAgent({
+  model: openai("gpt-5.4"),
+  tools: {
+    web_search: openai.tools.webSearch({
+      searchContextSize: "low", // "low" | "medium" | "high"
+      userLocation: { type: "approximate", country: "FI" },
+    }),
+    // ...other tools
+  },
+});
+```
+
+Provider tools appear as `tool-{name}` parts in the UI and produce `source-url` parts with citation URLs.
 
 ## Schema Libraries
 

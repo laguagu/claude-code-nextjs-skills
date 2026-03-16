@@ -204,7 +204,9 @@ type ToolUIPart = {
     | "input-streaming"
     | "input-available"
     | "approval-requested"
+    | "approval-responded"
     | "output-available"
+    | "output-denied"
     | "output-error";
   input: ToolInput;
   output?: ToolOutput;

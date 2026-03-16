@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: anthropic('claude-sonnet-4-5'),
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
   });
 
   return result.toUIMessageStreamResponse();
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -56,7 +57,9 @@ import { useState } from 'react';
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim()) return;
@@ -120,7 +123,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: anthropic('claude-sonnet-4-5'),
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
     system: `You are a helpful AI assistant. When appropriate:
 - Use extended thinking to reason through complex problems
 - Cite sources when providing factual information
@@ -148,6 +151,7 @@ export async function POST(req: Request) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -186,7 +190,9 @@ import { useState } from 'react';
 export default function ChatPage() {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<File[]>([]);
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim() && message.files.length === 0) return;
@@ -382,6 +388,7 @@ export async function POST(request: Request) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -412,7 +419,9 @@ import { useState } from 'react';
 
 export default function AgentPage() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim()) return;
@@ -632,6 +641,7 @@ export function AgentSelector({ value, onChange }: AgentSelectorProps) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { useState } from 'react';
 import type { AgentType } from '@/ai/writing';
 import { AgentSelector } from '@/components/agent-selector';
@@ -640,7 +650,9 @@ import { AgentSelector } from '@/components/agent-selector';
 export default function MultiAgentPage() {
   const [input, setInput] = useState('');
   const [agentType, setAgentType] = useState<AgentType>('research');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim()) return;

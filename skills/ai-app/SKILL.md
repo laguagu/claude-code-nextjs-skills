@@ -1,12 +1,12 @@
 ---
 name: ai-app
-argument-hint: "[app-type or description]"
 description: |
   Full-stack AI application generator with Next.js, AI SDK, and ai-elements.
   Use when creating chatbots, agent dashboards, or custom AI applications.
 
   Triggers: chatbot, chat app, agent dashboard, AI application, Next.js AI,
   useChat, streamText, ai-elements, build AI app, create chatbot
+argument-hint: "[app-type or description]"
 ---
 
 # AI App Generator
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: anthropic('claude-sonnet-4-5'),
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
     system: 'You are a helpful assistant.',
   });
 
@@ -134,6 +134,7 @@ export async function POST(req: Request) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -157,7 +158,9 @@ import { useState } from 'react';
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim()) return;

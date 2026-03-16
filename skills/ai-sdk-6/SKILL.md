@@ -1,7 +1,7 @@
 ---
 name: ai-sdk-6
+description: Vercel AI SDK v6 development. Use when building AI agents, chatbots, tool integrations, streaming apps, or structured output with the ai package. Covers ToolLoopAgent, useChat, generateText, streamText, tool approval, smoothStream, provider tools, MCP integration, and Output patterns.
 argument-hint: "[question or feature]"
-description: Vercel AI SDK v6 development. Use when building AI agents, chatbots, tool integrations, or streaming applications with the ai package.
 ---
 
 # Vercel AI SDK v6 Development Guide
@@ -13,7 +13,7 @@ Use this skill when developing AI-powered features using Vercel AI SDK v6 (`ai` 
 ### Installation
 
 ```bash
-bun add ai @ai-sdk/anthropic zod
+bun add ai @ai-sdk/openai zod    # or @ai-sdk/anthropic, @ai-sdk/google, etc.
 ```
 
 ### Core Functions
@@ -90,6 +90,21 @@ export async function POST(request: Request) {
     uiMessages: messages,
   });
 }
+```
+
+### Smooth Streaming
+
+```typescript
+import { createAgentUIStreamResponse, smoothStream } from "ai";
+
+return createAgentUIStreamResponse({
+  agent: myAgent,
+  uiMessages: messages,
+  experimental_transform: smoothStream({
+    delayInMs: 15,
+    chunking: "word", // "word" | "line" | "none"
+  }),
+});
 ```
 
 ### useChat Hook (Client)

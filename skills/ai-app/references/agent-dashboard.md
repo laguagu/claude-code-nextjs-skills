@@ -85,6 +85,7 @@ export async function POST(request: Request) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -120,7 +121,9 @@ import { useState } from 'react';
 
 export default function AgentDashboard() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim()) return;
@@ -404,7 +407,9 @@ import {
 } from '@/components/ai-elements/confirmation';
 
 // In your component:
-const { messages, sendMessage, addToolOutput } = useChat();
+const { messages, sendMessage, addToolOutput } = useChat({
+  transport: new DefaultChatTransport({ api: '/api/chat' }),
+});
 
 // In message parts rendering - check for 'input-available' state
 if (part.type === 'tool-invocation' && part.state === 'input-available') {

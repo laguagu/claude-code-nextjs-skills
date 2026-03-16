@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: anthropic('claude-sonnet-4-5'),
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
     system: 'You are a helpful assistant.',
   });
 
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -54,7 +55,9 @@ import { useState } from 'react';
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim()) return;
@@ -126,7 +129,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: anthropic(model),
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
     system: 'You are a helpful assistant. Think step by step.',
   });
 
@@ -143,6 +146,7 @@ export async function POST(req: Request) {
 // app/page.tsx
 'use client';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Conversation,
   ConversationContent,
@@ -199,7 +203,9 @@ const models = [
 export default function ChatPage() {
   const [input, setInput] = useState('');
   const [model, setModel] = useState(models[0].value);
-  const { messages, sendMessage, status, regenerate } = useChat();
+  const { messages, sendMessage, status, regenerate } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text.trim() && !message.files?.length) return;
@@ -354,7 +360,7 @@ export async function POST(req: Request) {
   const result = streamText({
     // Use Perplexity for web search, Claude otherwise
     model: webSearch ? perplexity('sonar-pro') : anthropic('claude-sonnet-4-5'),
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
     system: webSearch
       ? 'Search the web and provide accurate, up-to-date information with sources.'
       : 'You are a helpful assistant.',
@@ -368,6 +374,42 @@ export async function POST(req: Request) {
 ```
 
 Available Perplexity models: `sonar`, `sonar-pro`, `sonar-reasoning`, `sonar-reasoning-pro`, `sonar-deep-research`
+
+### Alternative: OpenAI Web Search Tool
+
+If already using OpenAI, use the built-in web search tool with an agent instead:
+
+```typescript
+// ai/assistant.ts
+import { ToolLoopAgent, stepCountIs } from 'ai';
+import { openai } from '@ai-sdk/openai';
+
+export const searchAgent = new ToolLoopAgent({
+  model: openai('gpt-5.4'),
+  instructions: 'Search the web and provide accurate information with sources.',
+  tools: {
+    web_search: openai.tools.webSearch({
+      searchContextSize: 'medium',
+    }),
+  },
+  stopWhen: stepCountIs(5),
+});
+
+// app/api/chat/route.ts
+import { createAgentUIStreamResponse } from 'ai';
+import { searchAgent } from '@/ai/assistant';
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+  return createAgentUIStreamResponse({
+    agent: searchAgent,
+    uiMessages: messages,
+    sendSources: true,
+  });
+}
+```
+
+Web search results appear as `source-url` message parts — render with the Sources component.
 
 ### Chat Page Addition
 
