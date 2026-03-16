@@ -440,6 +440,124 @@ sendMessage(
 
 ---
 
+## Chatbot with Follow-up Suggestions
+
+Add AI-generated follow-up suggestions after each assistant response.
+
+### Suggestions API Route
+
+```typescript
+// app/api/suggestions/route.ts
+import { generateText, Output } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { z } from 'zod';
+
+export async function POST(req: Request) {
+  const { question, answer }: { question: string; answer: string } =
+    await req.json();
+
+  const { output } = await generateText({
+    model: openai('gpt-4o-mini'),
+    output: Output.array({
+      schema: z.string().describe('A follow-up question'),
+    }),
+    prompt: `Based on this Q&A, suggest 2-3 natural follow-up questions.
+Question: ${question}
+Answer: ${answer}`,
+  });
+
+  return Response.json(output ?? []);
+}
+```
+
+### Client Integration
+
+```tsx
+// hooks/use-suggestions.ts
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+export function useSuggestions(
+  messages: { role: string; parts: { type: string; text?: string }[] }[],
+  status: string,
+) {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const prevStatus = useRef(status);
+
+  // Fetch suggestions when generation completes
+  useEffect(() => {
+    const wasStreaming = prevStatus.current === 'streaming';
+    prevStatus.current = status;
+
+    if (!wasStreaming || status !== 'ready') return;
+    if (messages.length < 2) return;
+
+    const lastUser = messages.findLast((m) => m.role === 'user');
+    const lastAssistant = messages.findLast((m) => m.role === 'assistant');
+    if (!lastUser || !lastAssistant) return;
+
+    const question = lastUser.parts.find((p) => p.type === 'text')?.text ?? '';
+    const answer =
+      lastAssistant.parts.find((p) => p.type === 'text')?.text ?? '';
+
+    setIsLoading(true);
+    fetch('/api/suggestions', {
+      method: 'POST',
+      body: JSON.stringify({ question, answer }),
+    })
+      .then((r) => r.json())
+      .then(setSuggestions)
+      .finally(() => setIsLoading(false));
+  }, [status, messages]);
+
+  const clear = useCallback(() => setSuggestions([]), []);
+
+  return { suggestions, isLoadingSuggestions: isLoading, clearSuggestions: clear };
+}
+```
+
+### Chat Page with Suggestions
+
+```tsx
+import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion';
+import { Loader } from '@/components/ai-elements/loader';
+import { useSuggestions } from '@/hooks/use-suggestions';
+
+// Inside your chat component:
+const { messages, sendMessage, status } = useChat({
+  transport: new DefaultChatTransport({ api: '/api/chat' }),
+});
+const { suggestions, isLoadingSuggestions, clearSuggestions } =
+  useSuggestions(messages, status);
+
+const handleSuggestionClick = (suggestion: string) => {
+  clearSuggestions();
+  sendMessage({ text: suggestion });
+};
+
+// After messages in ConversationContent:
+{!isGenerating && (isLoadingSuggestions || suggestions.length > 0) && (
+  <div className="pt-2">
+    {isLoadingSuggestions ? (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Loader size={12} />
+        <span>Loading suggestions…</span>
+      </div>
+    ) : (
+      <Suggestions>
+        {suggestions.map((s, i) => (
+          <Suggestion key={i} suggestion={s} onClick={handleSuggestionClick}>
+            {s}
+          </Suggestion>
+        ))}
+      </Suggestions>
+    )}
+  </div>
+)}
+```
+
+---
+
 ## Component Reference
 
 For detailed component documentation, see `/ai-elements` skill:

@@ -251,23 +251,24 @@ export default function ChatPage() {
               })}
 
               {/* Collect and display sources */}
-              {message.parts.some((p) => p.type === 'source-url') && (
-                <Sources>
-                  <SourcesTrigger />
-                  <SourcesContent>
-                    {message.parts
-                      .filter((p) => p.type === 'source-url')
-                      .map((part, i) => (
+              {(() => {
+                const sourceUrls = message.parts.filter((p) => p.type === 'source-url');
+                if (sourceUrls.length === 0) return null;
+                return (
+                  <Sources>
+                    <SourcesTrigger count={sourceUrls.length} />
+                    <SourcesContent>
+                      {sourceUrls.map((part, i) => (
                         <Source
                           key={i}
                           href={part.url}
                           title={part.title}
-                          favicon={part.providerMetadata?.favicon}
                         />
                       ))}
-                  </SourcesContent>
-                </Sources>
-              )}
+                    </SourcesContent>
+                  </Sources>
+                );
+              })()}
             </div>
           ))}
           {status === 'submitted' && <Loader />}
