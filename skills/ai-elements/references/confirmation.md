@@ -142,7 +142,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const result = streamText({
-    model: "openai/gpt-4o",
+    model: "openai/gpt-5.4",
     messages: await convertToModelMessages(messages),
     tools: {
       delete_file: {

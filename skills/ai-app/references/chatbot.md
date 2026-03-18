@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const result = streamText({
-    model: anthropic('claude-sonnet-4-5'),
+    model: anthropic('claude-sonnet-4-6'),
     messages: await convertToModelMessages(messages),
     system: 'You are a helpful assistant.',
   });
@@ -121,7 +121,7 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   const {
     messages,
-    model = 'claude-sonnet-4-5',
+    model = 'claude-sonnet-4-6',
   }: {
     messages: UIMessage[];
     model?: string;
@@ -196,7 +196,7 @@ import { CopyIcon, RefreshCcwIcon } from 'lucide-react';
 import { useState } from 'react';
 
 const models = [
-  { name: 'Claude Sonnet', value: 'claude-sonnet-4-5' },
+  { name: 'Claude Sonnet', value: 'claude-sonnet-4-6' },
   { name: 'Claude Haiku', value: 'claude-haiku-4-5' },
 ];
 
@@ -359,7 +359,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     // Use Perplexity for web search, Claude otherwise
-    model: webSearch ? perplexity('sonar-pro') : anthropic('claude-sonnet-4-5'),
+    model: webSearch ? perplexity('sonar-pro') : anthropic('claude-sonnet-4-6'),
     messages: await convertToModelMessages(messages),
     system: webSearch
       ? 'Search the web and provide accurate, up-to-date information with sources.'
@@ -457,7 +457,7 @@ export async function POST(req: Request) {
     await req.json();
 
   const { output } = await generateText({
-    model: openai('gpt-4o-mini'),
+    model: openai('gpt-5.4-mini'),
     output: Output.array({
       schema: z.string().describe('A follow-up question'),
     }),

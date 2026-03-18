@@ -13,7 +13,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 
 export const assistantAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5'),
+  model: anthropic('claude-sonnet-4-6'),
   instructions: `You are a helpful AI assistant with access to various tools.
     Use tools when needed to provide accurate information.
     Always explain what you're doing before using a tool.`,
@@ -241,7 +241,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 
 export const researchAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5'),
+  model: anthropic('claude-sonnet-4-6'),
   instructions: 'You are a research assistant. Find and summarize information.',
   tools: {
     searchWeb: tool({
@@ -261,7 +261,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 
 export const codeAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5'),
+  model: anthropic('claude-sonnet-4-6'),
   instructions: 'You are a coding assistant. Write and review code.',
   tools: {
     runCode: tool({
@@ -282,7 +282,7 @@ import { ToolLoopAgent, stepCountIs } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 
 export const writingAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5'),
+  model: anthropic('claude-sonnet-4-6'),
   instructions: 'You are a writing assistant. Help with content creation.',
   tools: {},
   stopWhen: stepCountIs(10),
@@ -365,7 +365,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 
 export const adminAgent = new ToolLoopAgent({
-  model: anthropic('claude-sonnet-4-5'),
+  model: anthropic('claude-sonnet-4-6'),
   instructions: 'You are an admin assistant with access to sensitive operations.',
   tools: {
     // Tool requiring approval - NO execute function

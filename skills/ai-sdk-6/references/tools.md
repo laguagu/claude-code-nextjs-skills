@@ -40,7 +40,7 @@ import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
 const { text, toolCalls, toolResults } = await generateText({
-  model: anthropic("claude-sonnet-4-5"),
+  model: anthropic("claude-sonnet-4-6"),
   prompt: "What's the weather in Tokyo?",
   tools: {
     weather: weatherTool,
@@ -58,7 +58,7 @@ import { streamText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-5"),
+  model: anthropic("claude-sonnet-4-6"),
   prompt: "What's the weather in Tokyo?",
   tools: {
     weather: weatherTool,
@@ -206,7 +206,7 @@ Tools with unknown schemas at compile time use the `dynamic-tool` type:
 const dynamicTools = await loadMCPTools();
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-5"),
+  model: anthropic("claude-sonnet-4-6"),
   tools: dynamicTools,
   // ...
 });
@@ -281,7 +281,7 @@ Tool call streaming is **enabled by default** in AI SDK v6:
 import { streamText, stepCountIs } from "ai";
 
 const result = streamText({
-  model: anthropic("claude-sonnet-4-5"),
+  model: anthropic("claude-sonnet-4-6"),
   messages: await convertToModelMessages(messages),
   tools: {
     search: searchTool,
@@ -422,7 +422,7 @@ const weatherTool = tool({
 import { ToolLoopAgent } from "ai";
 
 const agent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-5"),
+  model: anthropic("claude-sonnet-4-6"),
   tools: {
     search: tool({
       description: "Search the web",

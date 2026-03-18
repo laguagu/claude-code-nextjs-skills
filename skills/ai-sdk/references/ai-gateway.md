@@ -23,7 +23,7 @@ The AI Gateway is the default global provider, so you can access models using a 
 import { generateText } from 'ai';
 
 const { text } = await generateText({
-  model: 'anthropic/claude-sonnet-4.5',
+  model: 'anthropic/claude-sonnet-4-6',
   prompt: 'What is love?',
 });
 ```
@@ -33,11 +33,11 @@ You can also explicitly import and use the gateway provider:
 ```ts
 // Option 1: Import from 'ai' package (included by default)
 import { gateway } from 'ai';
-model: gateway('anthropic/claude-sonnet-4.5');
+model: gateway('anthropic/claude-sonnet-4-6');
 
 // Option 2: Install and import from '@ai-sdk/gateway' package
 import { gateway } from '@ai-sdk/gateway';
-model: gateway('anthropic/claude-sonnet-4.5');
+model: gateway('anthropic/claude-sonnet-4-6');
 ```
 
 ## Find Available Models
@@ -63,4 +63,4 @@ curl -s https://ai-gateway.vercel.sh/v1/models | jq -r '[.data[] | select(.id | 
 curl -s https://ai-gateway.vercel.sh/v1/models | jq -r '[.data[] | select(.id | startswith("google/")) | .id] | reverse | .[]'
 ```
 
-When multiple versions of a model exist, use the one with the highest version number (e.g., prefer `claude-sonnet-4-5` over `claude-sonnet-4` over `claude-3-5-sonnet`).
+When multiple versions of a model exist, use the one with the highest version number (e.g., prefer `claude-sonnet-4-6` over `claude-sonnet-4-5` over `claude-3-5-sonnet`).

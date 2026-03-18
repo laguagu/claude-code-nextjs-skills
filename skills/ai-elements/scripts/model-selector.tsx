@@ -21,57 +21,50 @@ const models = [
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "gpt-4o",
-    name: "GPT-4o",
+    id: "gpt-5.4",
+    name: "GPT-5.4",
     providers: ["openai", "azure"],
   },
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "gpt-4o-mini",
-    name: "GPT-4o Mini",
+    id: "gpt-5.4-mini",
+    name: "GPT-5.4 Mini",
     providers: ["openai", "azure"],
   },
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "o1",
-    name: "o1",
+    id: "o3",
+    name: "o3",
     providers: ["openai", "azure"],
   },
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "o1-mini",
-    name: "o1 Mini",
+    id: "o3-mini",
+    name: "o3 Mini",
     providers: ["openai", "azure"],
   },
   {
     chef: "Anthropic",
     chefSlug: "anthropic",
-    id: "claude-opus-4-20250514",
-    name: "Claude 4 Opus",
+    id: "claude-opus-4-6",
+    name: "Claude Opus 4.6",
     providers: ["anthropic", "azure", "google-vertex", "amazon-bedrock"],
   },
   {
     chef: "Anthropic",
     chefSlug: "anthropic",
-    id: "claude-sonnet-4-20250514",
-    name: "Claude 4 Sonnet",
+    id: "claude-sonnet-4-6",
+    name: "Claude Sonnet 4.6",
     providers: ["anthropic", "azure", "google-vertex", "amazon-bedrock"],
   },
   {
     chef: "Anthropic",
     chefSlug: "anthropic",
-    id: "claude-3.5-sonnet",
-    name: "Claude 3.5 Sonnet",
-    providers: ["anthropic", "azure", "google-vertex", "amazon-bedrock"],
-  },
-  {
-    chef: "Anthropic",
-    chefSlug: "anthropic",
-    id: "claude-3.5-haiku",
-    name: "Claude 3.5 Haiku",
+    id: "claude-haiku-4-5",
+    name: "Claude Haiku 4.5",
     providers: ["anthropic", "azure", "google-vertex", "amazon-bedrock"],
   },
   {
@@ -312,7 +305,7 @@ ModelItem.displayName = "ModelItem";
 
 const Example = () => {
   const [open, setOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<string>("gpt-4o");
+  const [selectedModel, setSelectedModel] = useState<string>("gpt-5.4");
 
   const handleModelSelect = useCallback((id: string) => {
     setSelectedModel(id);

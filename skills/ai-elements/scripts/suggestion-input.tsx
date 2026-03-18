@@ -32,15 +32,15 @@ const suggestions: { key: string; value: string }[] = [
 ];
 
 const models = [
-  { id: "gpt-4", name: "GPT-4" },
-  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
-  { id: "claude-2", name: "Claude 2" },
-  { id: "claude-instant", name: "Claude Instant" },
-  { id: "palm-2", name: "PaLM 2" },
-  { id: "llama-2-70b", name: "Llama 2 70B" },
-  { id: "llama-2-13b", name: "Llama 2 13B" },
-  { id: "cohere-command", name: "Command" },
-  { id: "mistral-7b", name: "Mistral 7B" },
+  { id: "gpt-5.4", name: "GPT-5.4" },
+  { id: "gpt-5.4-mini", name: "GPT-5.4 Mini" },
+  { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+  { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
+  { id: "llama-4-maverick", name: "Llama 4 Maverick" },
+  { id: "llama-4-scout", name: "Llama 4 Scout" },
+  { id: "command-r-plus", name: "Command R+" },
+  { id: "mistral-large", name: "Mistral Large" },
 ];
 
 const handleSubmit = (message: PromptInputMessage) => {
