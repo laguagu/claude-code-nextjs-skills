@@ -70,6 +70,26 @@ Based on the user interview, fill in these components:
 
 ### Skill Writing Guide
 
+#### Authoring Best Practices
+
+Reference: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+
+**Core principle: Claude is already very smart.** Only add context Claude doesn't already have. For every piece of information, ask: "Does Claude really need this? Can it figure this out by reading the code?" If yes, leave it out. Project file trees, database schemas, and script lists are things Claude can discover with Glob/Read — don't duplicate them in the skill.
+
+**Concise is key.** The context window is a shared resource. Once SKILL.md is loaded, every token competes with conversation history. Be ruthless about cutting explanations Claude doesn't need.
+
+**Descriptions in third person.** The description is injected into the system prompt — inconsistent point-of-view causes discovery problems. Write "Processes Excel files" not "I can help you process Excel files."
+
+**Match freedom to fragility.** High freedom (text guidelines) for tasks where many approaches are valid. Low freedom (exact scripts) for fragile operations where consistency is critical. Most skills land somewhere in between.
+
+**Avoid deeply nested references.** Keep references one level deep from SKILL.md. Claude may partially read files referenced from other referenced files.
+
+**No time-sensitive information.** Don't include dates or version-dependent instructions that will become stale.
+
+**Consistent terminology.** Pick one term and use it throughout — don't mix "endpoint"/"route"/"path" for the same concept.
+
+**Test with real usage.** Create 2-3 realistic test prompts and run them. Iterate based on observed behavior, not assumptions.
+
 #### Anatomy of a Skill
 
 ```
