@@ -137,6 +137,64 @@ Keep search and detail retrieval as separate tools:
 
 This keeps the ranking logic isolated and makes the detail tool fast and predictable. The agent decides when to drill down.
 
+## When to use RAG instead
+
+If content is unstructured prose (documents, FAQs, long text), use embeddings + pgvector rather than FTS.
+
+### Schema addition
+
+```ts
+// lib/db/schema/embeddings.ts
+import { pgTable, text, vector, index } from 'drizzle-orm/pg-core';
+
+export const embeddings = pgTable('embeddings', {
+  id: text('id').primaryKey(),
+  resourceId: text('resource_id').references(() => resources.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  embedding: vector('embedding', { dimensions: 1536 }).notNull(),
+}, (t) => ({
+  embeddingIndex: index('embeddingIndex').using('hnsw', t.embedding.op('vector_cosine_ops')),
+}));
+```
+
+Requires: `CREATE EXTENSION IF NOT EXISTS vector;`
+
+### Embedding utilities (AI SDK v6)
+
+```ts
+// lib/ai/embedding.ts
+import { embed, embedMany } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
+import { embeddings } from '../db/schema/embeddings';
+
+const embeddingModel = openai.embedding('text-embedding-3-small');
+
+export async function generateEmbedding(value: string): Promise<number[]> {
+  const { embedding } = await embed({ model: embeddingModel, value });
+  return embedding;
+}
+
+export async function generateEmbeddings(content: string) {
+  const chunks = content.split('.').map(c => c.trim()).filter(Boolean);
+  const { embeddings: vecs } = await embedMany({ model: embeddingModel, values: chunks });
+  return vecs.map((e, i) => ({ content: chunks[i], embedding: e }));
+}
+
+export async function findRelevantContent(query: string) {
+  const queryEmbedding = await generateEmbedding(query);
+  const similarity = sql<number>`1 - (${cosineDistance(embeddings.embedding, queryEmbedding)})`;
+  return db
+    .select({ content: embeddings.content, similarity })
+    .from(embeddings)
+    .where(gt(similarity, 0.5))
+    .orderBy(desc(similarity))
+    .limit(4);
+}
+```
+
+For advanced patterns (HNSW tuning, hybrid BM25+vector, reranking) → see `/postgres-semantic-search`.
+
 ## Reference implementation
 
 `apps/web/lib/ai/tools/search-services.ts` — full FTS + trigram implementation
