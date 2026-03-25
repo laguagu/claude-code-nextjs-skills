@@ -2,12 +2,25 @@
 
 ## Create New Project
 
-### With Preset (Recommended)
+### With Preset Code (Recommended)
 
 ```bash
-bunx --bun shadcn@latest create \
+# Using a preset code from ui.shadcn.com/create
+bunx --bun shadcn@latest init --preset b4h07r5A1 --template next
+```
+
+### With Full Preset URL
+
+```bash
+bunx --bun shadcn@latest init \
   --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
   --template next
+```
+
+### Monorepo
+
+```bash
+bunx --bun shadcn@latest init --preset b4h07r5A1 --template next --monorepo
 ```
 
 ### Full Preset URL Options
@@ -31,35 +44,35 @@ https://ui.shadcn.com/init?
 
 **Classic (vega + inter)** — traditional shadcn/ui look:
 ```bash
-bunx --bun shadcn@latest create \
+bunx --bun shadcn@latest init \
   --preset "https://ui.shadcn.com/init?base=radix&style=vega&baseColor=zinc&iconLibrary=lucide&font=inter" \
   --template next
 ```
 
 **Compact (nova + geist-sans)** — reduced padding, modern feel:
 ```bash
-bunx --bun shadcn@latest create \
+bunx --bun shadcn@latest init \
   --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
   --template next
 ```
 
 **Soft (maia + figtree)** — rounded, generous spacing:
 ```bash
-bunx --bun shadcn@latest create \
+bunx --bun shadcn@latest init \
   --preset "https://ui.shadcn.com/init?base=radix&style=maia&baseColor=stone&iconLibrary=phosphor&font=figtree&radius=lg" \
   --template next
 ```
 
 **Sharp (lyra + jetbrains-mono)** — boxy, technical:
 ```bash
-bunx --bun shadcn@latest create \
+bunx --bun shadcn@latest init \
   --preset "https://ui.shadcn.com/init?base=radix&style=lyra&baseColor=slate&iconLibrary=lucide&font=jetbrains-mono&radius=sm" \
   --template next
 ```
 
 **Dense (mira + dm-sans)** — compact data interfaces:
 ```bash
-bunx --bun shadcn@latest create \
+bunx --bun shadcn@latest init \
   --preset "https://ui.shadcn.com/init?base=radix&style=mira&baseColor=gray&iconLibrary=tabler&font=dm-sans" \
   --template next
 ```
@@ -108,7 +121,6 @@ project/
 │   └── utils.ts            # cn() helper
 ├── public/
 ├── components.json         # shadcn config
-├── tailwind.config.ts
 ├── tsconfig.json
 └── package.json
 ```
@@ -123,5 +135,5 @@ project/
 | Build | `bun --bun next build` |
 | Start prod | `bun --bun next start` |
 | Add shadcn component | `bunx --bun shadcn@latest add component` |
-| Create project | `bunx --bun shadcn@latest create ...` |
+| Create project | `bunx --bun shadcn@latest init --preset <code> --template next` |
 

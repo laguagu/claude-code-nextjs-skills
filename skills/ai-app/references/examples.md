@@ -208,7 +208,7 @@ export default function ChatPage() {
       <Conversation className="flex-1">
         <ConversationContent>
           {messages.map((message) => (
-            <div key={message.id} className="space-y-2">
+            <div key={message.id} className="flex flex-col gap-2">
               {/* User attachments */}
               {message.role === 'user' && message.attachments?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -435,7 +435,7 @@ export default function AgentPage() {
       <Conversation className="flex-1">
         <ConversationContent>
           {messages.map((message) => (
-            <div key={message.id} className="space-y-2">
+            <div key={message.id} className="flex flex-col gap-2">
               {message.parts.map((part, i) => {
                 switch (part.type) {
                   case 'text':

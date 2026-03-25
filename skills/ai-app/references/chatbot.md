@@ -252,13 +252,13 @@ export default function ChatPage() {
                                 label="Retry"
                                 onClick={() => regenerate()}
                               >
-                                <RefreshCcwIcon className="size-3" />
+                                <RefreshCcwIcon data-icon />
                               </MessageAction>
                               <MessageAction
                                 label="Copy"
                                 onClick={() => navigator.clipboard.writeText(part.text)}
                               >
-                                <CopyIcon className="size-3" />
+                                <CopyIcon data-icon />
                               </MessageAction>
                             </MessageActions>
                           )}

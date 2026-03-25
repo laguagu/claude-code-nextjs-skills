@@ -136,7 +136,7 @@ export default function AgentDashboard() {
       {/* Sidebar */}
       <aside className="w-64 border-r bg-muted/50 p-4">
         <h2 className="mb-4 font-semibold">AI Assistant</h2>
-        <div className="space-y-2 text-sm text-muted-foreground">
+        <div className="flex flex-col gap-2 text-sm text-muted-foreground">
           <p>Available tools:</p>
           <ul className="ml-4 list-disc">
             <li>Web Search</li>
@@ -151,7 +151,7 @@ export default function AgentDashboard() {
         <Conversation className="flex-1 p-4">
           <ConversationContent>
             {messages.map((message) => (
-              <div key={message.id} className="space-y-2">
+              <div key={message.id} className="flex flex-col gap-2">
                 {message.parts.map((part, i) => {
                   switch (part.type) {
                     case 'text':

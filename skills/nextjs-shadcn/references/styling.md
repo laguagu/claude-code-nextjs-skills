@@ -7,9 +7,9 @@
 shadcn generates base variables automatically based on your chosen preset. Customize for your project:
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Note: Tailwind v3 projects use @tailwind base; @tailwind components; @tailwind utilities; instead */
 
 @layer base {
   :root {
@@ -119,7 +119,7 @@ Priority order (use first available):
 import { ChevronRight, Menu, X } from "lucide-react"
 
 <Button>
-  Next <ChevronRight className="ml-2 h-4 w-4" />
+  Next <ChevronRight data-icon="inline-end" />
 </Button>
 ```
 

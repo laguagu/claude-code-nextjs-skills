@@ -30,7 +30,6 @@ my-ai-app/
 │   └── utils.ts                 # cn() utility
 ├── .env.local                   # API keys
 ├── next.config.ts               # Next.js config
-├── tailwind.config.ts           # Tailwind config
 ├── components.json              # shadcn/ui config
 └── package.json
 ```
