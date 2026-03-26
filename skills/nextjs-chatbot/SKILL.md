@@ -1,6 +1,6 @@
 ---
 name: nextjs-chatbot
-description: Production-grade Next.js chatbot with AI SDK v6 (ToolLoopAgent), HITL tool approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, and per-tool UI rendering. Use when building chatbots that need database-backed sessions, tool calling with human-in-the-loop approval, consent gating, feedback, or custom tool output components. Reference implementation: fair-helpdesk project.
+description: "Production-grade Next.js chatbot with AI SDK v6 (ToolLoopAgent), HITL tool approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, and per-tool UI rendering. Use when building chatbots that need database-backed sessions, tool calling with human-in-the-loop approval, consent gating, feedback, or custom tool output components. Reference implementation: fair-helpdesk project."
 ---
 
 # Next.js Chatbot
