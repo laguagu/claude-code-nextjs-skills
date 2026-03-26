@@ -5,7 +5,7 @@ model: opus
 skills:
   - nextjs-shadcn
   - next-best-practices
-  - vercel-react-best-practices
+  - react-best-practices
   - cache-components
   - ai-sdk-6
   - ai-sdk
