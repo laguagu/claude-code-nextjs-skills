@@ -392,6 +392,51 @@ Combine with grid/dot for vignette:
 </div>
 ```
 
+### Animated Spotlight
+
+For premium hero sections. Requires `motion`:
+
+```tsx
+"use client"
+
+import { motion } from "motion/react"
+import { cn } from "@/lib/utils"
+
+export function Spotlight({ className }: { className?: string }) {
+  return (
+    <motion.div
+      className={cn(
+        "pointer-events-none fixed inset-0 -z-10 overflow-hidden",
+        className
+      )}
+      aria-hidden
+    >
+      <motion.div
+        className="absolute top-0 left-1/2 h-[60vh] w-[80vw] -translate-x-1/2 rounded-full opacity-20 blur-3xl"
+        style={{
+          background:
+            "radial-gradient(ellipse, hsl(var(--primary) / 0.3), transparent 70%)",
+        }}
+        animate={{ x: ["-10%", "10%", "-10%"] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+    </motion.div>
+  )
+}
+```
+
+Combine with DotBackground for depth:
+
+```tsx
+<div className="relative min-h-screen bg-background dark:bg-black">
+  <Spotlight />
+  <DotBackground className="absolute inset-0 opacity-30" />
+  <div className="relative z-10">{children}</div>
+</div>
+```
+
+For more creative direction (custom textures, particles, dramatic effects), apply `/frontend-design` thinking.
+
 ### Section Wrapper
 
 For sections that need different theme context:
@@ -423,7 +468,9 @@ export function Section({ children, variant = "default", className }: SectionPro
 
 ```text
 Full-page ambient effect?
-├── Yes → Fixed radial gradient (GradientHero)
+├── Static → Fixed radial gradient (GradientHero)
+├── Animated → Spotlight + DotBackground
+├── Premium → Apply /frontend-design thinking
 └── No ↓
 
 Subtle texture for depth?

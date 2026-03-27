@@ -2,14 +2,7 @@
 
 ## Create New Project
 
-### With Preset Code (Recommended)
-
-```bash
-# Using a preset code from ui.shadcn.com/create
-bunx --bun shadcn@latest init --preset b4h07r5A1 --template next
-```
-
-### With Full Preset URL
+### With Full Preset URL (Recommended)
 
 ```bash
 bunx --bun shadcn@latest init \
@@ -17,10 +10,20 @@ bunx --bun shadcn@latest init \
   --template next
 ```
 
+### With Preset Code
+
+Preset codes are short opaque strings from [ui.shadcn.com/create](https://ui.shadcn.com/create). Pass them directly — don't decode them:
+
+```bash
+bunx --bun shadcn@latest init --preset b4h07r5A1 --template next
+```
+
 ### Monorepo
 
 ```bash
-bunx --bun shadcn@latest init --preset b4h07r5A1 --template next --monorepo
+bunx --bun shadcn@latest init \
+  --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
+  --template next --monorepo
 ```
 
 ### Full Preset URL Options
