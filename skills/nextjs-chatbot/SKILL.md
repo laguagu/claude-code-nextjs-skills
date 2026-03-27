@@ -1,6 +1,6 @@
 ---
 name: nextjs-chatbot
-description: "Production-grade Next.js chatbot with AI SDK v6 (ToolLoopAgent), HITL tool approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, and per-tool UI rendering. Use when building chatbots that need database-backed sessions, tool calling with human-in-the-loop approval, consent gating, feedback, or custom tool output components. Reference implementation: fair-helpdesk project."
+description: "Production-grade Next.js chatbot builder. Covers tool calling with human-in-the-loop (HITL) approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, per-tool UI rendering, message feedback, and follow-up suggestions. Use when building chat apps, conversational AI interfaces, customer support bots, or any chatbot needing database-backed sessions, tool approval workflows, consent gating, or custom tool output components. Reference implementation: fair-helpdesk project."
 ---
 
 # Next.js Chatbot
@@ -16,7 +16,31 @@ Opinionated blueprint for production chatbots. Focuses on patterns **not** cover
 - **AI SDK:** `ai@6` — `ToolLoopAgent`, `createAgentUIStreamResponse`
 - **UI:** shadcn/ui + ai-elements (see `/ai-elements` for component docs)
 - **ORM:** Drizzle + PostgreSQL
+- **State:** Zustand for client-side chat state (consent, session, suggestions)
+- **Attachments:** See `/ai-elements` Attachments component for file upload
 - **Deploy:** CSC Rahti 2 / OpenShift (see `/fair-helpdesk` for FAIR-specific deploy)
+
+## Recommended MCP servers
+
+Add to your `.claude/settings.json` or IDE MCP config for better dev experience:
+
+```json
+{
+  "mcpServers": {
+    "next-devtools": {
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "ai-elements": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://registry.ai-sdk.dev/api/mcp"]
+    }
+  }
+}
+```
+
+- **next-devtools** — Next.js route inspection, build diagnostics, config validation. See [nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp)
+- **ai-elements** — Browse and search ai-elements component registry with up-to-date docs and examples
 
 ## Agent setup
 
@@ -83,12 +107,39 @@ export async function POST(request: Request) {
 4. Document in the agent's `instructions` string
 5. Add UI renderer in `chat-message.tsx` (handle `tool-myTool` part type)
 
+## Building a new chatbot — checklist
+
+- [ ] Scaffold with `/ai-app` or `bunx --bun shadcn@latest create`
+- [ ] Install: `bun add ai @ai-sdk/react @ai-sdk/openai zod drizzle-orm postgres`
+- [ ] Install ai-elements: `bunx --bun ai-elements@latest` → Conversation, Message, PromptInput, Loader, Shimmer
+- [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent
+- [ ] Create route: `app/api/chat/route.ts` with createAgentUIStreamResponse
+- [ ] Create chat page using ai-elements components
+- [ ] Add tools: one tool at a time, with UI renderer per tool
+- [ ] Add persistence: DB schema → session upsert → onFinish save → history load
+- [ ] Add consent gating (if needed): privacy wall → consent check in route
+- [ ] Add feedback (if needed): thumbs up/down → 202 retry pattern
+- [ ] Add HITL approval (if needed): needsApproval tool → approval UI
+- [ ] Add suggestions (if needed): POST /api/suggestions → display after response
+
+## Verification
+
+After each milestone, verify:
+
+1. `bun dev` — app starts without errors
+2. Send a message → assistant responds with streaming text
+3. Tool calls → correct UI renders per tool state
+4. DB check: `SELECT * FROM chat_sessions` / `chat_messages` has rows
+5. Feedback: click thumbs up → DB row updated (may need retry)
+6. Reload page → chat history restores from DB
+
 ## Key patterns (reference files)
 
 - **HITL approval** — tool with `needsApproval: true`, 5-state render machine → [hitl.md](hitl.md)
 - **Session persistence + feedback retry** — stable IDs, onFinish, race window → [persistence.md](persistence.md)
 - **SQL-first search** — FTS + trigram vs RAG decision → [search.md](search.md)
 - **Tool UI rendering** — `renderToolState<T>` factory, per-tool components → [tool-rendering.md](tool-rendering.md)
+- **Follow-up suggestions** — generateText + Output.object after each response → [suggestions.md](suggestions.md)
 
 ## When to use vs other skills
 
@@ -98,3 +149,4 @@ export async function POST(request: Request) {
 | `/ai-sdk-6` | General SDK: `generateText`, `streamText`, tool definitions, structured output |
 | `/ai-elements` | Chat UI components: `Message`, `Shimmer`, `Sources`, `MessageAction` |
 | `/nextjs-shadcn` | Next.js app setup, shadcn components, routing, layouts |
+| `/postgres-semantic-search` | Advanced search: hybrid FTS+vector, BM25, reranking, HNSW tuning |

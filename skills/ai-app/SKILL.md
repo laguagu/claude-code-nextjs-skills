@@ -221,6 +221,7 @@ For detailed patterns, see:
 | AI SDK functions | `/ai-sdk-6` | [core-functions.md](../ai-sdk-6/references/core-functions.md) |
 | Agents & tools | `/ai-sdk-6` | [agents.md](../ai-sdk-6/references/agents.md) |
 | Caching | `/cache-components` | [REFERENCE.md](../cache-components/REFERENCE.md) |
+| Production patterns | `/nextjs-chatbot` | DB persistence, HITL approval, consent, feedback, search |
 | Code review & cleanup | `/code-simplifier` | DRY/KISS/YAGNI validation |
 
 ## Workflow
