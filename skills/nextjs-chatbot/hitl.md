@@ -123,8 +123,3 @@ IMPORTANT: Do NOT list expert names in your text — the form already shows them
 Tell the user to fill in the form below. Keep it to 1-2 sentences.
 ```
 
-## Reference implementation
-
-`apps/web/lib/ai/tools/suggest-expert-handoff.ts` — full tool with candidate expert selection
-`apps/web/components/chat-widget/chat-message.tsx:367-463` — approval render machine
-`apps/web/hooks/use-chat.ts:115-119` — useChat wiring

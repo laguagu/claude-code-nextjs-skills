@@ -166,10 +166,3 @@ const sources = message.parts
 
 Use the `Sources` / `SourcesTrigger` / `SourcesContent` components from ai-elements to render them. See `/ai-elements` for component details.
 
-## Reference implementation
-
-`apps/web/components/chat-widget/chat-message.tsx` — full renderToolState + all tool renderers
-`apps/web/components/chat-widget/service-card.tsx` — ServiceList component
-`apps/web/components/chat-widget/contact-card.tsx` — ContactList component
-`apps/web/lib/ai/tools/types.ts` — shared output types
-`apps/web/lib/ai/tools/sanitize.ts` — PII sanitization utilities

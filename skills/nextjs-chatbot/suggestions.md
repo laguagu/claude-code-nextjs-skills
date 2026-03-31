@@ -155,9 +155,3 @@ const handleSend = (text: string) => {
 - Clear on send — stale suggestions from a previous turn are confusing
 - Language matching — instruct the model to match the user's language
 
-## Reference implementation
-
-`apps/web/lib/ai/generate-suggestions.ts` — generation logic
-`apps/web/app/api/suggestions/route.ts` — API route
-`apps/web/components/chat-widget/chat-widget.tsx` — fetch + display in onFinish
-`apps/web/store/chat-store.ts` — Zustand store with suggestions state

@@ -166,10 +166,3 @@ await db.delete(chatSessions).where(eq(chatSessions.id, sessionId));
 
 Consent fields (`consentAccepted`, `consentVersion`, `consentAcceptedAt`) are stored on the session, not per-message, so the consent record is erased together with the session data.
 
-## Reference implementation
-
-`apps/web/app/api/chat/route.ts` — session upsert + createAgentUIStreamResponse + onFinish
-`apps/web/app/api/feedback/route.ts` — 202 retry response
-`apps/web/components/chat-widget/message-feedback.tsx` — feedback with backoff
-`apps/web/lib/chat-history.ts` — loadPersistedChatHistory (restore UIMessage[] from rawParts)
-`apps/web/lib/db/schema/chat-sessions.ts` + `chat-messages.ts` — schema

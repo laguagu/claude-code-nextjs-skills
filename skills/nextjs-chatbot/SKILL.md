@@ -1,13 +1,11 @@
 ---
 name: nextjs-chatbot
-description: "Production-grade Next.js chatbot builder. Covers tool calling with human-in-the-loop (HITL) approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, per-tool UI rendering, message feedback, and follow-up suggestions. Use when building chat apps, conversational AI interfaces, customer support bots, or any chatbot needing database-backed sessions, tool approval workflows, consent gating, or custom tool output components. Reference implementation: fair-helpdesk project."
+description: "Production-grade Next.js chatbot builder. Covers tool calling with human-in-the-loop (HITL) approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, per-tool UI rendering, message feedback, and follow-up suggestions. Use when building chat apps, conversational AI interfaces, customer support bots, or any chatbot needing database-backed sessions, tool approval workflows, consent gating, or custom tool output components."
 ---
 
 # Next.js Chatbot
 
 Opinionated blueprint for production chatbots. Focuses on patterns **not** covered by `/ai-sdk-6`, `/ai-elements`, or `/nextjs-shadcn` — use those skills for general SDK, component, and framework questions.
-
-**Reference implementation:** `c:\hh-tyo\fair\helpdesk-chatbot`
 
 ## Stack defaults
 
@@ -18,7 +16,6 @@ Opinionated blueprint for production chatbots. Focuses on patterns **not** cover
 - **ORM:** Drizzle + PostgreSQL
 - **State:** Zustand for client-side chat state (consent, session, suggestions)
 - **Attachments:** See `/ai-elements` Attachments component for file upload
-- **Deploy:** CSC Rahti 2 / OpenShift (see `/fair-helpdesk` for FAIR-specific deploy)
 
 ## Recommended MCP servers
 

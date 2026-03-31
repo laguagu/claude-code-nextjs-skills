@@ -62,15 +62,13 @@ CREATE INDEX ON services USING GIN(provider gin_trgm_ops);
 
 ## Provider alias normalization
 
-Normalize user input before querying so "HH", "Haaga Helia", and "haaga-helia" all find the same records:
+Normalize user input before querying so common abbreviations and variant spellings resolve to canonical names:
 
 ```ts
 // lib/ai/tools/normalize-provider.ts
 const PROVIDER_ALIASES: Record<string, string> = {
-  "hh": "Haaga-Helia",
-  "haaga helia": "Haaga-Helia",
-  "csc": "CSC",
-  // ...
+  // Add your domain-specific aliases here
+  // "shortname": "Full Official Name",
 };
 
 export function normalizeProvider(input: string): string {
@@ -195,9 +193,3 @@ export async function findRelevantContent(query: string) {
 
 For advanced patterns (HNSW tuning, hybrid BM25+vector, reranking) → see `/postgres-semantic-search`.
 
-## Reference implementation
-
-`apps/web/lib/ai/tools/search-services.ts` — full FTS + trigram implementation
-`apps/web/lib/ai/tools/search-advisory.ts` — same pattern for advisory topics
-`apps/web/lib/ai/tools/normalize.ts` — provider alias normalization
-`benchmarks/` — SQL-level and agent-level benchmark suite
