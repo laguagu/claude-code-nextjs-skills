@@ -166,3 +166,7 @@ await db.delete(chatSessions).where(eq(chatSessions.id, sessionId));
 
 Consent fields (`consentAccepted`, `consentVersion`, `consentAcceptedAt`) are stored on the session, not per-message, so the consent record is erased together with the session data.
 
+## Stream resumption (optional)
+
+For long-running agent loops, enable reconnection after page reload with `resume: true` in useChat and `createResumableStreamContext` on the server. Requires a stream store (Redis). See AI SDK docs: ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
+

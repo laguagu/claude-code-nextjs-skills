@@ -96,6 +96,45 @@ export async function POST(request: Request) {
 }
 ```
 
+## Client transport patterns
+
+### Dynamic context via transport body
+
+Inject per-request context (e.g., a saved document for edit mode) from the client:
+
+```ts
+// Simple: body function on DefaultChatTransport
+const transport = new DefaultChatTransport({
+  api: "/api/chat",
+  body: () => ({ documentContext: activeDocRef.current }),
+});
+
+// Fine-grained: prepareSendMessagesRequest (official API)
+const transport = new DefaultChatTransport({
+  prepareSendMessagesRequest: ({ id, messages }) => ({
+    body: { id, message: messages.at(-1), context: extraRef.current },
+  }),
+});
+```
+
+Server reads extra fields from the request body and passes to agent factory.
+
+### Chat remount (new conversation)
+
+Change the `id` prop to remount `useChat` and reset messages:
+
+```ts
+const [chatKey, setChatKey] = useState(0);
+const pendingRef = useRef<string | null>(null);
+
+const { messages, sendMessage } = useChat({
+  id: `chat-${chatKey}`,   // New id = fresh conversation
+  transport,
+});
+
+// In useEffect(chatKey): if pendingRef.current, sendMessage and clear
+```
+
 ## Adding a new tool
 
 1. Create `lib/ai/tools/my-tool.ts` with `tool()` from `ai`
@@ -103,6 +142,27 @@ export async function POST(request: Request) {
 3. Add to `tools` object in the agent file
 4. Document in the agent's `instructions` string
 5. Add UI renderer in `chat-message.tsx` (handle `tool-myTool` part type)
+
+## Structured output tools (schema-as-output)
+
+When the tool generates structured data (not query/compute), use the pass-through pattern — the Zod schema defines the output, execute just validates and returns:
+
+```ts
+const generateDocTool = tool({
+  description: "Generate structured documentation",
+  inputSchema: MyDocSchema,           // Zod schema IS the output shape
+  execute: async (data) => data,       // Validate and return
+});
+```
+
+LLM-resilient enums — LLMs sometimes append extra text to enum values. Use lenient transforms:
+
+```ts
+const LenientCategory = z.string().transform((val) => {
+  const valid = ["Business", "Technical", "Legal"] as const;
+  return valid.find((c) => val.startsWith(c)) ?? "Business";
+});
+```
 
 ## Building a new chatbot — checklist
 
@@ -115,6 +175,7 @@ export async function POST(request: Request) {
 - [ ] Choose layout: popup widget (see [popup-widget.md](popup-widget.md)) or full-page
 - [ ] Add tools: one tool at a time, with UI renderer per tool
 - [ ] Add persistence: DB schema → session upsert → onFinish save → history load
+- [ ] **Or skip DB**: for lightweight chatbots, use `localStorage` — no DB, auth, or consent steps needed
 - [ ] Add consent gating (if needed): privacy wall → consent check in route
 - [ ] Add feedback (if needed): thumbs up/down → 202 retry pattern
 - [ ] Add HITL approval (if needed): needsApproval tool → approval UI
