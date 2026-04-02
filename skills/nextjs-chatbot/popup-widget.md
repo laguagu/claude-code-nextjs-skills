@@ -152,7 +152,86 @@ Feature flag in host app:
 
 ## Lottie Callout
 
-First-visit "How can I help?" bubble with animated arrow pointing to the FAB. Uses `lottie-react` and a Lottie JSON animation. Dismisses on chat open or X click. State persisted in localStorage.
+First-visit "How can I help?" bubble with animated arrow pointing to the FAB. Dismisses on chat open or X click. State persisted in localStorage.
+
+**Animation file:** Download a hand-drawn arrow JSON from [LottieFiles](https://lottiefiles.com/free-animation/arrow-right-hand-drawn-petPBkBxeI) and save as `components/chat-widget/animations/arrow-right.json`. Bundle locally — do not use a CDN URL at runtime.
+
+```bash
+bun add lottie-react
+```
+
+```tsx
+// components/chat-widget/chat-callout.tsx
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import Lottie from "lottie-react";
+import arrowAnimation from "./animations/arrow-right.json";
+
+const STORAGE_KEY = "chat_first_open";
+
+export function ChatCallout({ isOpen }: { isOpen: boolean }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem(STORAGE_KEY)) return;
+    const t = setTimeout(() => setVisible(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(false);
+      localStorage.setItem(STORAGE_KEY, "1");
+    }
+  }, [isOpen]);
+
+  const dismiss = useCallback(() => {
+    setVisible(false);
+    localStorage.setItem(STORAGE_KEY, "1");
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          className="flex flex-col items-end"
+          initial={{ opacity: 0, x: 16, scale: 0.9 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 16, scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 180, damping: 20 }}
+        >
+          {/* Floating text bubble */}
+          <motion.div
+            className="mb-1 flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-2.5 text-sm font-medium shadow-lg"
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <span>How can I help?</span>
+            <span>👋</span>
+            <button
+              onClick={dismiss}
+              aria-label="Dismiss"
+              className="ml-1 text-lg leading-none text-muted-foreground/40 transition-colors hover:text-muted-foreground"
+            >
+              ×
+            </button>
+          </motion.div>
+
+          {/* Hand-drawn arrow pointing toward the FAB */}
+          <div
+            className="h-[79px] w-[140px]"
+            style={{ filter: "drop-shadow(0 0 4px rgba(255,255,255,0.35))" }}
+          >
+            <Lottie animationData={arrowAnimation} loop={false} />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+```
 
 ## Scroll fix (critical)
 
