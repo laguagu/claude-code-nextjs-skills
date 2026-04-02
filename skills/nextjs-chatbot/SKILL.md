@@ -181,6 +181,7 @@ const LenientCategory = z.string().transform((val) => {
 - [ ] Add HITL approval (if needed): needsApproval tool → approval UI
 - [ ] Add suggestions (if needed): POST /api/suggestions → display after response
 - [ ] Add embed support (if needed): /embed page + widget.js + CORS headers
+- [ ] Add web search (if needed): provider-native or custom fetch tool → [web-search.md](web-search.md)
 - [ ] Apply brand theming: globals.css oklch colors matching project identity
 - [ ] Add message actions: copy, thumbs up/down, regenerate, delete
 - [ ] Add "Answer" label with BookOpen icon above assistant text
@@ -308,6 +309,7 @@ After each milestone, verify:
 - **SQL-first search** — FTS + trigram vs RAG decision → [search.md](search.md)
 - **Tool UI rendering** — `renderToolState<T>` factory, per-tool components → [tool-rendering.md](tool-rendering.md)
 - **Follow-up suggestions** — generateText + Output.object after each response → [suggestions.md](suggestions.md)
+- **Web search** — provider-native, third-party SDK, or custom fetch patterns → [web-search.md](web-search.md)
 
 ## When to use vs other skills
 
