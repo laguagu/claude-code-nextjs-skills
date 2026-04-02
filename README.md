@@ -1,8 +1,8 @@
-# Claude Code AI Skills
+# 🧠 Claude Code AI Skills
 
 > Skills for building AI applications, especially Next.js + bun runtime.
 
-## Quick Start
+## ⚡ Quick Start
 
 ```bash
 # Start a full-stack AI app
@@ -13,69 +13,85 @@
 /postgres-semantic-search  # Vector/hybrid search
 ```
 
-## Skills
+## 📋 Skills
 
-### 🚀 App Development
+### 🚀 App Generators
 
 | Skill | Description |
 |-------|-------------|
 | [ai-app](skills/ai-app/) | Full-stack AI app (chatbots, agents, dashboards) |
 | [nextjs-shadcn](skills/nextjs-shadcn/) | Next.js 16 + shadcn/ui + bun |
-| [next-best-practices](skills/next-best-practices/) | Next.js best practices (RSC, async APIs, routing, optimization) |
-| [cache-components](skills/cache-components/) | Next.js Cache Components & PPR |
-| [nextjs-seo](skills/nextjs-seo/) | SEO optimization (metadata, sitemaps, JSON-LD) |
-| [web-design-guidelines](skills/web-design-guidelines/) | UI/UX review against Vercel Web Interface Guidelines |
+| [nextjs-chatbot](skills/nextjs-chatbot/) | Production chatbot (HITL, persistence, GDPR) |
+
+### 🎨 UI & Design
+
+| Skill | Description |
+|-------|-------------|
+| [shadcn](skills/shadcn/) | shadcn/ui component management |
+| [frontend-design](skills/frontend-design/) | Production-grade frontend interfaces |
+| [web-design-guidelines](skills/web-design-guidelines/) | UI/UX review against Web Interface Guidelines |
+
+### ⚡ Next.js
+
+| Skill | Description |
+|-------|-------------|
+| [next-best-practices](skills/next-best-practices/) | RSC, async APIs, routing, optimization |
+| [react-best-practices](skills/react-best-practices/) | React/Next.js performance optimization (Vercel) |
+| [cache-components](skills/cache-components/) | Cache Components & PPR |
+| [nextjs-seo](skills/nextjs-seo/) | SEO (metadata, sitemaps, JSON-LD) |
 
 ### 🤖 AI SDKs
 
 | Skill | Description |
 |-------|-------------|
-| [ai-sdk-6](skills/ai-sdk-6/) | Vercel AI SDK v6 (agents, streaming, tools) |
+| [ai-sdk](skills/ai-sdk/) | Vercel AI SDK general guide (official) |
+| [ai-sdk-6](skills/ai-sdk-6/) | AI SDK v6 (agents, streaming, tools) |
 | [ai-elements](skills/ai-elements/) | AI Elements UI components |
 | [openai-agents-sdk](skills/openai-agents-sdk/) | OpenAI Agents SDK (Python) |
 
-### 🗄️ Data & Search
+### 🗄️ Database & Search
 
 | Skill | Description |
 |-------|-------------|
 | [postgres-semantic-search](skills/postgres-semantic-search/) | pgvector semantic & hybrid search |
+| [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | Postgres optimization (Supabase) |
 
-### 🛠️ Meta
+### 🛠️ Tooling
 
 | Skill | Description |
 |-------|-------------|
-| [skill-creator](skills/skill-creator/) | Create, test, and optimize custom skills with eval tooling |
+| [skill-creator](skills/skill-creator/) | Create, test, and optimize custom skills |
 
-### 📦 Based On
-
-| Skill | Original Source | License |
-|-------|-----------------|---------|
-| [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
-| [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
-| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | Apache 2.0 |
-| [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/next-skills](https://skills.sh/vercel-labs/next-skills/next-best-practices) | - |
-| [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
-
-## Custom Agents
+## 🤖 Custom Agents
 
 Example agents for common workflows. Copy to `.claude/agents/` to use.
 
 | Agent | Description |
 |-------|-------------|
-| [code-simplifier](agents/code-simplifier.md) | Refines code for clarity (DRY/KISS/YAGNI) after coding sessions |
-| [nextjs-reviewer](agents/nextjs-reviewer.md) | Generates review reports for Next.js projects |
-| [e2e-tester](agents/e2e-tester.md) | E2E functional testing via DevTools MCP, Playwright, or Claude in Chrome |
+| [code-simplifier](agents/code-simplifier.md) | Refines code for clarity (DRY/KISS/YAGNI) |
+| [nextjs-reviewer](agents/nextjs-reviewer.md) | Review reports for Next.js projects |
+| [e2e-tester](agents/e2e-tester.md) | E2E testing via DevTools MCP, Playwright, or Claude in Chrome |
 
-See the [skill-creator](skills/skill-creator/) skill for creating custom agents and skills.
+## 📦 Based On
 
-## Installation
+| Skill | Original Source | License |
+|-------|-----------------|---------|
+| [ai-sdk](skills/ai-sdk/) | [vercel/ai](https://github.com/vercel/ai/tree/main/skills) | Apache 2.0 |
+| [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
+| [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
+| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | Apache 2.0 |
+| [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/next-skills](https://skills.sh/vercel-labs/next-skills/next-best-practices) | - |
+| [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
+| [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/supabase](https://github.com/supabase/supabase) | Apache 2.0 |
+
+## 📥 Installation
 
 Copy or symlink skills to:
 
 - **Global**: `~/.claude/skills/`
 - **Project**: `.claude/skills/`
 
-## MCP Server
+## 🔧 MCP Server
 
 Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
 
@@ -90,10 +106,8 @@ Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
 }
 ```
 
-## License
+## 📄 License
 
 MIT (this repository)
 
-Some skills are extended from open source originals:
-- `skill-creator`: From [anthropics/skills](https://github.com/anthropics/skills) (Apache 2.0)
-- `cache-components`: From [vercel/next.js](https://github.com/vercel/next.js) (MIT)
+Some skills are extended from open source originals — see [Based On](#-based-on) for details.
