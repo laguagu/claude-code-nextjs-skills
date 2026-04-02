@@ -233,6 +233,12 @@ export function ChatCallout({ isOpen }: { isOpen: boolean }) {
 }
 ```
 
+## Popup UI rules
+
+- **No scrollbar**: use `.scrollbar-none` utility (defined in `globals.css`) — no plugin needed
+- **Tight spacing**: `gap-3` between messages, `py-0.5` on tool results, small suggestion pills (`text-[11px] px-2.5 py-0.5`)
+- **Smaller font**: popup base `text-sm`, labels/meta `text-xs`/`text-[11px]` — full-page can use `text-base`
+
 ## Scroll fix (critical)
 
 The Conversation component from ai-elements uses `use-stick-to-bottom`. The key CSS rules:
