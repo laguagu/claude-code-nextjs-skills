@@ -1,3 +1,5 @@
+__pycache__/
+
 # Personal skills (symlinked from .agents/skills, not for public repo)
 skills/csc-rahti/
 skills/mcp-builder/
