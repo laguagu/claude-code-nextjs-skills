@@ -209,9 +209,9 @@ app/layout.tsx (base metadata)
 | `player` | Video embed | Video content |
 | `app` | App store link | Mobile apps |
 
-## Streaming Metadata (Next.js 15.2+)
+## Streaming Metadata
 
-Next.js can stream metadata after sending the initial UI. This improves TTFB and LCP.
+Next.js streams metadata after sending the initial UI by default. This improves TTFB and LCP.
 
 ```typescript
 // next.config.ts - Control which bots get blocking metadata

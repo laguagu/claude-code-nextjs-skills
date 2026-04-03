@@ -8,7 +8,7 @@ for a set of queries. Outputs results as JSON.
 import argparse
 import json
 import os
-import select
+import selectors
 import subprocess
 import sys
 import time
@@ -98,6 +98,8 @@ def run_single_query(
         accumulated_json = ""
 
         try:
+            sel = selectors.DefaultSelector()
+            sel.register(process.stdout, selectors.EVENT_READ)
             while time.time() - start_time < timeout:
                 if process.poll() is not None:
                     remaining = process.stdout.read()
@@ -105,8 +107,8 @@ def run_single_query(
                         buffer += remaining.decode("utf-8", errors="replace")
                     break
 
-                ready, _, _ = select.select([process.stdout], [], [], 1.0)
-                if not ready:
+                events = sel.select(timeout=1.0)
+                if not events:
                     continue
 
                 chunk = os.read(process.stdout.fileno(), 8192)
@@ -170,6 +172,7 @@ def run_single_query(
                     elif event.get("type") == "result":
                         return triggered
         finally:
+            sel.close()
             # Clean up process on any exit path (return, exception, timeout)
             if process.poll() is None:
                 process.kill()

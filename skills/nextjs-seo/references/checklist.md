@@ -16,7 +16,7 @@
 
 ### Rendering
 
-- [ ] SEO pages use SSG or SSR (not CSR)
+- [ ] SEO pages use SSG, SSR, or `"use cache"` Cache Components (not CSR)
 - [ ] Content visible without JavaScript (test with JS disabled)
 - [ ] No client-side only content for SEO-critical text
 

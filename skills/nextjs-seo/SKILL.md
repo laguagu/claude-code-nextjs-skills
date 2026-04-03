@@ -8,7 +8,7 @@ argument-hint: "[question or URL]"
 
 Comprehensive SEO guide for Next.js 16+ applications using App Router.
 
-> **Version:** Updated for Next.js 16.1.3 (January 2026)
+> Next.js 16+ App Router (validated against 16.2.2 docs)
 
 ## Quick SEO Audit
 
@@ -111,7 +111,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/_next/', '/admin/'],
+        disallow: ['/api/', '/admin/'],
+        // Do NOT disallow /_next/ — crawlers need render-critical CSS/JS
+        // Do NOT add bot-specific rules (Googlebot, Bingbot) unless overriding wildcard
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
@@ -122,13 +124,35 @@ export default function robots(): MetadataRoute.Robots {
 
 ## Key Principles
 
+### Cache Components & SEO (Next.js 16+)
+
+With `cacheComponents: true` in next.config.ts, use the `"use cache"` directive for SEO-critical server components:
+
+```typescript
+// app/(home)/sections/hero-section.tsx
+export async function HeroSection() {
+  "use cache";
+  cacheLife("minutes");   // Built-in profile: ~15 min
+  cacheTag("hero");       // For targeted invalidation via revalidateTag("hero")
+
+  const data = await fetchData();
+  return <div>{/* SEO-visible content */}</div>;
+}
+```
+
+**Key rules:**
+- `"use cache"` must be the first statement in the function body
+- No `cookies()`/`headers()` inside cache scope
+- Use `cacheLife()` + `cacheTag()` instead of `export const revalidate`
+- Sitemaps and metadata are static by default — only use `"use cache"` if they fetch dynamic data
+
 ### Rendering Strategy for SEO
 
 | Strategy | Use When | SEO Impact |
 |----------|----------|------------|
+| "use cache" | Server components with periodic data | Best - cached HTML, fast TTFB |
 | SSG (Static) | Content rarely changes | Best - pre-rendered HTML |
 | SSR | Dynamic content per request | Great - server-rendered |
-| ISR | Large sites, periodic updates | Great - cached + fresh |
 | CSR | Dashboards, authenticated areas | Poor - avoid for SEO pages |
 
 ### Core Web Vitals Targets
@@ -152,7 +176,7 @@ export default function robots(): MetadataRoute.Robots {
 1. **Mixing next-seo with Metadata API** - Use only Metadata API in App Router
 2. **Missing canonical URLs** - Always set `alternates.canonical`
 3. **Using CSR for SEO pages** - Use SSG/SSR for indexable content
-4. **Blocking assets in robots.txt** - Don't block CSS/JS needed for rendering
+4. **Blocking `/_next/` in robots.txt** - Crawlers need render-critical CSS/JS; never disallow `/_next/`
 5. **Missing metadataBase** - Required for relative URLs in metadata
 6. **Viewport in metadata** - Must be separate export in Next.js 14+
 7. **Mixing metadata object and generateMetadata** - Use one or the other, not both

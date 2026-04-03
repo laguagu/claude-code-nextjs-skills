@@ -255,13 +255,12 @@ Put each with_skill version before its baseline counterpart.
 
 4. **Launch the viewer** with both qualitative outputs and quantitative data:
    ```bash
-   nohup python <skill-creator-path>/eval-viewer/generate_review.py \
+   python <skill-creator-path>/eval-viewer/generate_review.py \
      <workspace>/iteration-N \
      --skill-name "my-skill" \
-     --benchmark <workspace>/iteration-N/benchmark.json \
-     > /dev/null 2>&1 &
-   VIEWER_PID=$!
+     --benchmark <workspace>/iteration-N/benchmark.json &
    ```
+   On Windows, omit the trailing `&` and run in a separate terminal, or use `--static <output_path>` to write a standalone HTML file instead of starting a server.
    For iteration 2+, also pass `--previous-workspace <workspace>/iteration-<N-1>`.
 
    **Cowork / headless environments:** If `webbrowser.open()` is not available or the environment has no display, use `--static <output_path>` to write a standalone HTML file instead of starting a server. Feedback will be downloaded as a `feedback.json` file when the user clicks "Submit All Reviews". After download, copy `feedback.json` into the workspace directory for the next iteration to pick up.
@@ -301,11 +300,7 @@ When the user tells you they're done, read `feedback.json`:
 
 Empty feedback means the user thought it was fine. Focus your improvements on the test cases where the user had specific complaints.
 
-Kill the viewer server when you're done with it:
-
-```bash
-kill $VIEWER_PID 2>/dev/null
-```
+Kill the viewer server when you're done with it. On Unix/macOS use `kill <PID>`, on Windows use `taskkill /PID <PID> /F`, or simply Ctrl+C the terminal running the server.
 
 ---
 
@@ -463,12 +458,19 @@ If you're in Cowork, the main things to know are:
 
 - You have subagents, so the main workflow (spawn test cases in parallel, run baselines, grade, etc.) all works. (However, if you run into severe problems with timeouts, it's OK to run the test prompts in series rather than parallel.)
 - You don't have a browser or display, so when generating the eval viewer, use `--static <output_path>` to write a standalone HTML file instead of starting a server. Then proffer a link that the user can click to open the HTML in their browser.
-- For whatever reason, the Cowork setup seems to disincline Claude from generating the eval viewer after running the tests, so just to reiterate: whether you're in Cowork or in Claude Code, after running tests, you should always generate the eval viewer for the human to look at examples before revising the skill yourself and trying to make corrections, using `generate_review.py` (not writing your own boutique html code). Sorry in advance but I'm gonna go all caps here: GENERATE THE EVAL VIEWER *BEFORE* evaluating inputs yourself. You want to get them in front of the human ASAP!
+- Cowork setups sometimes skip the eval viewer step. To be clear: whether you're in Cowork or Claude Code, after running tests, always generate the eval viewer for the human to review before you revise the skill yourself. Use `generate_review.py` (not custom HTML). The human's feedback is the most valuable signal — get the viewer in front of them before you start making changes.
 - Feedback works differently: since there's no running server, the viewer's "Submit All Reviews" button will download `feedback.json` as a file. You can then read it from there (you may have to request access first).
 - Packaging works — `package_skill.py` just needs Python and a filesystem.
 - Description optimization (`run_loop.py` / `run_eval.py`) should work in Cowork just fine since it uses `claude -p` via subprocess, not a browser, but please save it until you've fully finished making the skill and the user agrees it's in good shape.
 
 ---
+
+## Dependencies
+
+Scripts in this skill require:
+- **Python 3.10+** with `pyyaml` (`pip install pyyaml`)
+- **anthropic** SDK (`pip install anthropic`) — used by `improve_description.py`
+- **claude** CLI — used by `run_eval.py` and `run_loop.py` for trigger testing via `claude -p`
 
 ## Reference files
 

@@ -167,7 +167,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/admin/', '/_next/'],
+      disallow: ['/api/', '/admin/'],
+      // Never disallow /_next/ — crawlers need render-critical CSS/JS
     },
     sitemap: 'https://your-site.com/sitemap.xml',
   };
