@@ -38,7 +38,7 @@
 | [next-best-practices](skills/next-best-practices/) | RSC, async APIs, routing, optimization |
 | [react-best-practices](skills/react-best-practices/) | React/Next.js performance optimization (Vercel) |
 | [cache-components](skills/cache-components/) | Cache Components & PPR |
-| [nextjs-seo](skills/nextjs-seo/) | SEO (metadata, sitemaps, JSON-LD) (extended) |
+| [nextjs-seo](skills/nextjs-seo/) | SEO (metadata, sitemaps, JSON-LD) |
 
 ### 🤖 AI SDKs
 
@@ -79,7 +79,7 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 | [ai-sdk](skills/ai-sdk/) | [vercel/ai](https://github.com/vercel/ai/tree/main/skills) | Apache 2.0 |
 | [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
 | [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
-| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended with Windows support, dependency docs) | Apache 2.0 |
+| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
 | [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/next-skills](https://skills.sh/vercel-labs/next-skills/next-best-practices) | - |
 | [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/supabase](https://github.com/supabase/supabase) | Apache 2.0 |
