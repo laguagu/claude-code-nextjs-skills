@@ -91,7 +91,7 @@ export function ChatWidget({ inline = false }: { inline?: boolean }) {
 
   const chatContent = (
     <div className="flex h-full min-h-0 flex-col">
-      <Conversation className="px-3 [&>div]:scrollbar-none">
+      <Conversation className="px-3">
         <ConversationContent className="gap-4 py-3 h-fit">
           {messages.map(m => <ChatMessage key={m.id} message={m} />)}
         </ConversationContent>
@@ -235,7 +235,7 @@ export function ChatCallout({ isOpen }: { isOpen: boolean }) {
 
 ## Popup UI rules
 
-- **No scrollbar**: use `.scrollbar-none` utility (defined in `globals.css`) — no plugin needed
+- **No scrollbar**: Tailwind v4 has no `scrollbar-none` utility. Use `globals.css`: `[role="log"] > div { scrollbar-width: none; } [role="log"] > div::-webkit-scrollbar { display: none; }` — targets StickToBottom's scroll container via Conversation's `role="log"`.
 - **Tight spacing**: `gap-3` between messages, `py-0.5` on tool results, small suggestion pills (`text-[11px] px-2.5 py-0.5`)
 - **Smaller font**: popup base `text-sm`, labels/meta `text-xs`/`text-[11px]` — full-page can use `text-base`
 
