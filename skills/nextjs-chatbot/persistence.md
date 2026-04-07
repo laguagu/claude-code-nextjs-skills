@@ -78,7 +78,7 @@ onFinish: async ({ messages: finishedMessages }) => {
     .insert(chatMessages)
     .values(finishedMessages.map((m, index) => ({
       chatId,
-      messageId: getStoredMessageId(m.id, index, m.role),
+      messageId: m.id || `${chatId}-${index}-${m.role}`,
       role: m.role,
       content: m.parts                         // extract plain text
         .filter((p): p is { type: "text"; text: string } => p.type === "text")

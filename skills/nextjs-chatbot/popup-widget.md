@@ -235,7 +235,7 @@ export function ChatCallout({ isOpen }: { isOpen: boolean }) {
 
 ## Popup UI rules
 
-- **No scrollbar**: Tailwind v4 has no `scrollbar-none` utility. Use `globals.css`: `[role="log"] > div { scrollbar-width: none; } [role="log"] > div::-webkit-scrollbar { display: none; }` — targets StickToBottom's scroll container via Conversation's `role="log"`.
+- **No scrollbar**: Hide via `globals.css` (no Tailwind utility available): `[role="log"] > div { scrollbar-width: none; } [role="log"] > div::-webkit-scrollbar { display: none; }` — targets StickToBottom's scroll container via Conversation's `role="log"`.
 - **Tight spacing**: `gap-3` between messages, `py-0.5` on tool results, small suggestion pills (`text-[11px] px-2.5 py-0.5`)
 - **Smaller font**: popup base `text-sm`, labels/meta `text-xs`/`text-[11px]` — full-page can use `text-base`
 

@@ -44,7 +44,7 @@ import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
 const suggestionsSchema = z.object({
-  questions: z.array(z.string()).max(3)
+  questions: z.array(z.string()).min(2).max(3)
     .describe("Follow-up questions the user might want to ask"),
 });
 
