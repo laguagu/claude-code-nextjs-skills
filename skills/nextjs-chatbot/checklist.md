@@ -1,0 +1,25 @@
+# Building a New Chatbot — Checklist
+
+- [ ] Scaffold with `/ai-app` or `bunx --bun shadcn@latest create`
+- [ ] Install: `bun add ai @ai-sdk/react @ai-sdk/openai zod drizzle-orm postgres`
+- [ ] Install ai-elements: `bunx --bun ai-elements@latest` → Conversation, Message, PromptInput, Loader, Shimmer
+- [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent
+- [ ] Create route: `app/api/chat/route.ts` with createAgentUIStreamResponse
+- [ ] Create chat UI: use ai-elements Conversation/Message/MessageResponse
+- [ ] Choose layout: popup widget (see [popup-widget.md](popup-widget.md)) or full-page
+- [ ] Add tools: one tool at a time, with UI renderer per tool
+- [ ] Add persistence: DB schema → session upsert → onFinish save → history load
+- [ ] **Or skip DB**: for lightweight chatbots, use `localStorage` — no DB, auth, or consent steps needed
+- [ ] Add consent gating (if needed): privacy wall → consent check in route
+- [ ] Add feedback (if needed): thumbs up/down → 202 retry pattern
+- [ ] Add HITL approval (if needed): needsApproval tool → approval UI
+- [ ] Add suggestions (if needed): POST /api/suggestions → display after response
+- [ ] Add embed support (if needed): /embed page + widget.js + CORS headers
+- [ ] Add web search (if needed): provider-native or custom fetch tool → [web-search.md](web-search.md)
+- [ ] Apply brand theming: globals.css oklch colors matching project identity
+- [ ] Add message actions: copy, thumbs up/down, regenerate, delete
+- [ ] Add "Answer" label with BookOpen icon above assistant text
+- [ ] Add scope enforcement: refuse off-topic, block prompt injection
+- [ ] Create eval benchmarks: tool accuracy + injection defense tests
+- [ ] Add admin panel (if needed): /admin with better-auth JWT, metrics dashboard
+- [ ] Add data editor (if needed): /admin/data for managing tool knowledge base

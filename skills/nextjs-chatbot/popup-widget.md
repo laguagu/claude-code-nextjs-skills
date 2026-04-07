@@ -2,6 +2,17 @@
 
 Floating chat button that opens a popup panel — embeddable on any site via `<script>` tag or iframe.
 
+## Contents
+
+- [Architecture](#architecture)
+- [ChatButton](#chatbutton)
+- [ChatContainer](#chatcontainer)
+- [ChatWidget with popup + inline modes](#chatwidget-with-popup--inline-modes)
+- [Embed via widget.js](#embed-via-widgetjs)
+- [Lottie Callout](#lottie-callout)
+- [Popup UI rules](#popup-ui-rules)
+- [Scroll fix (critical)](#scroll-fix-critical)
+
 ## Architecture
 
 Three components work together:
@@ -89,6 +100,16 @@ export const ChatContainer = memo(({ isOpen, onClose, children }) => (
 export function ChatWidget({ inline = false }: { inline?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const { messages, sendMessage, stop, setMessages } = useChat({ transport });
+
+  const startNew = useCallback(() => {
+    stop();                              // CRITICAL: cancel active stream first
+    setMessages([]);
+    clearStoredMessages();
+    setChatId(crypto.randomUUID());
+    setConversationKey(k => k + 1);
+  }, [stop, setMessages]);
+
   const chatContent = (
     <div className="flex h-full min-h-0 flex-col">
       <Conversation className="px-3">
@@ -107,7 +128,7 @@ export function ChatWidget({ inline = false }: { inline?: boolean }) {
   return (
     <>
       <ChatButton isOpen={isOpen} onClick={() => setIsOpen(p => !p)} />
-      <ChatContainer isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <ChatContainer isOpen={isOpen} onClose={() => setIsOpen(false)} onClear={startNew}>
         {chatContent}
       </ChatContainer>
     </>

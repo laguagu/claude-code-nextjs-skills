@@ -2,6 +2,13 @@
 
 Human-in-the-loop (HITL) approval gates a tool's execution behind an explicit user approve/deny step. The AI SDK v6 handles state tracking; you wire up the UI.
 
+## Contents
+
+- [Tool definition](#tool-definition)
+- [useChat wiring](#usechat-wiring)
+- [5-state render machine](#5-state-render-machine)
+- [System prompt guidance](#system-prompt-guidance)
+
 ## Tool definition
 
 ```ts

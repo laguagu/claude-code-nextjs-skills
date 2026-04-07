@@ -2,6 +2,13 @@
 
 Generate contextual follow-up questions after each assistant response. Improves engagement by guiding users toward relevant next steps.
 
+## Contents
+
+- [API route](#api-route)
+- [Generation logic: generateText + Output.object](#generation-logic-generatetext--outputobject)
+- [Client integration](#client-integration)
+- [Gotchas](#gotchas)
+
 ## API route
 
 ```ts

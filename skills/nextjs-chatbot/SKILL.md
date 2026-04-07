@@ -19,82 +19,59 @@ Opinionated blueprint for production chatbots. Focuses on patterns **not** cover
 
 ## Recommended MCP servers
 
-Add to your `.claude/settings.json` or IDE MCP config for better dev experience:
+- **next-devtools** (`next-devtools-mcp@latest` via npx) — route inspection, build diagnostics. See [nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp)
+- **ai-elements** (via `mcp-remote` → `https://registry.ai-sdk.dev/api/mcp`) — component registry search
 
-```json
-{
-  "mcpServers": {
-    "next-devtools": {
-      "command": "npx",
-      "args": ["-y", "next-devtools-mcp@latest"]
-    },
-    "ai-elements": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://registry.ai-sdk.dev/api/mcp"]
-    }
-  }
-}
-```
-
-- **next-devtools** — Next.js route inspection, build diagnostics, config validation. See [nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp)
-- **ai-elements** — Browse and search ai-elements component registry with up-to-date docs and examples
+Add both to `.claude/settings.json` mcpServers.
 
 ## Agent setup
 
 ```ts
-// lib/ai/my-agent.ts
-import { openai } from "@ai-sdk/openai";
-import { ToolLoopAgent, InferAgentUIMessage, stepCountIs } from "ai";
-
 export function createAgent(opts?: { model?: LanguageModel }) {
   return new ToolLoopAgent({
     model: opts?.model ?? openai("gpt-5.4"),
-    instructions,          // system prompt string
+    instructions,
     providerOptions: { openai: { reasoningEffort: "none" } },
-    tools,                 // { toolName: tool(...) }
+    tools,
     stopWhen: stepCountIs(10),
   });
 }
-
 export const agent = createAgent();
 export type AgentUIMessage = InferAgentUIMessage<typeof agent>;
 ```
 
-Wrap model with `devToolsMiddleware()` from `@ai-sdk/devtools` in development.
-
-Export a factory (`createAgent`) in addition to the singleton — needed for benchmarks with different models.
+Export both factory and singleton — factory needed for benchmarks. Wrap with `devToolsMiddleware()` in dev.
 
 ## Route handler
 
 ```ts
-// app/api/chat/route.ts
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  const { messages, chatId, ...consentData } = await request.json();
-
-  // 1. Validate consent — block if missing
-  if (!consentData.consentAccepted) {
-    return new Response(JSON.stringify({ error: "Consent required" }), { status: 403 });
-  }
-
-  // 2. Upsert session — MUST be awaited before streaming starts
-  await db.insert(chatSessions).values({ id: chatId, ... })
-    .onConflictDoUpdate({ target: chatSessions.id, set: { updatedAt: sql`now()` } });
-
-  // 3. Stream
+  const { messages, chatId, ...consent } = await request.json();
+  // 1. Validate consent — return 403 if missing
+  // 2. Await session upsert BEFORE streaming (FK dependency)
   return createAgentUIStreamResponse({
     agent,
     uiMessages: messages,
     generateMessageId: createIdGenerator({ prefix: "msg", size: 16 }),
     consumeSseStream: ({ stream }) => consumeStream({ stream }),
     experimental_transform: smoothStream({ delayInMs: 15, chunking: "word" }),
-    onFinish: async ({ messages: finished }) => {
-      // Save to DB after stream — see persistence.md
-    },
+    onFinish: async ({ messages }) => { /* save to DB — see persistence.md */ },
   });
 }
 ```
+
+### Azure OpenAI model routing
+
+Non-reasoning models (gpt-4o) must use Chat Completions API (`azure.chat()`) — Responses API causes `fc_` ID errors on multi-turn tool calls. Reasoning models (gpt-5.x, o-series) use Responses API (default):
+
+```ts
+const isReasoning = /^(o[1-9]|gpt-5)/.test(deployment);
+export const chatModel = isReasoning ? azure(deployment) : azure.chat(deployment);
+```
+
+Set `reasoningEffort` only for reasoning models to avoid warnings.
 
 ## Client transport patterns
 
@@ -121,18 +98,48 @@ Server reads extra fields from the request body and passes to agent factory.
 
 ### Chat remount (new conversation)
 
-Change the `id` prop to remount `useChat` and reset messages:
+**Always call `stop()` before clearing** — otherwise the active stream writes into the new conversation:
 
 ```ts
-const [chatKey, setChatKey] = useState(0);
-const pendingRef = useRef<string | null>(null);
+const { messages, sendMessage, stop, setMessages } = useChat({ transport });
+
+const startNew = useCallback(() => {
+  stop();                     // Cancel active stream FIRST
+  setMessages([]);
+  clearStoredMessages();      // If using localStorage
+  setChatId(crypto.randomUUID());
+  setConversationKey(k => k + 1);
+}, [stop, setMessages]);
+```
+
+### localStorage persistence (no DB)
+
+For lightweight chatbots that don't need server-side persistence:
+
+```ts
+// Load on init via messages prop (NOT useEffect + setMessages)
+const initialMessages = useMemo(() => {
+  const stored = loadStoredMessages();
+  return stored?.length ? (stored as UIMessage[]) : undefined;
+}, []);
 
 const { messages, sendMessage } = useChat({
-  id: `chat-${chatKey}`,   // New id = fresh conversation
   transport,
+  messages: initialMessages,    // useChat accepts initial messages
+  onFinish: ({ messages: all }) => saveStoredMessages(all),
 });
+```
 
-// In useEffect(chatKey): if pendingRef.current, sendMessage and clear
+### Hydration: Zustand + localStorage
+
+Zustand stores that read `localStorage` in `create()` cause React hydration mismatch (server: `false`, client: `true`). Fix with a `mounted` gate:
+
+```tsx
+const [mounted, setMounted] = useState(false);
+useEffect(() => setMounted(true), []);
+
+// In render:
+{!mounted || !hasConsented ? <ConsentGate /> : <Chat />}
 ```
 
 ## Adding a new tool
@@ -164,31 +171,9 @@ const LenientCategory = z.string().transform((val) => {
 });
 ```
 
-## Building a new chatbot — checklist
+## Building a new chatbot
 
-- [ ] Scaffold with `/ai-app` or `bunx --bun shadcn@latest create`
-- [ ] Install: `bun add ai @ai-sdk/react @ai-sdk/openai zod drizzle-orm postgres`
-- [ ] Install ai-elements: `bunx --bun ai-elements@latest` → Conversation, Message, PromptInput, Loader, Shimmer
-- [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent
-- [ ] Create route: `app/api/chat/route.ts` with createAgentUIStreamResponse
-- [ ] Create chat UI: use ai-elements Conversation/Message/MessageResponse
-- [ ] Choose layout: popup widget (see [popup-widget.md](popup-widget.md)) or full-page
-- [ ] Add tools: one tool at a time, with UI renderer per tool
-- [ ] Add persistence: DB schema → session upsert → onFinish save → history load
-- [ ] **Or skip DB**: for lightweight chatbots, use `localStorage` — no DB, auth, or consent steps needed
-- [ ] Add consent gating (if needed): privacy wall → consent check in route
-- [ ] Add feedback (if needed): thumbs up/down → 202 retry pattern
-- [ ] Add HITL approval (if needed): needsApproval tool → approval UI
-- [ ] Add suggestions (if needed): POST /api/suggestions → display after response
-- [ ] Add embed support (if needed): /embed page + widget.js + CORS headers
-- [ ] Add web search (if needed): provider-native or custom fetch tool → [web-search.md](web-search.md)
-- [ ] Apply brand theming: globals.css oklch colors matching project identity
-- [ ] Add message actions: copy, thumbs up/down, regenerate, delete
-- [ ] Add "Answer" label with BookOpen icon above assistant text
-- [ ] Add scope enforcement: refuse off-topic, block prompt injection
-- [ ] Create eval benchmarks: tool accuracy + injection defense tests
-- [ ] Add admin panel (if needed): /admin with better-auth JWT, metrics dashboard
-- [ ] Add data editor (if needed): /admin/data for managing tool knowledge base
+When scaffolding from scratch, read [checklist.md](checklist.md) for the full setup sequence.
 
 ## Theming
 
@@ -211,28 +196,9 @@ Use `/nextjs-shadcn` for full theme setup. Key rules:
 - User messages: `bg-muted` rounded bubble (right-aligned)
 - Assistant messages: full-width, no background
 
-## Message actions (copy, feedback, regenerate, delete)
+## Message actions
 
-Every assistant message should have an action toolbar below the text:
-
-```tsx
-<Message from="assistant">
-  <MessageContent>
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-      <BookOpen size={16} /> Answer
-    </div>
-    {/* Tool results */}
-    <MessageResponse>{text}</MessageResponse>
-  </MessageContent>
-  <MessageActions>
-    <MessageAction tooltip="Copy" onClick={copy}><Copy size={14} /></MessageAction>
-    <MessageAction tooltip="Good" onClick={thumbsUp}><ThumbsUp size={14} /></MessageAction>
-    <MessageAction tooltip="Bad" onClick={thumbsDown}><ThumbsDown size={14} /></MessageAction>
-    <MessageAction tooltip="Regenerate" onClick={regenerate}><RefreshCw size={14} /></MessageAction>
-    <MessageAction tooltip="Delete" onClick={delete}><Trash2 size={14} /></MessageAction>
-  </MessageActions>
-</Message>
-```
+Every assistant message renders an action toolbar below text: Copy, ThumbsUp, ThumbsDown, Regenerate, Delete — using ai-elements `MessageActions` / `MessageAction` components with `<BookOpen /> Answer` label above response text.
 
 Feedback saves to `chat_messages.feedback` column (1=up, -1=down) via `POST /api/feedback`.
 

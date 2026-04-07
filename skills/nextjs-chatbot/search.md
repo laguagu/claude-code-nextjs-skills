@@ -1,5 +1,15 @@
 # SQL-First Search
 
+## Contents
+
+- [When SQL-first beats RAG](#when-sql-first-beats-rag)
+- [Pattern: weighted FTS + trigram fallback](#pattern-weighted-fts--trigram-fallback)
+- [Provider alias normalization](#provider-alias-normalization)
+- [Query builder factory](#query-builder-factory-enables-sql-level-benchmarks)
+- [Tool definition](#tool-definition)
+- [Separate search from detail lookup](#separate-search-from-detail-lookup)
+- [When to use RAG instead](#when-to-use-rag-instead)
+
 ## When SQL-first beats RAG
 
 Use PostgreSQL FTS + trigram instead of vector embeddings when:

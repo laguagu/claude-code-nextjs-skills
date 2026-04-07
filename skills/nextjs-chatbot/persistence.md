@@ -1,5 +1,15 @@
 # Session Persistence & Feedback
 
+## Contents
+
+- [Database schema (Drizzle)](#database-schema-drizzle)
+- [Critical ordering: session upsert BEFORE stream](#critical-ordering-session-upsert-before-stream)
+- [Stable server-generated message IDs](#stable-server-generated-message-ids)
+- [onFinish: save messages after stream](#onfinish-save-messages-after-stream)
+- [Feedback retry: race window pattern](#feedback-retry-race-window-pattern)
+- [GDPR: cascade delete](#gdpr-cascade-delete)
+- [Stream resumption (optional)](#stream-resumption-optional)
+
 ## Database schema (Drizzle)
 
 ```ts

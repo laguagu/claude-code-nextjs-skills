@@ -1,5 +1,16 @@
 # Tool UI Rendering
 
+## Contents
+
+- [Core principle: one component per tool](#core-principle-one-component-per-tool)
+- [renderToolState factory](#rendertoolstate-factory)
+- [Using the factory](#using-the-factory)
+- [Tool part type naming](#tool-part-type-naming)
+- [Collapsible for large result sets](#collapsible-for-large-result-sets)
+- [PII / phone number sanitization](#pii--phone-number-sanitization)
+- [Output type definitions](#output-type-definitions)
+- [Source URL parts (web search)](#source-url-parts-web-search)
+
 ## Core principle: one component per tool
 
 Don't render tool outputs as generic JSON. Each tool gets a dedicated React component that presents its data meaningfully. The `renderToolState<T>` factory handles the common loading/error/empty states so each tool only needs to implement the happy-path render.
