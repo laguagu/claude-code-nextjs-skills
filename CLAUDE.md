@@ -1,3 +1,1 @@
-# Project Rules
-
-- Always use bun, not npm
+@AGENTS.md
