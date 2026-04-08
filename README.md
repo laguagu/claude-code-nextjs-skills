@@ -88,8 +88,8 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 
 Copy or symlink skills to:
 
-- **Global**: `~/.claude/skills/`
-- **Project**: `.claude/skills/`
+- **Claude Code**: `~/.claude/skills/` (global) or `.claude/skills/` (project)
+- **Other agents** (Codex, Windsurf, Cursor): `~/.agents/skills/` or `.agents/skills/`
 
 ## 🔧 MCP Server
 
