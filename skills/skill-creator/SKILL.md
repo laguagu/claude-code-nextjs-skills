@@ -1,6 +1,8 @@
 ---
 name: skill-creator
+argument-hint: "[skill-name or description of what the skill should do]"
 description: "Creates new skills, modifies and improves existing skills, and measures skill performance. Use when users want to create a skill from scratch, update or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy."
+compatibility: "Claude Code, Codex, Gemini CLI — requires Python 3.10+, pyyaml, anthropic SDK. Description optimization requires claude CLI."
 ---
 
 # Skill Creator
@@ -63,9 +65,10 @@ Check available MCPs - if useful for research (searching docs, finding similar s
 
 Based on the user interview, fill in these components:
 
-- **name**: Skill identifier
-- **description**: When to trigger, what it does. This is the primary triggering mechanism - include both what the skill does AND specific contexts for when to use it. All "when to use" info goes here, not in the body. Note: currently Claude has a tendency to "undertrigger" skills -- to not use them when they'd be useful. To combat this, please make the skill descriptions a little bit "pushy". So for instance, instead of "How to build a simple fast dashboard to display internal Anthropic data.", you might write "How to build a simple fast dashboard to display internal Anthropic data. Make sure to use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of company data, even if they don't explicitly ask for a 'dashboard.'"
-- **compatibility**: Required tools, dependencies (optional, rarely needed)
+- **name**: Skill identifier (1–64 chars, lowercase a-z/0-9/hyphens, must match directory name)
+- **description**: When to trigger, what it does (1–1024 chars, third person). This is the primary triggering mechanism - include both what the skill does AND specific contexts for when to use it. All "when to use" info goes here, not in the body. Note: currently Claude has a tendency to "undertrigger" skills -- to not use them when they'd be useful. To combat this, please make the skill descriptions a little bit "pushy". So for instance, instead of "How to build a simple fast dashboard to display internal Anthropic data.", you might write "How to build a simple fast dashboard to display internal Anthropic data. Make sure to use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of company data, even if they don't explicitly ask for a 'dashboard.'"
+- **argument-hint** (optional): Shown in the skill list to guide users (e.g., `"[file or directory]"`)
+- **compatibility** (optional): Platform/environment requirements, 1–500 chars
 - **the rest of the skill :)**
 
 ### Skill Writing Guide
@@ -153,6 +156,14 @@ ALWAYS use this exact template:
 Input: Added user authentication with JWT tokens
 Output: feat(auth): implement JWT-based authentication
 ```
+
+#### Gotchas Section
+
+Always include a `## Gotchas` section in created skills. This is the highest-value content — non-obvious facts that prevent mistakes the agent would otherwise make. Things like environment quirks, implicit assumptions, or behaviors the agent can't infer from reading code.
+
+#### Pre-publish Checklist
+
+Before declaring a skill done, verify: `name` matches directory (lowercase+hyphens, 1–64 chars); `description` is specific, third person, includes triggers, < 1024 chars; SKILL.md under 500 lines; all referenced files exist; forward slashes in all paths; no time-sensitive info; description triggers correctly.
 
 ### Writing Style
 
@@ -485,17 +496,6 @@ The references/ directory has additional documentation:
 
 ---
 
-Repeating one more time the core loop here for emphasis:
+**Core loop reminder:** Capture intent → draft skill → run test prompts → evaluate with user (generate_review.py + benchmarks) → improve → repeat until satisfied → package.
 
-- Figure out what the skill is about
-- Draft or edit the skill
-- Run claude-with-access-to-the-skill on test prompts
-- With the user, evaluate the outputs:
-  - Create benchmark.json and run `eval-viewer/generate_review.py` to help the user review them
-  - Run quantitative evals
-- Repeat until you and the user are satisfied
-- Package the final skill and return it to the user.
-
-Please add steps to your TodoList, if you have such a thing, to make sure you don't forget. If you're in Cowork, please specifically put "Create evals JSON and run `eval-viewer/generate_review.py` so human can review test cases" in your TodoList to make sure it happens.
-
-Good luck!
+If you have a TodoList, add "Run `eval-viewer/generate_review.py` so human can review test cases" to ensure it happens. Good luck!
