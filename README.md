@@ -106,6 +106,10 @@ Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
 }
 ```
 
+## 📚 See Also
+
+- [agents-best-practices](https://github.com/laguagu/agents-best-practices) — `.agents`-first best practices, templates (AGENTS.md, CLAUDE.md, GEMINI.md, SKILL.md), and auditing tools for cross-platform agent skills
+
 ## 📄 License
 
 MIT (this repository)
