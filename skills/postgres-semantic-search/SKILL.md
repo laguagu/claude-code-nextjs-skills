@@ -297,6 +297,16 @@ const results = await db.execute(sql`
 - **pg_search**: Check [ParadeDB releases](https://github.com/paradedb/paradedb/releases) for latest.
 - **PostgreSQL**: 17+ recommended. pgvector supports 13-18.
 
+## Related Skills
+
+| Need | Skill |
+|------|-------|
+| General Postgres performance, indexes, RLS, connection pooling | `/supabase-postgres-best-practices` |
+| Chatbot orchestration, session DB, tool calls, HITL, feedback | `/nextjs-chatbot` |
+| AI SDK v6 usage for embeddings and retrieval | `/ai-sdk-6` |
+
+For ParadeDB-specific questions, always apply the Documentation Fetch Policy in [references/paradedb.md](references/paradedb.md) — live docs at `https://docs.paradedb.com/llms-full.txt` are the authoritative source.
+
 ## External Documentation
 
 - [pgvector GitHub](https://github.com/pgvector/pgvector) - Official extension, latest features

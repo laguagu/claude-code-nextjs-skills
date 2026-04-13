@@ -1,6 +1,36 @@
 # ParadeDB - Elasticsearch Alternative for PostgreSQL
 
-> **Live docs**: ParadeDB API evolves quickly. Fetch https://docs.paradedb.com/llms-full.txt for the most current syntax. The content below is a practical guide but may lag behind.
+## Documentation Fetch Policy
+
+ParadeDB API evolves quickly — the content below is a practical guide but may lag behind. Use the live docs as the authoritative source.
+
+**Fetch rules:**
+- On the first ParadeDB question in a session, fetch `https://docs.paradedb.com/llms-full.txt`.
+- After a successful fetch, treat that content as cached session context and reuse it for later ParadeDB questions in the same session.
+- Do not refetch on every turn when the previously fetched docs are still available and relevant.
+- Refresh the docs only when one of these is true:
+  - the user asks for a refresh or re-fetch
+  - the question depends on very recent/current changes
+  - the needed content was not included in the earlier fetch
+  - session context appears lost, truncated, or unavailable
+  - the earlier fetch failed or looked incomplete
+
+**Network failure rules (mandatory):**
+If `llms-full.txt` cannot be fetched due to DNS/network/access errors:
+- State clearly that live docs could not be accessed and include the actual error.
+- If cached session docs exist from an earlier successful fetch, continue from that cached copy unless the user wants to stop.
+- If no cached session docs exist, ask whether to proceed with the local content below or to retry.
+- Do not invent or infer doc URLs, page paths, or feature availability.
+- Do not present unverified links as real.
+- Label any fallback statements as assumptions and keep them minimal.
+
+**Response guidelines:**
+- Prefer runnable SQL examples over prose-only answers.
+- State ParadeDB/Postgres version assumptions when syntax may differ.
+- Say when you are relying on cached session docs versus a fresh fetch if that matters to the answer.
+- If behavior is uncertain, call it out explicitly instead of guessing.
+
+---
 
 ParadeDB is a YC S23 company with 400,000+ deployments. Used in production by Alibaba Cloud, Bilt Rewards, and others.
 
