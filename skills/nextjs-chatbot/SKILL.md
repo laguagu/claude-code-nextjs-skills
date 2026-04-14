@@ -227,7 +227,7 @@ const showActions = !isStreaming && hasContent;
 
 ## Message actions
 
-Every assistant message renders an action toolbar below text: Copy, ThumbsUp, ThumbsDown, Regenerate, Delete — using ai-elements `MessageActions` / `MessageAction` components with `<BookOpen /> Answer` label above response text. Gate the toolbar with `showActions` (see Message streaming state above) so it doesn't flicker during multi-tool responses.
+Every assistant message renders an action toolbar below text: Copy, ThumbsUp, ThumbsDown, Regenerate, Delete — using ai-elements `MessageActions` / `MessageAction` components. The `<BookOpen /> Answer` label renders conditionally with `hasText` (not `hasContent`) and is placed **after** tool result cards, directly before `<MessageResponse>`, so it only appears once text starts streaming — this prevents layout shift from inserting a header above already-rendered tool cards. Gate the toolbar with `showActions` (see Message streaming state above) so it doesn't flicker during multi-tool responses.
 
 Feedback saves to `chat_messages.feedback` column (1=up, -1=down) via `POST /api/feedback`.
 
