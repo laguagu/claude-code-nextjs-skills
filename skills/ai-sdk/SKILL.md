@@ -10,6 +10,15 @@ Before searching docs, check if `node_modules/ai/docs/` exists. If not, install 
 
 Do not install other packages at this stage. Provider packages (e.g., `@ai-sdk/openai`) and client packages (e.g., `@ai-sdk/react`) should be installed later when needed based on user requirements.
 
+### Monorepo path note
+
+In Bun / pnpm / Yarn workspace monorepos, dependencies are usually **not** hoisted to the repo root — they live inside each app's `node_modules/`. If `node_modules/ai/docs/` doesn't exist at the working directory, check workspace locations before assuming docs are missing:
+
+- `apps/*/node_modules/ai/docs/` (e.g. `apps/web/node_modules/ai/docs/`)
+- `packages/*/node_modules/ai/docs/`
+
+Glob from the repo root: `apps/*/node_modules/ai/docs/` or `**/node_modules/ai/docs/`. Substitute the resolved path everywhere this skill says `node_modules/ai/docs/` or `node_modules/ai/src/`. The same applies to provider docs at `node_modules/@ai-sdk/<provider>/docs/`.
+
 ## Critical: Do Not Trust Internal Knowledge
 
 Everything you know about the AI SDK is outdated or wrong. Your training data contains obsolete APIs, deprecated patterns, and incorrect usage.

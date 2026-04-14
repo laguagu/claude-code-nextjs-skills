@@ -8,6 +8,8 @@ argument-hint: "[question or feature]"
 
 Use this skill when developing AI-powered features using Vercel AI SDK v6 (`ai` package).
 
+> **Docs location**: bundled in `node_modules/ai/docs/`. In Bun/pnpm/Yarn workspace monorepos deps aren't hoisted — use `apps/*/node_modules/ai/docs/` or `packages/*/node_modules/ai/docs/` instead.
+
 ## Quick Reference
 
 ### Installation
