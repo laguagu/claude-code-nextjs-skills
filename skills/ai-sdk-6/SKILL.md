@@ -167,6 +167,7 @@ For detailed information, see:
 - [ui-hooks.md](references/ui-hooks.md) - useChat, UIMessage, streaming
 - [middleware.md](references/middleware.md) - Custom middleware patterns
 - [mcp.md](references/mcp.md) - MCP server integration
+- [examples.md](references/examples.md) - Canonical provider × feature examples from vercel/ai repo
 
 ## Official Documentation
 

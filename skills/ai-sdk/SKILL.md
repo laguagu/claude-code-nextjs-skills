@@ -43,6 +43,10 @@ Provider packages include docs at `node_modules/@ai-sdk/<provider>/docs/`.
 1. Search: `https://ai-sdk.dev/api/search-docs?q=your_query`
 2. Fetch `.md` URLs from results (e.g., `https://ai-sdk.dev/docs/agents/building-agents.md`)
 
+### Working examples
+
+For runnable provider × feature examples (Anthropic cache-control, OpenAI computer-use, Google grounding, etc.), see [examples.md](references/examples.md). Fetch individual files on demand via WebFetch or `gh api` — do not clone the repo.
+
 ## When Typecheck Fails
 
 **Before searching source code**, grep [Common Errors](references/common-errors.md) for the failing property or function name. Many type errors are caused by deprecated APIs documented there.
@@ -75,3 +79,4 @@ Before implementing agent consumption:
 - [Common Errors](references/common-errors.md) - Renamed parameters reference (parameters → inputSchema, etc.)
 - [Type-Safe Agents with useChat](references/type-safe-agents.md) - End-to-end type safety with InferAgentUIMessage
 - [DevTools](references/devtools.md) - Local debugging and observability (development only)
+- [Canonical Examples](references/examples.md) - Provider × feature working code from vercel/ai/examples
