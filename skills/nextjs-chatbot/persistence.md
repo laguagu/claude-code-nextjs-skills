@@ -125,6 +125,8 @@ return NextResponse.json({ ok: true });
 
 ### Client (exponential backoff + generation tracking)
 
+Render the feedback button only when the assistant message is complete — see the "Message streaming state & feedback visibility" section in [SKILL.md](SKILL.md). The retry pattern below assumes the button only appears once streaming is done; clicking mid-stream hits the race window unnecessarily.
+
 ```ts
 // components/message-feedback.tsx
 async function submitFeedback(

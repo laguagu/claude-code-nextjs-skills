@@ -196,9 +196,38 @@ Use `/nextjs-shadcn` for full theme setup. Key rules:
 - User messages: `bg-muted` rounded bubble (right-aligned)
 - Assistant messages: full-width, no background
 
+## Message streaming state & feedback visibility
+
+Gate action icons (copy, thumbs up/down, regenerate) and inter-tool shimmers on the **chat-level stream status**, not tool-part states alone. During a multi-tool response (tool A finishes → tool B starts), all tool parts are briefly in a non-loading state and `!toolParts.some(isToolLoading)` flips true → icons and shimmers flicker on/off.
+
+Correct pattern:
+
+```tsx
+// Parent widget — derive from useChat's status
+const { messages, status } = useChat({ transport, experimental_throttle: 50 });
+const isGenerating = status === "streaming" || status === "submitted";
+
+{messages.map((m, i) => (
+  <ChatMessage
+    key={m.id}
+    message={m}
+    isGenerating={isGenerating}
+    isLast={i === messages.length - 1}
+  />
+))}
+
+// ChatMessage
+const isStreaming = isGenerating && isLast && message.role === "assistant";
+const showActions = !isStreaming && hasContent;
+
+{showActions && <MessageActions>…</MessageActions>}
+```
+
+`isGenerating` stays `true` for the entire tool-loop + text-generation span, so `isStreaming` never flips between tools. Pair with `experimental_throttle: 50` on `useChat` to smooth rapid UI updates — this is the client-side knob, distinct from the server-side `smoothStream` text transform.
+
 ## Message actions
 
-Every assistant message renders an action toolbar below text: Copy, ThumbsUp, ThumbsDown, Regenerate, Delete — using ai-elements `MessageActions` / `MessageAction` components with `<BookOpen /> Answer` label above response text.
+Every assistant message renders an action toolbar below text: Copy, ThumbsUp, ThumbsDown, Regenerate, Delete — using ai-elements `MessageActions` / `MessageAction` components with `<BookOpen /> Answer` label above response text. Gate the toolbar with `showActions` (see Message streaming state above) so it doesn't flicker during multi-tool responses.
 
 Feedback saves to `chat_messages.feedback` column (1=up, -1=down) via `POST /api/feedback`.
 

@@ -17,7 +17,8 @@
 - [ ] Add embed support (if needed): /embed page + widget.js + CORS headers
 - [ ] Add web search (if needed): provider-native or custom fetch tool → [web-search.md](web-search.md)
 - [ ] Apply brand theming: globals.css oklch colors matching project identity
-- [ ] Add message actions: copy, thumbs up/down, regenerate, delete
+- [ ] Add message actions: copy, thumbs up/down, regenerate, delete — gate visibility with `isGenerating && isLast` (chat-level status), NOT tool-part states, to avoid flicker during multi-tool responses
+- [ ] Enable `experimental_throttle: 50` on `useChat` to smooth client-side UI updates during rapid tool-loop transitions
 - [ ] Add "Answer" label with BookOpen icon above assistant text
 - [ ] Add scope enforcement: refuse off-topic, block prompt injection
 - [ ] Create eval benchmarks: tool accuracy + injection defense tests

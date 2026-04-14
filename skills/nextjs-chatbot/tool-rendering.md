@@ -88,6 +88,10 @@ if (part.type === "tool-searchServices") {
 
 For tools that need special approval states (HITL), don't use this factory — handle each state manually. See [hitl.md](hitl.md).
 
+> **Multi-tool flicker caveat.** The factory's shimmer/result branches are purely tool-state driven. That's fine for the per-tool render, but **message-level gates** (action toolbar visibility, "Composing answer…" shimmer between tools) must use the chat-level `isStreaming` flag (from `useChat`'s `status`), not `!toolParts.some(isToolLoading)`. Between sequential tool calls all parts are briefly non-loading, causing icons and shimmers to flicker on/off. See the "Message streaming state & feedback visibility" section in [SKILL.md](SKILL.md).
+>
+> **Dedup + shimmer bug.** If a detail tool (e.g. `getItemDetails`) dedups its result against a prior search tool's output, suppress the detail tool's shimmer during `input-streaming`/`input-available` too — otherwise the loading label flashes before the dedup hides the card. Check `allParts` for a matching parent-tool `output-available` at the top of `renderToolPart`, not only inside the output-available branch.
+
 ## Tool part type naming
 
 AI SDK v6 names tool parts as `tool-{toolName}` where `toolName` matches the key in the agent's `tools` object:
