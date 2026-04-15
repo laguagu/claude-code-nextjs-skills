@@ -65,16 +65,19 @@ function renderToolState<T>(config: ToolPartConfig<T>, index: number): ReactNode
 
 ## Using the factory
 
+When `useChat<AgentUIMessage>()` is wired up (see `/ai-sdk` type-safe-agents), `part.type === "tool-searchServices"` narrows the type automatically — no `as` casts needed:
+
 ```tsx
 // Inside renderToolPart() in chat-message.tsx
+// message: AgentUIMessage  (from useChat<AgentUIMessage>)
 
 if (part.type === "tool-searchServices") {
-  const toolPart = part as typeof part & { output?: SearchServicesOutput };
+  // part.output, part.state, part.errorText are all fully typed here
   return renderToolState(
     {
-      state: toolPart.state as ToolState,
-      output: toolPart.output,
-      errorText: toolPart.errorText,
+      state: part.state,
+      output: part.state === "output-available" ? part.output : undefined,
+      errorText: part.state === "output-error" ? part.errorText : undefined,
       loadingMessage: "Searching services…",
       errorPrefix: "Error searching services",
       isEmpty: (o) => o.services.length === 0,
@@ -85,6 +88,8 @@ if (part.type === "tool-searchServices") {
   );
 }
 ```
+
+**Without InferAgentUIMessage** (fallback if agent type is not exported), use `UIToolInvocation<typeof myTool>` from the tool definition file instead of runtime `as` casts — see `/ai-sdk` type-safe-agents for both patterns.
 
 For tools that need special approval states (HITL), don't use this factory — handle each state manually. See [hitl.md](hitl.md).
 

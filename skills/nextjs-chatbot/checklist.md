@@ -3,9 +3,10 @@
 - [ ] Scaffold with `/ai-app` or `bunx --bun shadcn@latest create`
 - [ ] Install: `bun add ai @ai-sdk/react @ai-sdk/openai zod drizzle-orm postgres`
 - [ ] Install ai-elements: `bunx --bun ai-elements@latest` → Conversation, Message, PromptInput, Loader, Shimmer
-- [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent
+- [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent — export both factory and `export type AgentUIMessage = InferAgentUIMessage<typeof agent>`
 - [ ] Create route: `app/api/chat/route.ts` with createAgentUIStreamResponse
 - [ ] Create chat UI: use ai-elements Conversation/Message/MessageResponse
+- [ ] Wire typed useChat: `useChat<AgentUIMessage>()` — enables type-safe tool part access without `as` casts (see `/ai-sdk` type-safe-agents reference)
 - [ ] Choose layout: popup widget (see [popup-widget.md](popup-widget.md)) or full-page
 - [ ] Add tools: one tool at a time, with UI renderer per tool
 - [ ] Add persistence: DB schema → session upsert → onFinish save → history load
