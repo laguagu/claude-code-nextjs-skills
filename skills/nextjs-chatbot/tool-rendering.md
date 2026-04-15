@@ -93,9 +93,11 @@ if (part.type === "tool-searchServices") {
 
 For tools that need special approval states (HITL), don't use this factory — handle each state manually. See [hitl.md](hitl.md).
 
-> **Multi-tool flicker caveat.** The factory's shimmer/result branches are purely tool-state driven. That's fine for the per-tool render, but **message-level gates** (action toolbar visibility, "Composing answer…" shimmer between tools) must use the chat-level `isStreaming` flag (from `useChat`'s `status`), not `!toolParts.some(isToolLoading)`. Between sequential tool calls all parts are briefly non-loading, causing icons and shimmers to flicker on/off. See the "Message streaming state & feedback visibility" section in [SKILL.md](SKILL.md).
+> **Multi-tool flicker fix.** For multi-tool agents, remove per-tool shimmers from `renderToolPart` (return `null` for loading states). Render one shimmer at message level gated on `isStreaming && !hasText`, with a label computed from parts: pending tool → its label, all complete → "Composing answer…", no tools yet → `null` (widget handles "Thinking…"). This avoids mount/unmount flicker between sequential tool calls.
 >
-> **Dedup + shimmer bug.** If a detail tool (e.g. `getItemDetails`) dedups its result against a prior search tool's output, suppress the detail tool's shimmer during `input-streaming`/`input-available` too — otherwise the loading label flashes before the dedup hides the card. Check `allParts` for a matching parent-tool `output-available` at the top of `renderToolPart`, not only inside the output-available branch.
+> **"Thinking…" placement.** The initial "Thinking…" shimmer must render inside `<Message from="assistant"><MessageContent>`, not as a bare div — otherwise layout shifts when the real message appears. Match `text-xs` + `py-1` sizing.
+>
+> **Dedup + shimmer bug.** If a detail tool dedups against a prior search tool's output, suppress its shimmer during loading too — check `allParts` for a matching parent-tool `output-available` at the top of `renderToolPart`.
 
 ## Tool part type naming
 
