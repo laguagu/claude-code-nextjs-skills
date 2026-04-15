@@ -7,7 +7,6 @@
 - [Using the factory](#using-the-factory)
 - [Tool part type naming](#tool-part-type-naming)
 - [Collapsible for large result sets](#collapsible-for-large-result-sets)
-- [PII / phone number sanitization](#pii--phone-number-sanitization)
 - [Output type definitions](#output-type-definitions)
 - [Source URL parts (web search)](#source-url-parts-web-search)
 
@@ -134,29 +133,6 @@ function ToolCollapsible({ label, children }: { label: string; children: ReactNo
   );
 }
 ```
-
-## PII / phone number sanitization
-
-Sanitize at **read-time** (when the tool returns data), not just at write-time. This ensures data imported from external sources never leaks through tool outputs even if the import-time sanitization was incomplete.
-
-```ts
-// lib/ai/tools/sanitize.ts
-export function stripPhoneNumbers(text: string): string {
-  // Remove patterns like +358 40 123 4567, (09) 1234567, etc.
-  return text.replace(/(\+?\d[\d\s\-().]{6,}\d)/g, "[phone removed]");
-}
-
-export function sanitizeContact(contact: ContactRow): SanitizedContact {
-  return {
-    ...contact,
-    phone: undefined,  // never expose phone
-    // Apply stripPhoneNumbers to any text fields that might contain phone numbers
-    notes: contact.notes ? sanitizeOptionalText(contact.notes) : undefined,
-  };
-}
-```
-
-Apply sanitization inside the tool's `execute` function before returning output, not in the UI layer.
 
 ## Output type definitions
 
