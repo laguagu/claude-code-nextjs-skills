@@ -1,6 +1,6 @@
 ---
 name: ai-elements
-description: Create new AI chat interface components for the ai-elements library following established composable patterns, shadcn/ui integration, and Vercel AI SDK conventions. Use when creating new components in packages/elements/src or when the user asks to add a new component to ai-elements.
+description: Build AI chat interfaces with pre-built shadcn-style components (Message, Conversation, PromptInput, Reasoning, Sources, Tool, Artifact, CodeBlock, Branch, Suggestions, Task, Image, ChainOfThought, InlineCitation, WebPreview, and more). Use when adding AI chat UI to a Next.js + AI SDK app, installing AI Elements components via the CLI (`bun x ai-elements@latest add <name>` or `npx shadcn@latest add @ai-elements/<name>`), composing message displays with markdown, building prompt inputs with attachments, or rendering streaming reasoning and tool output.
 argument-hint: "[component-name]"
 ---
 
@@ -25,17 +25,41 @@ Before installing AI Elements, make sure your environment meets the following re
 - [Node.js](https://nodejs.org/en/download/), version 18 or later
 - A [Next.js](https://nextjs.org/) project with the [AI SDK](https://ai-sdk.dev/) installed.
 - [shadcn/ui](https://ui.shadcn.com/) installed in your project. If you don't have it installed, running any install command will automatically install it for you.
-- We also highly recommend using the [AI Gateway](https://vercel.com/docs/ai-gateway) and adding `AI_GATEWAY_API_KEY` to your `env.local` so you don't have to use an API key from every provider. AI Gateway also gives $5 in usage per month so you can experiment with models. You can obtain an API key [here](https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai%2Fapi-keys&title=Get%20your%20AI%20Gateway%20key).
+- The [AI Gateway](https://vercel.com/docs/ai-gateway) is recommended — adding `AI_GATEWAY_API_KEY` to `.env.local` removes the need for per-provider API keys. AI Gateway includes monthly free usage credits for experimentation. Obtain an API key [here](https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai%2Fapi-keys&title=Get%20your%20AI%20Gateway%20key).
 
 
 
 ## Installing Components
 
-You can install AI Elements components using either the AI Elements CLI or the shadcn/ui CLI. Both achieve the same result: adding the selected component’s code and any needed dependencies to your project.
+Install AI Elements components using either the dedicated AI Elements CLI or the shadcn/ui CLI. Both achieve the same result: adding the selected component's code and any needed dependencies to the project.
 
-The CLI will download the component’s code and integrate it into your project’s directory (usually under your components folder). By default, AI Elements components are added to the `@/components/ai-elements/` directory (or whatever folder you’ve configured in your shadcn components settings).
+### AI Elements CLI
 
-After running the command, you should see a confirmation in your terminal that the files were added. You can then proceed to use the component in your code.
+```bash
+# npm
+npx ai-elements@latest add message
+# pnpm
+pnpm dlx ai-elements@latest add message
+# yarn
+yarn dlx ai-elements@latest add message
+# bun
+bun x ai-elements@latest add message
+```
+
+### shadcn CLI
+
+```bash
+# npm
+npx shadcn@latest add @ai-elements/message
+# pnpm
+pnpm dlx shadcn@latest add @ai-elements/message
+# yarn
+yarn dlx shadcn@latest add @ai-elements/message
+# bun
+bun x shadcn@latest add @ai-elements/message
+```
+
+The CLI downloads the component's code and integrates it into the project's directory. By default, AI Elements components are added to `@/components/ai-elements/` (or whatever folder is configured in `components.json`). After running the command, the terminal confirms which files were added — proceed to import and use the component in code.
 
 ## Usage
 
@@ -83,7 +107,7 @@ const Example = () => {
 export default Example;
 ```
 
-In the example above, we import the `Message` component from our AI Elements directory and include it in our JSX. Then, we compose the component with the `MessageContent` and `MessageResponse` subcomponents. You can style or configure the component just as you would if you wrote it yourself – since the code lives in your project, you can even open the component file to see how it works or make custom modifications.
+The example above imports the `Message` component from the AI Elements directory and composes it with the `MessageContent` and `MessageResponse` subcomponents. Style or configure the component just as you would any local component — since the code lives in your project, the component file can be opened directly for inspection or custom modifications.
 
 ## Extensibility
 
@@ -128,10 +152,12 @@ Double-check that:
 
 - Your current working directory is the root of your project (where `package.json` lives).
 - Your components.json file (if using shadcn-style config) is set up correctly.
-- You’re using the latest version of the AI Elements CLI:
+- You're using the latest version of the AI Elements CLI by passing `@latest` and a component name:
 
 ```bash title="Terminal"
-bunx --bun ai-elements@latest
+bun x ai-elements@latest add message
+# or:
+npx ai-elements@latest add message
 ```
 
 If all else fails, feel free to open an [issue on GitHub](https://github.com/vercel/ai-elements/issues).

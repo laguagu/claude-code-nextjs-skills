@@ -1,8 +1,8 @@
 # Building a New Chatbot — Checklist
 
-- [ ] Scaffold with `/ai-app` or `bunx --bun shadcn@latest create`
+- [ ] Scaffold with `/ai-app` or `bun x shadcn@latest init`
 - [ ] Install: `bun add ai @ai-sdk/react @ai-sdk/openai zod drizzle-orm postgres`
-- [ ] Install ai-elements: `bunx --bun ai-elements@latest` → Conversation, Message, PromptInput, Loader, Shimmer
+- [ ] Install ai-elements: `bun x ai-elements@latest add conversation message prompt-input loader` (run once per component, or list multiple)
 - [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent — export both factory and `export type AgentUIMessage = InferAgentUIMessage<typeof agent>`
 - [ ] Create route: `app/api/chat/route.ts` with createAgentUIStreamResponse
 - [ ] Create chat UI: use ai-elements Conversation/Message/MessageResponse

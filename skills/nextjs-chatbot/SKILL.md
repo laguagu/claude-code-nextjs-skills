@@ -1,11 +1,11 @@
 ---
 name: nextjs-chatbot
-description: "Production-grade Next.js chatbot builder. Covers tool calling with human-in-the-loop (HITL) approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, per-tool UI rendering, message feedback, and follow-up suggestions. Use when building chat apps, conversational AI interfaces, customer support bots, or any chatbot needing database-backed sessions, tool approval workflows, consent gating, or custom tool output components."
+description: "Advanced patterns for production Next.js web chatbots built with AI SDK 6 + ai-elements. Covers tool calling with human-in-the-loop (HITL) approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, per-tool UI rendering, popup widget embedding, message feedback, follow-up suggestions, scope enforcement, and evals. Use when building a customer support bot, conversational interface, or any web chatbot needing tool approval, database sessions, or custom tool output components. Not a scaffolding tool — use `/ai-app` to scaffold from scratch, `/ai-sdk-6` for general SDK questions, `/ai-elements` for chat UI components, `/vercel:chat-sdk` for multi-platform (Slack/Teams/Discord) bots."
 ---
 
 # Next.js Chatbot
 
-Opinionated blueprint for production chatbots. Focuses on patterns **not** covered by `/ai-sdk-6`, `/ai-elements`, or `/nextjs-shadcn` — use those skills for general SDK, component, and framework questions.
+Opinionated blueprint for production **web** chatbots. Focuses on patterns **not** covered by `/ai-sdk-6`, `/ai-elements`, or `/nextjs-shadcn` — use those skills for general SDK, component, and framework questions. For multi-platform bots (Slack, Teams, Discord), use `/vercel:chat-sdk` instead.
 
 ## Stack defaults
 

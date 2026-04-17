@@ -8,7 +8,7 @@ argument-hint: "[question or URL]"
 
 Comprehensive SEO guide for Next.js 16+ applications using App Router.
 
-> Next.js 16+ App Router (validated against 16.2.2 docs)
+> Next.js 16+ App Router (latest stable)
 
 ## Quick SEO Audit
 
@@ -27,7 +27,9 @@ Run this checklist for any Next.js project:
 ```typescript
 import type { Metadata, Viewport } from 'next';
 
-// Viewport (separate export required in Next.js 14+)
+// Viewport (separate export required in Next.js 14+).
+// `themeColor`, `colorScheme`, and `viewport` inside the `metadata` object
+// are deprecated since Next.js 13.2.0 — they must be exported via `viewport`.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -45,7 +47,7 @@ export const metadata: Metadata = {
     default: 'Site Title - Main Keyword',
     template: '%s | Site Name',
   },
-  description: 'Compelling description with keywords (150-160 chars)',
+  description: 'Compelling description with keywords (150-160 chars; Google typically displays this range)',
   keywords: ['keyword1', 'keyword2', 'keyword3'],
   openGraph: {
     type: 'website',
@@ -197,8 +199,11 @@ export const metadata: Metadata = {
 ### Dynamic metadata per page
 
 ```typescript
-export async function generateMetadata({ params }): Promise<Metadata> {
-  const product = await getProduct(params.id);
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;            // params is a Promise in Next.js 15+
+  const product = await getProduct(id);
   return {
     title: product.name,
     description: product.description,
@@ -209,10 +214,13 @@ export async function generateMetadata({ params }): Promise<Metadata> {
 ### Canonical for dynamic routes
 
 ```typescript
-export async function generateMetadata({ params }): Promise<Metadata> {
+type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
   return {
     alternates: {
-      canonical: `/products/${params.slug}`,
+      canonical: `/products/${slug}`,
     },
   };
 }
