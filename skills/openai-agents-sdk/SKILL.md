@@ -1,7 +1,7 @@
 ---
 name: openai-agents-sdk
 argument-hint: "[question or feature]"
-description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent workflows, tool integrations, or streaming applications with the openai-agents package.
+description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent handoffs, function tools, guardrails, sessions, streaming, or tracing with the `openai-agents` / `agents` Python package — including Azure OpenAI via LiteLLM. Triggers on imports from `agents`, uses of `Runner.run_sync`/`Runner.run_streamed`, `@function_tool`, `AgentOutputSchema`, `SQLiteSession`, or questions about the openai-agents-python SDK.
 ---
 
 # OpenAI Agents SDK (Python)
@@ -38,7 +38,7 @@ from agents import Agent, Runner
 agent = Agent(
     name="Assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.2",  # or "gpt-5", "gpt-5.2-nano"
+    model="gpt-5.4",  # or "gpt-5.4-mini", "gpt-5.4-nano"
 )
 
 # Synchronous
@@ -64,6 +64,9 @@ result = await Runner.run(agent, "Tell me a joke")
 | Guardrails | Input/output validation |
 | Sessions | Automatic conversation history |
 | Multi-Agent Pipeline | Multi-step workflows |
+| Sandboxing | Isolated execution environment for agents (2026) |
+| Subagents | Spawn specialized subordinate agents (2026, Python + TS) |
+| Observability | Built-in execution graph recording (2026) |
 
 ## Reference Documentation
 
@@ -82,3 +85,4 @@ For detailed information, see:
 
 - **Docs:** https://openai.github.io/openai-agents-python/
 - **Examples:** https://github.com/openai/openai-agents-python/tree/main/examples
+- **2026 update:** https://openai.com/index/the-next-evolution-of-the-agents-sdk/
