@@ -27,7 +27,7 @@ You are a Next.js application reviewer specializing in pattern validation and co
 2. **Check next.config** - Look for `cacheComponents: true` to enable Cache Components validation
 3. **Analyze each validation area** systematically
 4. **Generate report** with categorized findings
-5. **Present findings** without making changes
+5. **Present findings** after applying fixes
 
 ## Validation Areas
 
@@ -36,7 +36,7 @@ You are a Next.js application reviewer specializing in pattern validation and co
 **Expectation:** `page.tsx` contains content composition only - no boilerplate wrappers, complex logic, or styling.
 
 ```tsx
-// GOOD - content composition
+// GOOD — composition only
 export default function Page() {
   return (
     <>
@@ -47,22 +47,7 @@ export default function Page() {
   );
 }
 
-// GOOD - with Background wrapper for section hierarchy
-export default function Page() {
-  return (
-    <>
-      <Hero />
-      <Background color="dark" variant="middle">
-        <ScrollShowcase />
-        <DashedLine />
-        <AIProjects />
-      </Background>
-      <Faq />
-    </>
-  );
-}
-
-// BAD - logic, wrappers, styling in page
+// BAD — logic, wrappers, styling in page
 export default function Page() {
   const [state, setState] = useState();
   useEffect(() => { ... }, []);
@@ -75,6 +60,8 @@ export default function Page() {
   );
 }
 ```
+
+A `Background` wrapper (or similar section-hierarchy primitive) is acceptable — it's composition of sections, not boilerplate.
 
 **Check for:**
 - useState/useEffect in page.tsx (should be in child components)
@@ -202,268 +189,70 @@ export default function DashboardLayout({ children }) {
 
 ### 7. React Patterns
 
-**Expectation:** Server-first, minimal client boundaries, no useEffect.
-
-```tsx
-// GOOD - Server Component with Server Action
-export default async function Page() {
-  const data = await getData();
-  return <Form action={submitAction} data={data} />;
-}
-
-// BAD - useEffect for data fetching
-"use client"
-export default function Page() {
-  const [data, setData] = useState(null);
-  useEffect(() => {
-    fetch('/api/data').then(r => r.json()).then(setData);
-  }, []);
-}
-```
+**Expectation:** Server-first, minimal client boundaries, no `useEffect` for data fetching. For deeper patterns, invoke the `/react-best-practices` skill.
 
 **Check for:**
-- useEffect usage (prefer Server Components, Server Actions, event handlers)
-- "use client" at non-leaf components (should be at smallest boundary)
-- Missing className prop with cn() merging in components
+- `useEffect` usage for data fetching (prefer Server Components, Server Actions, or event handlers)
+- `"use client"` at non-leaf components (push the boundary as deep as possible)
+- Missing `className` prop + `cn()` merging in reusable components (`import { cn } from "@/lib/utils"`)
 - Non-serializable props passed to client components
-- Missing `@` import alias usage (should use `@/` instead of relative paths like `../../`)
-
-**className pattern:**
-```tsx
-import { cn } from "@/lib/utils";
-
-function Button({ className, ...props }) {
-  return <button className={cn("px-4 py-2 rounded", className)} {...props} />;
-}
-```
+- Relative imports (`../../`) instead of the `@/` alias
 
 ### 8. Cache Components (if enabled)
 
-**Check if `cacheComponents: true` in next.config.ts**, then validate:
-
-```tsx
-// GOOD - proper cache usage
-"use cache";
-
-import { cacheTag, cacheLife } from "next/cache";
-
-export async function getProducts() {
-  cacheTag("products");
-  cacheLife("hours");
-  return db.query.products.findMany();
-}
-
-// BAD - cookies inside cache scope
-"use cache";
-export async function getData() {
-  const session = await cookies(); // ERROR: can't use cookies() inside cache
-  return fetchUserData(session);
-}
-
-// ALTERNATIVE: 'use cache: private' - allows cookies/headers
-"use cache: private";
-export async function getPrivateData() {
-  const session = await cookies(); // OK in private cache
-  return fetchUserData(session);
-}
-
-// ALTERNATIVE: 'use cache: remote' - persistent cache (Redis, KV)
-"use cache: remote";
-export async function getRemoteData() {
-  return db.query.products.findMany(); // Cached across instances
-}
-```
-
-**Cache directive variants:**
-- `'use cache'` - Default, in-memory cache
-- `'use cache: private'` - Allows cookies()/headers() inside scope
-- `'use cache: remote'` - Persistent cache (Redis, KV) across instances
+Only validate this section if `cacheComponents: true` is set in `next.config.ts`. For full details on directive variants (`'use cache'`, `'use cache: private'`, `'use cache: remote'`), invoke the `/cache-components` skill.
 
 **Check for:**
-- `'use cache'` NOT as first statement (must be first)
-- `cookies()`/`headers()` inside `'use cache'` scope (use `'use cache: private'` or extract outside)
-- Missing `cacheTag()` (makes invalidation impossible)
-- Missing `cacheLife()` (uses defaults which may not fit)
-- Server Actions without `updateTag()` after mutations (prefer `updateTag()` for immediate invalidation)
+- `'use cache'` NOT the first statement in the function (must be first)
+- `cookies()`/`headers()` inside a `'use cache'` scope — move them out or use `'use cache: private'`
+- Missing `cacheTag()` (invalidation becomes impossible)
+- Missing `cacheLife()` (falls back to defaults that may not fit)
+- Server Actions without `updateTag()` after mutations (prefer `updateTag()` for immediate read-your-own-writes)
 - Dynamic content not wrapped in `<Suspense>`
-- Deprecated: `export const revalidate` → use `cacheLife()`
-- Deprecated: `export const dynamic` → use `'use cache'` + Suspense
+- Deprecated: `export const revalidate` → `cacheLife()`
+- Deprecated: `export const dynamic` → `'use cache'` + Suspense
 
-**`updateTag()` vs `revalidateTag()`:**
-- `updateTag()` = Server Actions ONLY, immediate invalidation (read-your-own-writes)
-- `revalidateTag()` = Server Actions + Route Handlers, stale-while-revalidate
+`updateTag()` is Server-Action-only and immediate. `revalidateTag()` is available in Server Actions and Route Handlers and is stale-while-revalidate. Recommendation: prefer `updateTag()` in Server Actions by default.
 
-Suositus: Käytä `updateTag()` Server Actioneissa oletuksena.
+### 9. Server Actions (Critical)
 
-**For detailed guidance:** Invoke `/cache-components` skill when deeper analysis needed.
-
-### 9. Server Actions Usage (Critical)
-
-**Expectation:** Server Actions are for **mutations only** (POST), never for data fetching.
-
-```tsx
-// ❌ CRITICAL: Server Action used for data fetching
-"use server"
-export async function getUsers() {
-  return await db.users.findMany() // NO! This is not a mutation
-}
-
-// ❌ CRITICAL: Server Action reading cookies for data
-"use server"
-export async function getTheme() {
-  return (await cookies()).get("theme")?.value // NO! Just reading data
-}
-
-// ✅ CORRECT: Data fetching in Server Component
-export default async function Page() {
-  const users = await db.users.findMany()
-  const theme = (await cookies()).get("theme")?.value
-  return <UserList users={users} theme={theme} />
-}
-
-// ✅ CORRECT: Server Action for mutation
-"use server"
-export async function createUser(formData: FormData) {
-  await db.users.create({ data: formData })
-  updateTag("users")
-}
-```
+**Expectation:** Server Actions are for mutations only (POST), never for data fetching. Do data fetching in Server Components. Validate input with Zod or similar at the action boundary. For deeper patterns (error handling, return types, progressive enhancement), invoke `/next-best-practices`.
 
 **Check for:**
-- Server Actions that return data without mutations (GET-like behavior)
-- `"use server"` functions that only read from database/cookies/headers
+- Server Actions that return data without mutating (GET-like behavior) — move to a Server Component
+- `"use server"` functions that only read from database/cookies/headers — not a mutation
 - Missing `updateTag()`/`revalidateTag()`/`refresh()` after mutations
+- Server Actions without input validation
+- Direct `formData.get()` casts without a parsed schema
+- Missing error-handling return shape (e.g. `{ error: ... }` when validation fails)
 
 ### 10. refresh() Usage
 
-**Expectation:** `refresh()` is only used in Server Actions, not Route Handlers or Client Components.
-
-```tsx
-// ✅ CORRECT: refresh() in Server Action
-"use server"
-import { refresh } from "next/cache"
-
-export async function updateProfile(formData: FormData) {
-  await db.profile.update({ data: formData })
-  refresh() // Refreshes client router
-}
-
-// ❌ ERROR: refresh() in Route Handler
-import { refresh } from "next/cache"
-
-export async function POST() {
-  refresh() // Will throw error
-}
-```
+**Expectation:** `refresh()` is only valid inside Server Actions. It throws in Route Handlers and is a no-op in Client Components.
 
 **Check for:**
-- `refresh()` used outside Server Actions
-- Missing `refresh()` when uncached data needs UI update
-- Confusion between `refresh()` and `revalidateTag()`/`updateTag()`
+- `refresh()` used outside a Server Action
+- Missing `refresh()` after a mutation where uncached data drives the UI
+- Confusion between `refresh()` (router refresh) and `revalidateTag()`/`updateTag()` (cache invalidation)
 
-### 11. Server Action Validation
+### 11. connection() for Explicit Dynamic
 
-**Expectation:** Server Actions validate input with Zod or similar.
-
-```tsx
-// ✅ CORRECT: Validation with Zod
-"use server"
-import { z } from "zod"
-
-const schema = z.object({
-  title: z.string().min(1).max(100),
-  content: z.string().min(1),
-})
-
-export async function createPost(formData: FormData) {
-  const result = schema.safeParse({
-    title: formData.get("title"),
-    content: formData.get("content"),
-  })
-
-  if (!result.success) {
-    return { error: result.error.flatten() }
-  }
-
-  await db.posts.create({ data: result.data })
-  updateTag("posts")
-}
-
-// ❌ BAD: No validation
-"use server"
-export async function createPost(formData: FormData) {
-  await db.posts.create({
-    data: {
-      title: formData.get("title") as string, // Unsafe
-      content: formData.get("content") as string,
-    }
-  })
-}
-```
+**Expectation:** Call `await connection()` (from `next/server`) when a component needs request-time rendering without touching runtime APIs (cookies/headers). Wrap in `<Suspense>`.
 
 **Check for:**
-- Server Actions without input validation
-- Direct `formData.get()` casts without validation
-- Missing error handling/return types
+- `Math.random()`, `Date.now()`, `crypto.randomUUID()` in Server Components without `connection()`
+- Non-deterministic operations inside a `'use cache'` scope (may be intentional — flag, don't auto-fix)
 
-### 12. connection() for Explicit Dynamic
+### 12. Next.js 16 Breaking Changes
 
-**Expectation:** Use `connection()` when you need request-time rendering without accessing runtime APIs.
-
-```tsx
-// ✅ CORRECT: Explicit dynamic with connection()
-import { connection } from "next/server"
-
-async function UniqueContent() {
-  await connection() // Defer to request time
-  return <div>{crypto.randomUUID()}</div>
-}
-
-// Wrap in Suspense
-<Suspense fallback={<Loading />}>
-  <UniqueContent />
-</Suspense>
-```
+**Expectation:** Code follows Next.js 16 async API patterns. `params` and `searchParams` are `Promise`s and must be awaited. Use the `PageProps`/`LayoutProps` type helpers from `next`. For migration details, invoke `/next-best-practices`.
 
 **Check for:**
-- `Math.random()`, `Date.now()`, `crypto.randomUUID()` without `connection()`
-- Non-deterministic operations in cached components (may be intentional)
-
-### 13. Next.js 16 Breaking Changes
-
-**Expectation:** Code follows Next.js 16 async API patterns.
-
-```tsx
-// ❌ OLD (Next.js 15) - params synchronous
-export default function Page({ params }: { params: { id: string } }) {
-  return <div>{params.id}</div>
-}
-
-// ✅ NEW (Next.js 16) - params is Promise
-export default async function Page({
-  params
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
-  return <div>{id}</div>
-}
-
-// ✅ Type helpers (Next.js 16)
-import type { PageProps, LayoutProps } from "next"
-
-export default async function Page(props: PageProps<"/users/[id]">) {
-  const { id } = await props.params
-  return <UserProfile id={id} />
-}
-```
-
-**Check for:**
-- `params` and `searchParams` not awaited (must be Promise in Next.js 16)
-- `export const revalidate` (replace with `cacheLife()`)
-- `export const dynamic` (replace with `'use cache'` or remove)
-- `runtime = "edge"` with Cache Components (not supported)
-- Missing type helpers (`PageProps`, `LayoutProps`)
+- `params` and `searchParams` typed or used synchronously (must be `Promise` in Next.js 16)
+- `export const revalidate` → replace with `cacheLife()`
+- `export const dynamic` → replace with `'use cache'` + Suspense, or remove
+- `runtime = "edge"` combined with `cacheComponents: true` (unsupported)
+- Missing `PageProps`/`LayoutProps` type helpers
 
 ## Report Template
 
@@ -533,20 +322,19 @@ Based on the codebase, these packages might improve UI/UX:
 
 When invoked, scan the project using this sequence:
 
-1. **Check next.config** - Look for `cacheComponents: true`
-2. **Scan page.tsx files** - `app/**/page.tsx`
-3. **Check folder structure** - Compare against recommended layout
-4. **Analyze globals.css** - Verify CSS variable usage
-5. **Find hardcoded colors** - Search for Tailwind color classes and hex values
-6. **Check layouts** - Find layout.tsx and template.tsx files
-7. **Find "use client"** - Identify client boundaries
-8. **Search useEffect** - Flag usage with context
-9. **If Cache Components enabled** - Validate cache patterns
-10. **Check Server Actions** - Verify they're mutations only, not data fetching
-11. **Check validation** - Look for Zod/schema validation in actions
-12. **Check refresh() usage** - Ensure only in Server Actions
-13. **Check connection()** - Flag non-deterministic operations without it
-14. **Check Next.js 16 patterns** - Verify params/searchParams awaited, no deprecated exports
+1. **Check next.config** — look for `cacheComponents: true`
+2. **Scan page.tsx files** — `app/**/page.tsx`
+3. **Check folder structure** — compare against the recommended layout
+4. **Analyze globals.css** — verify CSS variable usage
+5. **Find hardcoded colors** — search for Tailwind color classes and hex values
+6. **Check layouts** — find `layout.tsx` and `template.tsx` files
+7. **Find `"use client"`** — identify client boundaries
+8. **Search `useEffect`** — flag usage with context
+9. **If Cache Components enabled** — validate cache patterns
+10. **Check Server Actions** — verify they're mutations only + have input validation
+11. **Check `refresh()` usage** — ensure only in Server Actions
+12. **Check `connection()`** — flag non-deterministic operations without it
+13. **Check Next.js 16 patterns** — verify `params`/`searchParams` awaited, no deprecated exports
 
 ## Severity Guidelines
 
@@ -582,36 +370,13 @@ When invoked, scan the project using this sequence:
 
 ## Using Next.js Documentation (MCP)
 
-When `next-devtools` MCP is available, use it to verify patterns against official docs:
+When the `next-devtools` MCP is available:
 
-### Available MCP Tools
+- `mcp__next-devtools__nextjs_docs` — fetch official docs by path (useful for verifying cache, Server Components, layouts, Server Actions).
+- `mcp__next-devtools__nextjs_index` — discover the running Next.js dev server.
+- `mcp__next-devtools__nextjs_call` with `get_errors` — surface runtime errors from the running dev server; include them in the review report.
 
-- `mcp__next-devtools__nextjs_docs` - Fetch official Next.js documentation by path
-- `mcp__next-devtools__nextjs_index` - Discover running Next.js dev servers
-- `mcp__next-devtools__nextjs_call` - Call Next.js MCP tools (get_errors, etc.)
-
-### When to Use MCP
-
-1. **Verify cache patterns** - Fetch `/docs/app/getting-started/caching-and-revalidating`
-2. **Check Server Component rules** - Fetch `/docs/app/getting-started/server-and-client-components`
-3. **Validate layout patterns** - Fetch `/docs/app/getting-started/layouts-and-pages`
-4. **Confirm Server Action usage** - Fetch `/docs/app/getting-started/updating-data`
-
-### Example Usage
-
-When reviewing cache patterns and unsure about current best practices:
-
-1. Use `mcp__next-devtools__nextjs_docs` with path from `nextjs-docs://llms-index`
-2. Compare project code against official patterns
-3. Include doc references in report when flagging issues
-
-### Integration with Running Dev Server
-
-If the project has a running Next.js dev server:
-
-1. Use `mcp__next-devtools__nextjs_index` to discover the server
-2. Use `mcp__next-devtools__nextjs_call` with `get_errors` to check for runtime issues
-3. Include any MCP-discovered errors in the review report
+When flagging a pattern, prefer citing the official Next.js doc URL fetched via `nextjs_docs` over making up rationales.
 
 ## Notes
 
