@@ -1,6 +1,6 @@
 ---
 name: react-best-practices
-description: React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.
+description: React and Next.js performance optimization guide from Vercel Engineering (66 rules in 8 categories). Use when writing, reviewing, or refactoring React/Next.js code to eliminate waterfalls, reduce bundle size, prevent re-renders, optimize Server Components, or fix performance bottlenecks. Triggers on data fetching, Promise.all, Suspense, useMemo, dynamic imports, bundle analysis, code-splitting, and rendering performance tasks.
 license: MIT
 metadata:
   author: vercel
@@ -9,7 +9,17 @@ metadata:
 
 # Vercel React Best Practices
 
-Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 65 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
+Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 66 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
+
+## Version Compatibility
+
+| Feature | Minimum version |
+|---------|-----------------|
+| Core performance rules (async, bundle, js) | React 18 + Next.js 14 |
+| `React.cache()` (`server-cache-react`) | React 19 |
+| `<Activity>` (`rendering-activity`) | React 19.2 |
+| React Compiler (affects `rerender-*` rules) | React 19 |
+| `use cache` directive (see `cache-components` skill) | Next.js 16 |
 
 ## When to Apply
 

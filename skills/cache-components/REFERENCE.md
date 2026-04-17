@@ -531,6 +531,13 @@ export async function updateSettings(data: FormData) {
 - **Background refresh**: Cache entry is refreshed in the background after the next visit
 - **Broader context**: Can be called from Route Handlers and Server Actions
 
+> **⚠️ Deprecated:** The single-argument form `revalidateTag('tag')` is deprecated in
+> Next.js 16. It currently works only when TypeScript errors are suppressed, and it
+> may be removed in a future version. Always pass a profile (`'max'` recommended for
+> stale-while-revalidate) or `{ expire: <seconds> }` as the second argument. For
+> webhooks requiring immediate expiration, use `revalidateTag(tag, { expire: 0 })`.
+> Source: [Next.js docs — revalidateTag](https://nextjs.org/docs/app/api-reference/functions/revalidateTag)
+
 ---
 
 ## updateTag() vs revalidateTag(): When to Use Each

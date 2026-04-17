@@ -1,12 +1,16 @@
 ---
 name: next-best-practices
-description: Next.js best practices covering file conventions, RSC boundaries, data patterns, async APIs, metadata, error handling, route handlers, image/font optimization, and bundling. Use when writing or reviewing Next.js code, setting up project structure, or applying App Router patterns.
+description: Next.js App Router best practices covering file conventions, RSC boundaries, async APIs, data patterns, hydration errors, metadata, route handlers, image/font optimization, and bundling. Use when writing or reviewing Next.js code to prevent hydration errors, RSC violations, data waterfalls, and configuration mistakes.
 argument-hint: "[question or file]"
 ---
 
 # Next.js Best Practices
 
 Apply these rules when writing or reviewing Next.js code.
+
+> **Cache Components patterns**: When the project has `cacheComponents: true` in `next.config.ts`,
+> use the separate `cache-components` skill for `'use cache'`, `cacheLife()`, `cacheTag()`,
+> `updateTag()`, and `revalidateTag()` guidance.
 
 ## File Conventions
 

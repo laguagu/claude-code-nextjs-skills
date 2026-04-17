@@ -4,13 +4,11 @@ description: "Expert guidance for Next.js Cache Components and Partial Prerender
 argument-hint: "[pattern or question]"
 ---
 
-**PROACTIVE ACTIVATION**: Use this skill automatically when working in Next.js projects that have `cacheComponents: true` in their next.config.ts/next.config.js. When this config is detected, proactively apply Cache Components patterns and best practices to all React Server Component implementations.
-
-**DETECTION**: At the start of a session in a Next.js project, check for `cacheComponents: true` in next.config. If enabled, this skill's patterns should guide all component authoring, data fetching, and caching decisions.
-
 # Next.js Cache Components
 
-> **Auto-activation**: This skill activates automatically in projects with `cacheComponents: true` in next.config.
+> **Auto-activation**: Activate this skill automatically in Next.js projects that have
+> `cacheComponents: true` in `next.config.ts`/`next.config.js`. When detected, apply Cache
+> Components patterns to all Server Component authoring, data fetching, and caching decisions.
 
 ## Project Detection
 
@@ -62,65 +60,31 @@ Cache Components represents a shift from **segment configuration** to **composit
 └─────────────────────────────────────────────────────┘
 ```
 
-## Mental Model: The Caching Decision Tree
+## Mental Model: The Caching Decision Steps
 
-When writing a React Server Component, ask these questions in order:
+When writing a React Server Component, walk through these steps in order:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ Does this component fetch data or perform I/O?          │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-           ┌──────────▼──────────┐
-           │   YES               │ NO → Pure component, no action needed
-           └──────────┬──────────┘
-                      │
-    ┌─────────────────▼─────────────────┐
-    │ Does it depend on request context? │
-    │ (cookies, headers, searchParams)   │
-    └─────────────────┬─────────────────┘
-                      │
-         ┌────────────┴────────────┐
-         │                         │
-    ┌────▼────┐              ┌─────▼─────┐
-    │   YES   │              │    NO     │
-    └────┬────┘              └─────┬─────┘
-         │                         │
-         │                   ┌─────▼─────────────────┐
-         │                   │ Can this be cached?   │
-         │                   │ (same for all users?) │
-         │                   └─────┬─────────────────┘
-         │                         │
-         │              ┌──────────┴──────────┐
-         │              │                     │
-         │         ┌────▼────┐          ┌─────▼─────┐
-         │         │   YES   │          │    NO     │
-         │         └────┬────┘          └─────┬─────┘
-         │              │                     │
-         │              ▼                     │
-         │         'use cache'                │
-         │         + cacheTag()               │
-         │         + cacheLife()              │
-         │                                    │
-         │    Can you extract runtime         │
-         │    data as params?                 │
-         │         │                          │
-         │    ┌────▼────┐  ┌─────▼─────┐     │
-         │    │   YES   │  │    NO     │     │
-         │    └────┬────┘  └─────┬─────┘     │
-         │         │             │            │
-         │    Pass as args  'use cache:      │
-         │    to cached fn   private'        │
-         │                  (last resort)    │
-         │                                    │
-         └──────────────┬─────────────────────┘
-                        │
-                        ▼
-              Wrap in <Suspense>
-              (dynamic streaming)
-```
+1. **Does the component fetch data or perform I/O?**
+   - No → pure component, nothing to decide.
+   - Yes → continue.
 
-**Key insight**: The `'use cache'` directive is for data that's the _same across users_. User-specific data stays dynamic with Suspense. If you cannot extract runtime data as function parameters and compliance prevents cross-request sharing, use `'use cache: private'` as a last resort.
+2. **Does it depend on request context** (`cookies()`, `headers()`, `searchParams`)?
+   - No → continue to step 3.
+   - Yes → continue to step 4.
+
+3. **(No request context) Is the data the same across users?**
+   - Yes → add `'use cache'` with `cacheTag()` and `cacheLife()`.
+   - No → wrap rendering in `<Suspense>` so the dynamic part streams at request time.
+
+4. **(Has request context) Can you extract the runtime data as function arguments?**
+   - Yes → read `cookies()`/`headers()` outside the cached scope, pass values
+     into a `'use cache'` function, and wrap the dynamic caller in `<Suspense>`.
+   - No (compliance prevents cross-request sharing) → use `'use cache: private'`
+     as a last resort, still wrapped in `<Suspense>`.
+
+**Key insight**: `'use cache'` is for data that is the _same across users_. User-specific
+data stays dynamic and streams through `<Suspense>`. Reach for `'use cache: private'` only
+when you cannot refactor runtime data into arguments.
 
 ## Quick Start
 
@@ -322,6 +286,14 @@ export async function updatePost(id: string, data: FormData) {
 }
 ```
 
+> **⚠️ Deprecated**: The single-argument form `revalidateTag('posts')` is deprecated in
+> Next.js 16 and may be removed in a future version. Always pass a profile (`'max'` is
+> recommended for stale-while-revalidate) or `{ expire: <seconds> }` as the second
+> argument. For webhooks that require immediate expiration, use
+> `revalidateTag(tag, { expire: 0 })`. For immediate read-your-own-writes in Server
+> Actions, prefer [`updateTag()`](#4-updatetag---immediate-invalidation) instead.
+> See [revalidateTag docs](https://nextjs.org/docs/app/api-reference/functions/revalidateTag).
+
 ## When to Use Each Pattern
 
 | Content Type | API                 | Behavior                              |
@@ -458,69 +430,9 @@ When generating Cache Component code:
 6. **Wrap dynamic content** - Use `<Suspense>` for non-cached async components
 7. **Use `'use cache: private'` as last resort** - Only when runtime data cannot be extracted as params AND compliance requires no cross-request sharing
 
----
+## Review Checklist
 
-## Proactive Application (When Cache Components Enabled)
-
-When `cacheComponents: true` is detected in the project, **automatically apply these patterns**:
-
-### When Writing Data Fetching Components
-
-Ask yourself: "Can this data be cached?" If yes, add `'use cache'`:
-
-```tsx
-// Before: Uncached fetch
-async function ProductList() {
-  const products = await db.products.findMany()
-  return <Grid products={products} />
-}
-
-// After: With caching
-async function ProductList() {
-  'use cache'
-  cacheTag('products')
-  cacheLife('hours')
-
-  const products = await db.products.findMany()
-  return <Grid products={products} />
-}
-```
-
-### When Writing Server Actions
-
-Always invalidate relevant caches after mutations:
-
-```tsx
-'use server'
-import { updateTag } from 'next/cache'
-
-export async function createProduct(data: FormData) {
-  await db.products.create({ data })
-  updateTag('products') // Don't forget!
-}
-```
-
-### When Composing Pages
-
-Structure with static shell + cached content + dynamic streaming:
-
-```tsx
-export default async function Page() {
-  return (
-    <>
-      <StaticHeader /> {/* No cache needed */}
-      <CachedContent /> {/* 'use cache' */}
-      <Suspense fallback={<Skeleton />}>
-        <DynamicUserContent /> {/* Streams at runtime */}
-      </Suspense>
-    </>
-  )
-}
-```
-
-### When Reviewing Code
-
-Flag these issues in Cache Components projects:
+When reviewing code in Cache Components projects, flag these issues:
 
 - [ ] Data fetching without `'use cache'` where caching would benefit
 - [ ] Missing `cacheTag()` calls (makes invalidation impossible)
@@ -531,3 +443,4 @@ Flag these issues in Cache Components projects:
 - [ ] **DEPRECATED**: `export const revalidate` - replace with `cacheLife()` in `'use cache'`
 - [ ] **DEPRECATED**: `export const dynamic` - replace with Suspense + cache boundaries
 - [ ] Empty `generateStaticParams()` return - must provide at least one param
+- [ ] Single-argument `revalidateTag('tag')` - use two-argument form with profile or `{ expire }`

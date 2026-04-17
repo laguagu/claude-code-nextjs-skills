@@ -68,6 +68,6 @@ export async function getCachedData() {
 
 Requires `cacheComponents: true` in `next.config.ts`.
 
-For detailed usage including cache profiles, `cacheLife()`, `cacheTag()`, and `updateTag()`, see the `next-cache-components` skill.
+For detailed usage including cache profiles, `cacheLife()`, `cacheTag()`, and `updateTag()`, see the `cache-components` skill.
 
 Reference: https://nextjs.org/docs/app/api-reference/directives/use-cache
