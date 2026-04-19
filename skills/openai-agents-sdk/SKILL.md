@@ -64,9 +64,9 @@ result = await Runner.run(agent, "Tell me a joke")
 | Guardrails | Input/output validation |
 | Sessions | Automatic conversation history |
 | Multi-Agent Pipeline | Multi-step workflows |
-| Sandboxing | Isolated execution environment for agents (2026) |
-| Subagents | Spawn specialized subordinate agents (2026, Python + TS) |
-| Observability | Built-in execution graph recording (2026) |
+| Sandboxing | Isolated execution environment for agents |
+| Subagents | Spawn specialized subordinate agents (Python + TS) |
+| Observability | Built-in execution graph recording |
 
 ## Preferred: Live Docs via MCP
 
@@ -106,7 +106,7 @@ Offline/quick-lookup snippets. Verify model names and API signatures against the
 
 - **Docs:** https://openai.github.io/openai-agents-python/
 - **Examples:** https://github.com/openai/openai-agents-python/tree/main/examples
-- **2026 update:** https://openai.com/index/the-next-evolution-of-the-agents-sdk/
+- **Major update:** https://openai.com/index/the-next-evolution-of-the-agents-sdk/
 - **Docs MCP setup:** https://developers.openai.com/learn/docs-mcp
 - **Docs index (llms.txt):** https://developers.openai.com/api/docs/llms.txt
 - **Current model IDs:** https://platform.openai.com/docs/models
