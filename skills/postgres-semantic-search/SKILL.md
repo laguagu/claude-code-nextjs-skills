@@ -321,14 +321,16 @@ For ParadeDB-specific questions, always apply the Documentation Fetch Policy in 
 - [PostgreSQL FTS](https://www.postgresql.org/docs/current/textsearch.html) - Built-in full-text search
 
 ### Embedding providers
-- [OpenAI Embeddings Guide](https://platform.openai.com/docs/guides/embeddings) - Embedding models and best practices
-- [Voyage Embeddings](https://docs.voyageai.com/docs/embeddings) - Voyage embeddings + multilingual model
-- [Cohere Embed](https://docs.cohere.com/docs/embeddings) - Cohere embed-v4
+- [OpenAI Embeddings](https://platform.openai.com/docs/guides/embeddings) - model list + dimensions
+- [Voyage Embeddings](https://docs.voyageai.com/docs/embeddings) - includes multilingual model
+- [Cohere Embed](https://docs.cohere.com/docs/embeddings) - model list
+- [HuggingFace Hub](https://huggingface.co/models?pipeline_tag=sentence-similarity) - open-weight embeddings
 
 ### Reranker providers
-- [Cohere Rerank API](https://docs.cohere.com/docs/rerank) - API + pricing
-- [Voyage Rerank API](https://docs.voyageai.com/reference/reranker-api) - API reference
-- [Voyage pricing & billing](https://www.voyageai.com/pricing) - 200M tokens/month free **after** adding payment method
+- [Cohere Rerank](https://docs.cohere.com/docs/rerank)
+- [Voyage Rerank](https://docs.voyageai.com/reference/reranker-api)
+- [Zerank](https://docs.zeroentropy.dev)
+- [Sentence Transformers](https://www.sbert.net/docs/cross_encoder/usage/usage.html) - self-hosted cross-encoders
 
 ### Hosting / extensions
 - [Supabase Vector Guide](https://supabase.com/docs/guides/ai/vector-columns) - Supabase-specific integration

@@ -10,135 +10,84 @@ Re-ranking is a two-stage retrieval pattern:
 | Retrieval | Re-ranker |
 |-----------|-----------|
 | Bi-encoder (fast) | Cross-encoder (slow, accurate) |
-| Single embedding per doc | Compares query+doc together |
+| Single embedding per doc | Compares query + doc together |
 | O(1) per doc | O(n) for n candidates |
 
-## API services
+Cross-encoders partially rediscover a semantic variant of BM25 (attention ≈
+soft TF, embedding matrix ≈ semantic IDF), which is why BM25 / hybrid +
+cross-encoder works so well together.
 
-| Service | Latency (30 docs) | Quality | Languages |
-|---------|-------------------|---------|-----------|
-| Cohere Rerank v4.0-pro | ~300ms | Best | 100+ |
-| Cohere Rerank v4.0-fast | ~150ms | Excellent | 100+ |
-| Zerank 2 | ~100ms | Best | 100+ |
-| Voyage Rerank 2.5 | ~1200ms | Excellent | 100+ |
-| Voyage Rerank 2.5-lite | ~600ms | Very Good | 100+ |
+## Reranker categories
 
-> Latencies are wall-clock observations from a real EU workload. Benchmark in
-> your own region. Always check provider docs for current pricing and rate limits.
+Treat specific model names as examples only — they change every 6-12 months.
+Check provider docs for the current recommended model in each category.
 
-## Open-source models (self-host)
+| Category | Examples (may change — verify) | When to use |
+|---|---|---|
+| **API — highest quality** | Cohere (rerank-v4/v5 pro), Zerank, Voyage full | Results must be precise; latency budget allows ~300ms-1s |
+| **API — lowest latency** | Cohere fast variant, Voyage lite variant | Interactive search with tight latency |
+| **Self-hosted multilingual** | BGE-reranker family, Qwen reranker family | Privacy / high volume / no vendor lock-in |
+| **Self-hosted lightweight** | Jina Reranker, small cross-encoders | CPU-only deployments |
 
-| Model | Size | Speed | Quality |
-|-------|------|-------|---------|
-| Qwen3-Reranker-8B | 8B | Slow | Excellent |
-| Qwen3-Reranker-4B | 4B | Medium | Very Good |
-| Qwen3-Reranker-0.6B | 0.6B | Fast | Good |
-| bge-reranker-v2-m3 | 560M | Fast | Very Good (multilingual) |
-| Jina Reranker v2 | 278M | Fast | Good (lightweight) |
+**Finding the current model:** ask the user which reranker they want, or check
+the provider's docs for "recommended" / "latest" model. Do not hard-code a
+version number guessed from training data.
 
-## Production pattern (apply to ANY reranker)
+## Production rules (apply to ANY reranker)
 
-Re-ranking is an *enhancement*, not a *requirement*. A failed call must not
-break search — fall back to original retrieval order.
+Re-ranking is an *enhancement*, not a *requirement*. Implementation must
+follow these rules — the exact code is straightforward:
 
-```typescript
-interface RerankResult { id: number; score: number }
+1. **Return `null` on failure, never throw.** Missing API key, HTTP error
+   (including 429), timeout, malformed response → all return `null`. Caller
+   falls back to the original retrieval order (semantic / hybrid / RRF).
+2. **Always use a timeout.** `AbortSignal.timeout(4000)` or `AbortController`.
+   A slow reranker must not hang the search request.
+3. **Short-circuit empty inputs.** Return `null` (not empty array) if there
+   are no candidates or no API key — the caller shouldn't need to distinguish
+   these cases.
+4. **Log failures at `warn` level.** Include the provider name and failure
+   reason. Never fail the request.
 
-async function rerank(
-  query: string,
-  candidates: { id: number; text: string }[],
-  topK = 10,
-): Promise<RerankResult[] | null> {
-  const apiKey = process.env.RERANKER_API_KEY;
-  if (!apiKey || candidates.length === 0) return null;
+Ask the user's framework/SDK preference before implementing — some stacks
+(e.g., Vercel AI SDK, LangChain) have first-class reranker adapters that
+handle retry / timeout / fallback for you.
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 4_000);
+## Provider API shapes
 
-  try {
-    const resp = await fetch(RERANKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ query, documents: candidates.map(c => c.text), top_k: topK }),
-      signal: controller.signal,
-    });
-    if (!resp.ok) {
-      console.warn(`[rerank] HTTP ${resp.status}`);
-      return null;
-    }
-    const json = await resp.json();
-    return json.data.map((r: { index: number; relevance_score: number }) => ({
-      id: candidates[r.index].id,
-      score: r.relevance_score,
-    }));
-  } catch (e) {
-    console.warn(`[rerank] ${(e as Error).message}`);
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+When implementing a direct `fetch()` call, these are the request shapes.
+Endpoints and field names are stable enough to write against; model names
+change frequently.
 
-// Caller falls back to original order on null
-const reranked = await rerank(query, candidates, 10);
-const final = reranked
-  ? reranked.map(r => candidates.find(c => c.id === r.id)!).filter(Boolean)
-  : candidates.slice(0, 10);
-```
+| Provider | Endpoint | Body (key fields) | Response path to score |
+|----------|----------|-------------------|------------------------|
+| Cohere | `POST https://api.cohere.com/v2/rerank` | `model`, `query`, `documents[]`, `top_n` | `results[].relevance_score` |
+| Voyage | `POST https://api.voyageai.com/v1/rerank` | `model`, `query`, `documents[]`, `top_k`, `truncation` | `data[].relevance_score` |
+| Zerank | `POST https://api.zeroentropy.dev/v1/rerank` | `model`, `query`, `documents[]` | check provider docs |
 
-**Why every wrapper needs this**: API outages, rate limits (429), slow
-responses (> 4s timeout), missing keys in dev — all should silently degrade
-to original RRF/vector order, never throw.
+Use `Authorization: Bearer <API_KEY>` on all three. Provider SDKs (e.g., the
+official `cohere-ai` package) are fine — just ensure timeout + null-on-error
+behaviour is preserved.
 
-## Provider-specific notes
+## Self-hosting
 
-Adapt the generic wrapper above by swapping URL + body shape per provider:
+For high-volume or privacy-sensitive workloads, host a cross-encoder behind
+a small HTTP service. Key implementation notes:
 
-| Provider | Endpoint | Body shape (key fields) | Docs |
-|----------|----------|-------------------------|------|
-| Cohere | `https://api.cohere.com/v2/rerank` | `model`, `query`, `documents` (strings), `top_n` | [docs.cohere.com/docs/rerank](https://docs.cohere.com/docs/rerank) |
-| Voyage | `https://api.voyageai.com/v1/rerank` | `model`, `query`, `documents` (strings, ≤4000 chars), `top_k`, `truncation` | [docs.voyageai.com/reference/reranker-api](https://docs.voyageai.com/reference/reranker-api) |
-| Zerank | `https://api.zeroentropy.dev/v1/rerank` | `model`, `query`, `documents` | [docs.zeroentropy.dev](https://docs.zeroentropy.dev) |
+- **Load the model once at startup**, not per request (model initialization
+  is slow, typically several seconds).
+- A FastAPI or similar framework with a `POST /rerank` endpoint accepting
+  `{ query, documents, top_n }` is standard; the application calls it with
+  the same generic wrapper as any other provider (no auth header needed).
+- The `sentence-transformers` Python library's `CrossEncoder` class handles
+  model loading and `.predict([[query, doc], ...])` scoring.
 
-Cohere has an official SDK (`cohere-ai`) if you prefer it — pass
-`{ signal: AbortSignal.timeout(4000) }` as `requestOptions` to keep timeout
-behaviour consistent with the generic wrapper.
-
-## Self-hosted reranking
-
-For high-volume or privacy-sensitive workloads, host a cross-encoder behind a
-small HTTP service (FastAPI + `sentence-transformers`):
-
-```python
-# reranker_service.py
-from fastapi import FastAPI
-from pydantic import BaseModel
-from sentence_transformers import CrossEncoder
-
-app = FastAPI()
-model = CrossEncoder('BAAI/bge-reranker-v2-m3')  # load once at startup
-
-class Req(BaseModel):
-    query: str
-    documents: list[str]
-    top_n: int = 10
-
-@app.post("/rerank")
-async def rerank(req: Req):
-    pairs = [[req.query, d] for d in req.documents]
-    scores = model.predict(pairs)
-    ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)
-    return [{"index": i, "score": float(s)} for i, s in ranked[:req.top_n]]
-```
-
-Run with `uvicorn reranker_service:app --host 0.0.0.0 --port 8000`. Call from
-the application using the same generic wrapper above (URL = your service URL,
-no `Authorization` header needed).
+Provider docs linked below cover the actual model selection.
 
 ## Two-stage retrieval pattern
 
 ```
-Stage 1: BM25 / Hybrid search (fast)
+Stage 1: BM25 / hybrid search (fast)
   ├─ Get 50-100 candidates via inverted index or HNSW
   └─ O(log n) per query
 
@@ -147,30 +96,18 @@ Stage 2: Cross-encoder rerank (precise)
   └─ O(n) for n candidates
 ```
 
-Cross-encoders partially rediscover a semantic variant of BM25 (attention
-heads ≈ soft TF, embedding matrix ≈ semantic IDF), which is why BM25 +
-cross-encoder works so well together.
-
 ## When NOT to re-rank
 
 - Real-time autocomplete (latency critical)
-- Very large candidate sets (> 100 docs → too slow)
-- Simple exact-match queries (BM25 is already optimal)
+- Very large candidate sets (> 100 docs → too slow, pre-filter first)
+- Simple exact-match queries (BM25 alone is already optimal)
 
-## Choosing a reranker
+## Provider docs
 
-```
-Priority?
-├─ Best quality → Cohere v4.0-pro or Zerank 2
-├─ Low latency → Voyage Rerank 2.5-lite or Cohere v4.0-fast
-├─ Self-hosted → bge-reranker-v2-m3 or Qwen3-Reranker-4B
-└─ Free tier → Cohere (1000/month) or self-hosted
-```
+Check these for current model names, rate limits, and pricing:
 
-## References
-
-- [Cohere Rerank docs](https://docs.cohere.com/docs/rerank)
-- [Voyage Rerank API](https://docs.voyageai.com/reference/reranker-api)
-- [BAAI bge-reranker](https://huggingface.co/BAAI/bge-reranker-v2-m3)
-- [Qwen3 Reranker](https://huggingface.co/Qwen/Qwen3-Reranker-4B)
-- [Sentence Transformers Cross-Encoders](https://www.sbert.net/docs/cross_encoder/usage/usage.html)
+- Cohere Rerank: <https://docs.cohere.com/docs/rerank>
+- Voyage Rerank: <https://docs.voyageai.com/reference/reranker-api>
+- Zerank: <https://docs.zeroentropy.dev>
+- Sentence Transformers (self-hosted cross-encoders): <https://www.sbert.net/docs/cross_encoder/usage/usage.html>
+- HuggingFace Hub (search "reranker" for open-weight models): <https://huggingface.co/models?other=reranker>
