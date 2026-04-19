@@ -89,3 +89,12 @@ Stage 2: Cross-encoder rerank (precise)
 - Real-time autocomplete (latency critical)
 - Very large candidate sets (> 100 docs → too slow, pre-filter first)
 - Simple exact-match queries (BM25 alone is already optimal)
+
+## Provider docs
+
+Check the provider's docs for the current recommended model and request
+shape (they update these as models rotate). The stable entry points:
+
+- Cohere — <https://docs.cohere.com/docs/rerank>
+- Voyage — <https://docs.voyageai.com/reference/reranker-api>
+- HuggingFace (open-weight rerankers) — <https://huggingface.co/models?other=reranker>
