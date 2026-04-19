@@ -19,19 +19,17 @@ cross-encoder works so well together.
 
 ## Reranker categories
 
-Treat specific model names as examples only — they change every 6-12 months.
-Check provider docs for the current recommended model in each category.
+Rerankers fall into two broad families:
 
-| Category | Examples (may change — verify) | When to use |
-|---|---|---|
-| **API — highest quality** | Cohere (rerank-v4/v5 pro), Zerank, Voyage full | Results must be precise; latency budget allows ~300ms-1s |
-| **API — lowest latency** | Cohere fast variant, Voyage lite variant | Interactive search with tight latency |
-| **Self-hosted multilingual** | BGE-reranker family, Qwen reranker family | Privacy / high volume / no vendor lock-in |
-| **Self-hosted lightweight** | Jina Reranker, small cross-encoders | CPU-only deployments |
+- **API-based** (managed service) — high quality, no infra, pay per query.
+  Pick when results must be precise and the latency budget allows it.
+- **Self-hosted** (cross-encoder behind your own service) — privacy,
+  predictable cost at volume, no vendor lock-in. Pick when you have infra
+  and want control.
 
-**Finding the current model:** ask the user which reranker they want, or check
-the provider's docs for "recommended" / "latest" model. Do not hard-code a
-version number guessed from training data.
+Ask the user's preference. Check the provider's docs for the current
+recommended model — never hard-code a model version guessed from training
+data, because model names rotate every 6-12 months.
 
 ## Production rules (apply to ANY reranker)
 
@@ -53,36 +51,26 @@ Ask the user's framework/SDK preference before implementing — some stacks
 (e.g., Vercel AI SDK, LangChain) have first-class reranker adapters that
 handle retry / timeout / fallback for you.
 
-## Provider API shapes
+## Calling a reranker
 
-When implementing a direct `fetch()` call, these are the request shapes.
-Endpoints and field names are stable enough to write against; model names
-change frequently.
+Prefer your framework's reranker adapter — AI SDK, LangChain, LlamaIndex,
+and similar stacks ship adapters that already handle timeout, retries, and
+fallback. That keeps the code short and provider-agnostic.
 
-| Provider | Endpoint | Body (key fields) | Response path to score |
-|----------|----------|-------------------|------------------------|
-| Cohere | `POST https://api.cohere.com/v2/rerank` | `model`, `query`, `documents[]`, `top_n` | `results[].relevance_score` |
-| Voyage | `POST https://api.voyageai.com/v1/rerank` | `model`, `query`, `documents[]`, `top_k`, `truncation` | `data[].relevance_score` |
-| Zerank | `POST https://api.zeroentropy.dev/v1/rerank` | `model`, `query`, `documents[]` | check provider docs |
+If you must call the HTTP API directly, check the provider's docs for the
+current request shape (endpoint, body fields, score path). Keep the rules
+from the previous section: timeout + null-on-failure, never throw.
 
-Use `Authorization: Bearer <API_KEY>` on all three. Provider SDKs (e.g., the
-official `cohere-ai` package) are fine — just ensure timeout + null-on-error
-behaviour is preserved.
+## Self-hosting notes
 
-## Self-hosting
+If self-hosting, two things matter more than the rest:
 
-For high-volume or privacy-sensitive workloads, host a cross-encoder behind
-a small HTTP service. Key implementation notes:
-
-- **Load the model once at startup**, not per request (model initialization
-  is slow, typically several seconds).
-- A FastAPI or similar framework with a `POST /rerank` endpoint accepting
-  `{ query, documents, top_n }` is standard; the application calls it with
-  the same generic wrapper as any other provider (no auth header needed).
-- The `sentence-transformers` Python library's `CrossEncoder` class handles
-  model loading and `.predict([[query, doc], ...])` scoring.
-
-Provider docs linked below cover the actual model selection.
+- **Load the model once at startup**, not per request — initialization is
+  slow (typically several seconds) because the cross-encoder weights load
+  into memory.
+- Expose it as a small HTTP service (e.g. `POST /rerank` taking
+  `{ query, documents, top_n }`) so the application can call it with the
+  same failure-handling rules as any managed reranker.
 
 ## Two-stage retrieval pattern
 
@@ -101,13 +89,3 @@ Stage 2: Cross-encoder rerank (precise)
 - Real-time autocomplete (latency critical)
 - Very large candidate sets (> 100 docs → too slow, pre-filter first)
 - Simple exact-match queries (BM25 alone is already optimal)
-
-## Provider docs
-
-Check these for current model names, rate limits, and pricing:
-
-- Cohere Rerank: <https://docs.cohere.com/docs/rerank>
-- Voyage Rerank: <https://docs.voyageai.com/reference/reranker-api>
-- Zerank: <https://docs.zeroentropy.dev>
-- Sentence Transformers (self-hosted cross-encoders): <https://www.sbert.net/docs/cross_encoder/usage/usage.html>
-- HuggingFace Hub (search "reranker" for open-weight models): <https://huggingface.co/models?other=reranker>

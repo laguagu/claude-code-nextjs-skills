@@ -29,8 +29,8 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    embedding vector(1536)  -- text-embedding-3-small
-    -- Or: embedding halfvec(3072)  -- text-embedding-3-large (50% memory)
+    embedding vector(1536)  -- 1536-dim embedding
+    -- Or: embedding halfvec(3072)  -- 3072-dim embedding (halfvec = 50% memory)
 );
 ```
 
@@ -155,8 +155,8 @@ Embedding dimensions (N)?
 └─ N > 4000  → vector(N) without HNSW, or quantize via dimensionality reduction
 ```
 
-Common dimensions for current OpenAI models: `text-embedding-3-small` = 1536,
-`text-embedding-3-large` = 3072. Other providers vary — check provider docs.
+Common embedding dimensions are 1536 and 3072, but sizes vary by provider
+and model — check the provider's docs for the embedding you're using.
 
 For **multilingual** / non-English content, prefer multilingual-tuned embedding
 models (look for "multilingual" in the model name). Models tuned only on

@@ -11,8 +11,8 @@ const openai = new OpenAI();
 // ============================================
 
 export type EmbeddingModel =
-  | 'text-embedding-3-small'  // 1536 dims, $0.02/1M tokens
-  | 'text-embedding-3-large'; // 3072 dims, $0.13/1M tokens
+  | 'text-embedding-3-small'  // 1536 dims
+  | 'text-embedding-3-large'; // 3072 dims
 
 export async function getEmbedding(
   text: string,

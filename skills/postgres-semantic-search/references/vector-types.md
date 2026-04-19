@@ -98,14 +98,14 @@ FROM documents;
 
 ## Choosing Vector Type
 
-### Use `vector(1536)` when:
-- Using text-embedding-3-small
+### Use `vector(N)` (N ≤ 2000) when:
+- Embedding fits in HNSW's native dimension limit
 - Storage is not a concern
 - Need maximum compatibility
 
-### Use `halfvec(3072)` when:
-- Using text-embedding-3-large
-- Want quality of 3072 dims with memory of 1536
+### Use `halfvec(N)` (N ≤ 4000) when:
+- Embedding exceeds vector's HNSW limit (2000), or
+- You want ~50% memory savings at negligible precision cost
 - pgvector 0.7.0+ available
 
 ### Use `bit` when:
