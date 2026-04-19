@@ -1,6 +1,6 @@
 # Async Patterns
 
-In Next.js 15+, `params`, `searchParams`, `cookies()`, and `headers()` are asynchronous.
+In current Next.js, `params`, `searchParams`, `cookies()`, and `headers()` are asynchronous — type them as `Promise<...>` and await them.
 
 ## Async Params and SearchParams
 

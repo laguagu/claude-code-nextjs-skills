@@ -1,10 +1,10 @@
 ---
 name: nextjs-shadcn
 argument-hint: "[component or page]"
-description: Creates Next.js 16 frontends with shadcn/ui. Use when building React UIs, components, pages, or applications with shadcn, Tailwind, or modern frontend patterns. Also use when the user asks to create a new Next.js project, add UI components, style pages, or build any web interface — even if they don't mention shadcn explicitly.
+description: Creates Next.js frontends with shadcn/ui. Use when building React UIs, components, pages, or applications with shadcn, Tailwind, or modern frontend patterns. Also use when the user asks to create a new Next.js project, add UI components, style pages, or build any web interface — even if they don't mention shadcn explicitly.
 ---
 
-# Next.js 16 + shadcn/ui
+# Next.js + shadcn/ui
 
 Build distinctive, production-grade interfaces that avoid generic "AI slop" aesthetics.
 

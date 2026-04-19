@@ -12,7 +12,7 @@
 - [ ] Sitemap submitted to Google Search Console
 - [ ] No `noindex` on pages you want indexed
 - [ ] Canonical URLs set for all pages
-- [ ] `viewport` exported separately (Next.js 14+)
+- [ ] `viewport` exported separately from `metadata`
 
 ### Rendering
 
@@ -54,7 +54,7 @@
 
 - [ ] All images have `alt` text
 - [ ] Images use `next/image` component
-- [ ] Images in sitemap (Next.js 16)
+- [ ] Images in sitemap
 - [ ] Appropriate image sizes (no oversized images)
 
 ## Nice to Have (Optimization)

@@ -1,6 +1,6 @@
 # Next.js Metadata API
 
-Complete guide for implementing SEO metadata in Next.js 16+ App Router.
+Complete guide for implementing SEO metadata in Next.js App Router.
 
 ## Static vs Dynamic Metadata
 
@@ -31,7 +31,7 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params; // Next.js 16: params is a Promise
+  const { id } = await params; // params is a Promise in current Next.js
   const product = await getProduct(id);
 
   return {
@@ -162,7 +162,7 @@ export const metadata: Metadata = {
 
 ## Viewport Configuration
 
-**Important:** In Next.js 14+, viewport must be a separate export:
+**Important:** viewport must be a separate export, not a field in `metadata`:
 
 ```typescript
 import type { Viewport } from 'next';

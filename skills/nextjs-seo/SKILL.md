@@ -6,9 +6,7 @@ argument-hint: "[question or URL]"
 
 # Next.js SEO Optimization
 
-Comprehensive SEO guide for Next.js 16+ applications using App Router.
-
-> Next.js 16+ App Router (latest stable)
+Comprehensive SEO guide for Next.js App Router applications.
 
 ## Quick SEO Audit
 
@@ -27,9 +25,8 @@ Run this checklist for any Next.js project:
 ```typescript
 import type { Metadata, Viewport } from 'next';
 
-// Viewport (separate export required in Next.js 14+).
-// `themeColor`, `colorScheme`, and `viewport` inside the `metadata` object
-// are deprecated since Next.js 13.2.0 — they must be exported via `viewport`.
+// Viewport must be a separate export — `themeColor`, `colorScheme`, and
+// `viewport` inside the `metadata` object are not supported.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -88,7 +85,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
-      images: [`${baseUrl}/og-image.png`], // Next.js 16 Image Sitemap
+      images: [`${baseUrl}/og-image.png`], // Image Sitemap entry
     },
     {
       url: `${baseUrl}/about`,
@@ -126,7 +123,7 @@ export default function robots(): MetadataRoute.Robots {
 
 ## Key Principles
 
-### Cache Components & SEO (Next.js 16+)
+### Cache Components & SEO
 
 With `cacheComponents: true` in next.config.ts, use the `"use cache"` directive for SEO-critical server components:
 
@@ -180,7 +177,7 @@ export async function HeroSection() {
 3. **Using CSR for SEO pages** - Use SSG/SSR for indexable content
 4. **Blocking `/_next/` in robots.txt** - Crawlers need render-critical CSS/JS; never disallow `/_next/`
 5. **Missing metadataBase** - Required for relative URLs in metadata
-6. **Viewport in metadata** - Must be separate export in Next.js 14+
+6. **Viewport in metadata** - Must be a separate export
 7. **Mixing metadata object and generateMetadata** - Use one or the other, not both
 
 ## Quick Fixes
@@ -202,7 +199,7 @@ export const metadata: Metadata = {
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;            // params is a Promise in Next.js 15+
+  const { id } = await params;            // params is a Promise in current Next.js
   const product = await getProduct(id);
   return {
     title: product.name,

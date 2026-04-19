@@ -286,13 +286,11 @@ export async function updatePost(id: string, data: FormData) {
 }
 ```
 
-> **⚠️ Deprecated**: The single-argument form `revalidateTag('posts')` is deprecated in
-> Next.js 16 and may be removed in a future version. Always pass a profile (`'max'` is
-> recommended for stale-while-revalidate) or `{ expire: <seconds> }` as the second
-> argument. For webhooks that require immediate expiration, use
-> `revalidateTag(tag, { expire: 0 })`. For immediate read-your-own-writes in Server
-> Actions, prefer [`updateTag()`](#4-updatetag---immediate-invalidation) instead.
-> See [revalidateTag docs](https://nextjs.org/docs/app/api-reference/functions/revalidateTag).
+> **⚠️ Deprecated**: The single-argument form `revalidateTag('posts')` is deprecated.
+> Always pass a profile (`'max'` is recommended for stale-while-revalidate) or
+> `{ expire: <seconds> }` as the second argument. For webhooks that require immediate
+> expiration, use `revalidateTag(tag, { expire: 0 })`. For immediate read-your-own-writes
+> in Server Actions, prefer [`updateTag()`](#4-updatetag---immediate-invalidation) instead.
 
 ## When to Use Each Pattern
 

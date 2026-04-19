@@ -56,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 ```
 
-### Image Sitemap (Next.js 16)
+### Image Sitemap
 
 ```typescript
 // app/sitemap.ts

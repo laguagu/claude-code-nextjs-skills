@@ -7,7 +7,10 @@ tags: client, swr, deduplication, data-fetching
 
 ## Use SWR for Automatic Deduplication
 
-SWR enables request deduplication, caching, and revalidation across component instances.
+Deduplicate client-side fetches across component instances. SWR is shown
+below, but any hook with built-in deduplication works (React Query,
+RTK Query, Apollo's `useQuery`, etc.) — pick whatever the project already
+uses rather than adding a new library.
 
 **Incorrect (no deduplication, each instance fetches):**
 
