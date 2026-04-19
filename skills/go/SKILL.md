@@ -1,6 +1,6 @@
 ---
 name: go
-description: Opens the running app in a browser and verifies recent UI changes actually work. Use whenever the user wants a quick smoke test or sanity check of recent work, or says "go", "avaa selaimesta", "tarkista selaimesta", "testaa työsi", "varmista että toimii", "check in browser", "smoke test", "verify", "did it actually work", "make sure the form/page works", "check the form submits", "works on mobile" — even when they don't explicitly ask for browser testing. Also activates implicitly when the user appends "...ja varmista" or "...and make sure it works" to a UI request. Skips design critique; for that, use go-ui.
+description: Opens the running app in a browser and verifies recent UI changes actually work. Use whenever the user wants a quick smoke test or sanity check of recent work, or says "go", "open in browser", "check in browser", "test your work", "make sure it works", "smoke test", "verify", "did it actually work", "make sure the form/page works", "check the form submits", "works on mobile" — even when they don't explicitly ask for browser testing. Also activates implicitly when the user appends "...and make sure it works" to a UI request. Skips design critique; for that, use go-ui.
 argument-hint: "[url or route]"
 ---
 
