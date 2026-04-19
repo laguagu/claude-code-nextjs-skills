@@ -17,12 +17,16 @@ Re-ranking is a two-stage retrieval pattern:
 
 ### API Services
 
-| Service | Latency | Quality | Languages | Notes |
-|---------|---------|---------|-----------|-------|
+| Service | Latency (30 docs) | Quality | Languages | Notes |
+|---------|-------------------|---------|-----------|-------|
 | Cohere Rerank v4.0-pro | ~300ms | Best | 100+ | 32K context, self-learning |
 | Cohere Rerank v4.0-fast | ~150ms | Excellent | 100+ | Low latency variant |
 | Zerank 2 | ~100ms | Best | 100+ | Wins most benchmarks |
-| Voyage Rerank 2.5 | ~100ms | Excellent | 100+ | 2x lower latency |
+| Voyage Rerank 2.5 | ~1200ms | Excellent | 100+ | Higher latency, full-quality |
+| Voyage Rerank 2.5-lite | ~600ms | Very Good | 100+ | ~2× cheaper tokens, near-equivalent quality on small/non-English corpora |
+
+> Latency numbers are wall-clock observations from a real workload (30 candidates,
+> ~150 tokens each, EU → provider). Treat as ballpark; benchmark in your own region.
 
 ### Open-Source Models
 
@@ -41,6 +45,71 @@ Re-ranking is a two-stage retrieval pattern:
 | ms-marco-MiniLM-L-6-v2 | 80MB | Fast | Acceptable |
 | ms-marco-electra-base | 400MB | Slow | Good |
 
+## Production patterns (apply to ANY reranker)
+
+Re-ranking is an *enhancement*, not a *requirement*. A failed rerank call should
+not break the search — fall back to the original retrieval order.
+
+### Graceful fallback
+
+Wrap reranker calls so they return `null` on any failure (missing key, HTTP
+error, timeout). The caller decides what to do (use original order):
+
+```typescript
+interface RerankResult { id: number; score: number }
+
+async function rerank(
+  query: string,
+  candidates: { id: number; text: string }[],
+  topK = 10,
+): Promise<RerankResult[] | null> {
+  const apiKey = process.env.RERANKER_API_KEY;
+  if (!apiKey || candidates.length === 0) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4_000);
+
+  try {
+    const resp = await fetch(RERANKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ query, documents: candidates.map(c => c.text), top_k: topK }),
+      signal: controller.signal,
+    });
+    if (!resp.ok) {
+      console.warn(`[rerank] HTTP ${resp.status}`);
+      return null;
+    }
+    const json = await resp.json();
+    return json.data.map((r: { index: number; relevance_score: number }) => ({
+      id: candidates[r.index].id,
+      score: r.relevance_score,
+    }));
+  } catch (e) {
+    console.warn(`[rerank] ${(e as Error).message}`);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Usage
+const reranked = await rerank(query, candidates, 10);
+const final = reranked
+  ? reranked.map(r => candidates.find(c => c.id === r.id)!).filter(Boolean)
+  : candidates.slice(0, 10);  // Fallback: original RRF order
+```
+
+### Why this matters
+
+- **API outage**: provider is down → search still works
+- **Rate limit (429)**: free-tier or burst exceeded → search still works
+- **Slow response (> 4 s)**: AbortController triggers → search still works
+- **Missing API key in dev**: return null silently → search still works
+
+This pattern is **provider-agnostic** — adapt for Cohere, Voyage, Zerank, or
+self-hosted endpoints by swapping URL + body shape.
+
 ## Cohere Rerank API
 
 Best option for production - fast, accurate, simple.
@@ -51,7 +120,7 @@ Best option for production - fast, accurate, simple.
 bun add cohere-ai
 ```
 
-### Usage
+### Usage (with timeout — see Production patterns above)
 
 ```typescript
 import { CohereClient } from 'cohere-ai';
@@ -78,12 +147,13 @@ async function searchWithRerank(
   `);
 
   // Stage 2: Re-rank with Cohere v4.0
+  // NOTE: cohere-ai SDK accepts AbortSignal via requestOptions parameter
   const reranked = await cohere.rerank({
     model: 'rerank-v4.0-fast',  // or 'rerank-v4.0-pro' for best quality
     query,
     documents: candidates.map(c => c.content),
     topN: topK,
-  });
+  }, { signal: AbortSignal.timeout(4000) });
 
   // Map back to original results
   return reranked.results.map(r => ({
@@ -93,18 +163,105 @@ async function searchWithRerank(
 }
 ```
 
-### Cohere v4.0 Features (December 2025)
+### Cohere v4.0 Features
 
 - **32K token context window** (4x increase from v3.5)
 - **Semi-structured data support** (JSON, tables)
 - **Self-learning capability** for enterprise deployments
 - **100+ language support** with state-of-the-art retrieval
 
-### Pricing (approximate, verify with providers)
+### Pricing (always verify at [cohere.com/pricing](https://cohere.com/pricing))
 
-- **rerank-v4.0-pro**: $0.002 per search (up to 100 docs)
-- **rerank-v4.0-fast**: $0.001 per search (up to 100 docs)
+- **rerank-v4.0-pro**: ~$0.002 per search (up to 100 docs)
+- **rerank-v4.0-fast**: ~$0.001 per search (up to 100 docs)
 - **Free tier**: 1000 searches/month
+
+## Voyage Rerank API
+
+Cheap and fast alternative — useful when Cohere's free tier is exhausted or you
+need lower latency on small batches.
+
+### Pricing model gotcha
+
+Voyage requires a **payment method on file** to unlock production rate limits,
+even if you stay under the free quota:
+
+| State | Limit |
+|-------|-------|
+| Without payment method | 3 RPM, 10K TPM (effectively unusable in production) |
+| With payment method | 200M tokens/month free, then $0.05/M |
+
+Without a card, you'll see HTTP 429 in production immediately. Add the card at
+[dash.voyageai.com/billing](https://dash.voyageai.com/billing) — no charge until
+you exceed the free tier.
+
+### Choosing a model
+
+| Model | Use when |
+|-------|----------|
+| `rerank-2.5` | Maximum quality matters, latency budget allows ~1s per call |
+| `rerank-2.5-lite` | Better default for most apps — ~2× faster, ~2× cheaper, near-identical quality on small (< 50 candidates) and non-English corpora |
+
+### Usage (no SDK — plain fetch + AbortController)
+
+```typescript
+const VOYAGE_URL = 'https://api.voyageai.com/v1/rerank';
+
+interface RerankResult { id: number; score: number }
+
+async function voyageRerank(
+  query: string,
+  candidates: { id: number; text: string }[],
+  topK = 10,
+): Promise<RerankResult[] | null> {
+  const apiKey = process.env.VOYAGE_API_KEY;
+  if (!apiKey || candidates.length === 0) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4_000);
+
+  try {
+    const resp = await fetch(VOYAGE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        query,
+        documents: candidates.map(c => c.text.slice(0, 4000)), // Voyage doc limit
+        model: process.env.VOYAGE_RERANK_MODEL ?? 'rerank-2.5-lite',
+        top_k: Math.min(topK, candidates.length),
+        truncation: true,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!resp.ok) {
+      console.warn(`[rerank] Voyage HTTP ${resp.status}`);
+      return null;
+    }
+
+    const json = (await resp.json()) as {
+      data: Array<{ index: number; relevance_score: number }>;
+    };
+    return json.data.map(r => ({
+      id: candidates[r.index].id,
+      score: r.relevance_score,
+    }));
+  } catch (e) {
+    console.warn(`[rerank] Voyage error: ${(e as Error).message}`);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+```
+
+### Voyage docs
+
+- [Voyage Rerank API reference](https://docs.voyageai.com/reference/reranker-api)
+- [Voyage pricing](https://www.voyageai.com/pricing)
 
 ## Self-Hosted Reranking (FastAPI)
 

@@ -52,6 +52,49 @@ SET hnsw.ef_search = 100;
 | `<->` | `vector_l2_ops` | Euclidean/L2 |
 | `<#>` | `vector_ip_ops` | Inner product |
 
+### Filtered HNSW queries — `iterative_scan` (pgvector 0.8+)
+
+When you combine HNSW search with WHERE filters (categories, tenant IDs, date
+ranges), the index returns its top-N candidates *first* and the filter is
+applied *after*. If filters are selective, you can end up with fewer than `LIMIT`
+matching rows.
+
+```sql
+-- Problematic when filter is selective: returns < 10 rows even if more match
+SELECT * FROM documents
+WHERE category = 'rare'
+ORDER BY embedding <=> query_vec
+LIMIT 10;
+```
+
+**Fix:** enable iterative scan so HNSW keeps fetching candidates until LIMIT is
+satisfied (or the index is exhausted):
+
+```sql
+-- Session-level (one-off connections, scripts)
+SET hnsw.iterative_scan = relaxed_order;  -- fast, slight reordering near boundary
+-- or
+SET hnsw.iterative_scan = strict_order;   -- preserves exact distance order, slower
+
+-- Function-level (preferred for stable behavior in stored procedures)
+CREATE OR REPLACE FUNCTION search_filtered(...)
+  RETURNS TABLE (...)
+  LANGUAGE sql STABLE
+  SET hnsw.iterative_scan = 'relaxed_order'
+AS $$ ... $$;
+```
+
+**When to enable:**
+- WHERE filters typically reduce candidate pool by > 50 %
+- Multi-tenant apps (every query filters by `tenant_id`)
+- Queries that combine semantic search with metadata filters
+
+**When NOT needed:**
+- Unfiltered semantic search across all rows
+- Filters that match > 80 % of rows (HNSW finds enough naturally)
+
+Same pattern for IVFFlat: `SET ivfflat.iterative_scan = on`.
+
 ### halfvec Operator Classes
 
 | Operator | Class |

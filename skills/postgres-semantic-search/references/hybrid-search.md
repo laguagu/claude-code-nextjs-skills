@@ -27,14 +27,65 @@ CREATE INDEX ON documents USING GIN (to_tsvector('simple', content));
 
 -- Search
 SELECT * FROM documents
-WHERE to_tsvector('simple', content) @@ plainto_tsquery('simple', 'search terms')
-ORDER BY ts_rank(to_tsvector('simple', content), plainto_tsquery('simple', 'search terms')) DESC;
+WHERE to_tsvector('simple', content) @@ websearch_to_tsquery('simple', 'search terms')
+ORDER BY ts_rank(to_tsvector('simple', content), websearch_to_tsquery('simple', 'search terms')) DESC;
 ```
 
 **Language options:**
 - `'simple'`: No stemming, basic tokenization. Good for mixed languages.
 - `'english'`: English stemming. "running" matches "run".
-- `'finnish'`: Finnish stemming. "karttoja" matches "kartta".
+- `'finnish'`, `'german'`, `'french'`, etc.: Built-in stemmers.
+
+### Query parsers: `websearch_to_tsquery` vs `plainto_tsquery`
+
+This is the most common FTS pitfall. Pick the right parser for your input:
+
+| Parser | Combines terms with | Best for |
+|--------|--------------------|---------|
+| `plainto_tsquery` | AND (`&`) | Short, exact-match queries (1-3 keywords) |
+| `websearch_to_tsquery` | Smart: spaces = AND, `OR` = OR, `"quoted"` = phrase | Natural-language questions, search-engine-style input |
+| `phraseto_tsquery` | Phrase (`<->`) | When token order matters |
+| `to_tsquery` | Manual operators | Power users only — fragile with raw input |
+
+**The trap:** `plainto_tsquery('how do I reset my password')` requires ALL six
+words to be present in a single document → returns 0 hits for most realistic
+queries. Use `websearch_to_tsquery` for any user-typed input.
+
+```sql
+-- ❌ BAD: long natural-language query → 0 hits
+WHERE tsv @@ plainto_tsquery('english', 'how do I reset my password')
+
+-- ✅ GOOD: same query, OR-friendly matching
+WHERE tsv @@ websearch_to_tsquery('english', 'how do I reset my password')
+```
+
+### Custom FTS configuration (e.g., language + unaccent)
+
+For non-English content, combine a stemmer with `unaccent` so accented
+characters match their base forms ("café" matches "cafe", "naïve" matches
+"naive"). This is essential for Finnish, French, German, Spanish, Portuguese,
+etc.
+
+```sql
+-- 1. Enable unaccent extension
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+-- 2. Create custom config: copy the language base, then prepend unaccent mapping
+CREATE TEXT SEARCH CONFIGURATION finnish_unaccent (COPY = finnish);
+ALTER TEXT SEARCH CONFIGURATION finnish_unaccent
+  ALTER MAPPING FOR hword, hword_part, word
+  WITH unaccent, finnish_stem;
+
+-- 3. Use in indexes and queries
+CREATE INDEX ON documents USING GIN (to_tsvector('finnish_unaccent', content));
+
+SELECT * FROM documents
+WHERE to_tsvector('finnish_unaccent', content) @@ websearch_to_tsquery('finnish_unaccent', 'kahvi naiivi');
+-- Matches both "kahvi"/"kahvia" and "naïvi"/"naiivit"
+```
+
+The same pattern works for any language: `german_unaccent`, `spanish_unaccent`,
+etc. Always create the custom config once (DDL), then reference it everywhere.
 
 ### Option 2: pg_search BM25
 

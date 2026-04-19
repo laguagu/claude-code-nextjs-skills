@@ -10,8 +10,10 @@ description: |
 
   Triggers: pgvector, vector search, semantic search, hybrid search,
   embedding search, PostgreSQL RAG, BM25, RRF, HNSW index, similarity search,
-  ParadeDB, pg_search, reranking, Cohere rerank, pg_trgm, trigram,
-  fuzzy search, LIKE, ILIKE, autocomplete, typo tolerance, fuzzystrmatch
+  ParadeDB, pg_search, reranking, Cohere rerank, Voyage rerank,
+  graceful fallback, iterative_scan, filtered HNSW, websearch_to_tsquery,
+  unaccent, multilingual FTS, pg_trgm, trigram, fuzzy search, LIKE, ILIKE,
+  autocomplete, typo tolerance, fuzzystrmatch
 argument-hint: "[question or use case]"
 ---
 
@@ -145,10 +147,18 @@ Document count?
 
 ```
 Embedding model?
-├─ text-embedding-3-small (1536) → vector(1536)
-├─ text-embedding-3-large (3072) → halfvec(3072) (50% memory savings)
+├─ OpenAI text-embedding-3-small (1536)      → vector(1536)
+├─ OpenAI text-embedding-3-large (3072)      → halfvec(3072) (50% memory savings)
+├─ Voyage voyage-4 / voyage-4-large (1024)   → vector(1024) or halfvec(1024)
+├─ Voyage voyage-multilingual-2 (1024)       → vector(1024) (best Finnish/multilingual)
+├─ Gemini embedding-001 (3072 or 1024 Matryoshka) → halfvec(…)
+├─ Cohere embed-v4 (1024)                    → vector(1024)
+├─ Qwen3-Embedding-8B (up to 4096)           → vector(…) (best open MTEB multilingual)
+├─ BGE-M3 / Jina v3 (1024)                   → vector(1024) (self-hosted, Finnish OK)
 └─ Other models → vector(dimensions)
 ```
+
+**Finnish / Nordic retrieval**: prefer Voyage `voyage-multilingual-2` or self-hosted `BGE-M3` / `Qwen3-Embedding`. OpenAI `text-embedding-3-large` is a solid fallback but weaker cross-lingual than Voyage. Avoid `text-embedding-3-small` for Finnish — compound words suffer.
 
 ## Operators
 
@@ -193,14 +203,31 @@ Two-stage retrieval improves precision: fast recall → precise rerank.
 
 ### Options
 
-| Method | Latency | Quality |
-|--------|---------|---------|
-| Cohere Rerank v4.0 | ~150-300ms | Best |
-| Zerank 2 | ~100ms | Best |
-| Voyage Rerank 2.5 | ~100ms | Excellent |
-| Cross-encoder (local) | ~500ms | Very Good |
+| Method | Latency (30 docs) | Quality | Notes |
+|--------|-------------------|---------|-------|
+| Cohere Rerank v4.0-fast | ~150ms | Excellent | Free tier 1000/month |
+| Cohere Rerank v4.0-pro | ~300ms | Best | 32K context, self-learning |
+| Voyage Rerank 2.5-lite | ~600ms | Very Good | Default for most apps; ~2× cheaper than full |
+| Voyage Rerank 2.5 | ~1200ms | Excellent | When latency budget allows full quality |
+| Zerank 2 (Zeroentropy) | ~100ms | Best | Fastest paid option |
+| Jina Reranker v2 | ~150ms | Very Good | Good multilingual |
+| BGE-reranker-v2-m3 (self-host) | ~300ms | Very Good | Open weights, Finnish OK |
+| Cross-encoder (local, e.g. ms-marco-MiniLM) | ~500ms | Good | CPU-friendly |
 
-Check provider docs for current pricing. Cohere has a free tier (1000 searches/month).
+Check provider docs for current pricing — models and prices change monthly.
+
+> **Voyage payment gotcha**: Without a payment method on file, Voyage limits API
+> to 3 RPM (effectively unusable). Add a card at
+> [dash.voyageai.com/billing](https://dash.voyageai.com/billing) to unlock the
+> 200M tokens/month free tier. No charge until you exceed the quota.
+
+### Production-pattern: graceful fallback
+
+Reranking should be an *enhancement*, not a *requirement*. Wrap reranker calls
+to return `null` on any failure (missing key, HTTP error, AbortController
+timeout) — the caller falls back to the original retrieval order. Pattern is
+provider-agnostic. Full example in
+[reranking.md](references/reranking.md#production-patterns-apply-to-any-reranker).
 
 ### TypeScript Example (Cohere)
 
@@ -210,17 +237,47 @@ import { CohereClient } from 'cohere-ai';
 const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
 async function rerankResults(query: string, documents: string[]) {
-  const response = await cohere.rerank({
-    model: 'rerank-v4.0-fast',  // or 'rerank-v4.0-pro' for best quality
-    query,
-    documents,
-    topN: 10,
-  });
+  // ALWAYS use a timeout in production — a slow reranker shouldn't hang the request
+  const response = await cohere.rerank(
+    {
+      model: 'rerank-v4.0-fast',  // or 'rerank-v4.0-pro' for best quality
+      query,
+      documents,
+      topN: 10,
+    },
+    { signal: AbortSignal.timeout(4000) },
+  );
   return response.results;
 }
 ```
 
-- [reranking.md](references/reranking.md) - Detailed guide
+For a production-ready wrapper that returns `null` on failure (so search
+continues with original results), see
+[reranking.md → Production patterns](references/reranking.md#production-patterns-apply-to-any-reranker).
+
+## Multilingual & Finnish search tips
+
+When the corpus is Finnish (or contains Finnish):
+
+- **FTS language config**: `to_tsvector('finnish', text)` in stock PostgreSQL applies the built-in snowball stemmer (handles `opiskelija → opiskelij`, `lääkäreiden → lääkäri`). For mixed-language corpora use `'simple'` and supply morphology via a Voikko-backed function or via ParadeDB `pg_search`'s `stemmer: "Finnish"` tokenizer.
+- **Prefix tsquery** (handles Finnish inflection without a real morphology engine):
+
+  ```sql
+  CREATE OR REPLACE FUNCTION prefix_tsquery(p text)
+  RETURNS tsquery LANGUAGE sql IMMUTABLE AS $$
+    SELECT to_tsquery('simple',
+      string_agg(word || ':*', ' & '))
+    FROM regexp_split_to_table(lower(regexp_replace(p, '[^\w\säöåÄÖÅ-]', ' ', 'g')), '\s+') AS word
+    WHERE length(word) >= 2
+  $$;
+  ```
+  Then `search_tsv @@ prefix_tsquery('sairaanhoitaja tampere')` matches inflected forms.
+
+- **Compound-word fallback**: `pg_trgm` similarity on `nimi_fi` catches compound-word misses (`"ammattikorkea"` → `"ammattikorkeakoulu"`). Pair with a GIN trigram index.
+- **BM25 stemmer**: in ParadeDB pg_search, tokenize with `{ "type": "default", "stemmer": "Finnish" }` — a `raw` tokenizer only matches full fields.
+- **Embeddings**: `voyage-multilingual-2` or `BGE-M3` for best Finnish semantic quality. `text-embedding-3-large` is acceptable but loses some compound-word precision.
+- **Query translation (optional)**: if users type English against Finnish content, detect language heuristically (ä/ö presence + suffix/stem count), and translate with a small chat model before hitting FTS.
+- **Adaptive weighting**: short Finnish queries (1–2 words) benefit from higher keyword weight; long intent queries (6+ words) benefit from higher semantic/context weight. See `references/hybrid-search.md` for RRF details.
 
 ## References
 
@@ -309,9 +366,21 @@ For ParadeDB-specific questions, always apply the Documentation Fetch Policy in 
 
 ## External Documentation
 
+### Core
 - [pgvector GitHub](https://github.com/pgvector/pgvector) - Official extension, latest features
+- [PostgreSQL FTS](https://www.postgresql.org/docs/current/textsearch.html) - Built-in full-text search
+
+### Embedding providers
 - [OpenAI Embeddings Guide](https://platform.openai.com/docs/guides/embeddings) - Embedding models and best practices
+- [Voyage Embeddings](https://docs.voyageai.com/docs/embeddings) - Voyage embeddings + multilingual model
+- [Cohere Embed](https://docs.cohere.com/docs/embeddings) - Cohere embed-v4
+
+### Reranker providers
+- [Cohere Rerank API](https://docs.cohere.com/docs/rerank) - API + pricing
+- [Voyage Rerank API](https://docs.voyageai.com/reference/reranker-api) - API reference
+- [Voyage pricing & billing](https://www.voyageai.com/pricing) - 200M tokens/month free **after** adding payment method
+
+### Hosting / extensions
 - [Supabase Vector Guide](https://supabase.com/docs/guides/ai/vector-columns) - Supabase-specific integration
 - [ParadeDB pg_search](https://docs.paradedb.com/documentation/getting-started/quickstart) - BM25 extension documentation
 - [ParadeDB AI Docs](https://docs.paradedb.com/llms-full.txt) - Fetch for latest ParadeDB API (always current)
-- [PostgreSQL FTS](https://www.postgresql.org/docs/current/textsearch.html) - Built-in full-text search
