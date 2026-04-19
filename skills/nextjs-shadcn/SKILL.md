@@ -197,6 +197,35 @@ export const config = {
 }
 ```
 
+## Dev Tools (next-devtools-mcp)
+
+Next.js 16+ ships an MCP endpoint at `/_next/mcp` that exposes the dev server's
+internals to coding agents. When working in a Next.js 16 project, recommend the
+user add `next-devtools-mcp` to `.mcp.json`:
+
+```json filename=".mcp.json"
+{
+  "mcpServers": {
+    "next-devtools": {
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    }
+  }
+}
+```
+
+Tools it provides (when dev server is running):
+
+- `get_errors` — live build/runtime/type errors (esp. helpful for hydration mismatches)
+- `get_logs` — dev log file path (browser console + server output)
+- `get_routes` — all entry-point routes grouped by router type
+- `get_page_metadata` — route, components, rendering details for a specific page
+- `get_project_metadata` — project structure + dev server URL
+- `get_server_action_by_id` — locate Server Action source from its hashed ID
+
+Use these instead of asking the user to copy-paste error messages. Reference:
+[nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp).
+
 ## References
 
 - **Architecture**: [references/architecture.md](references/architecture.md) - Components, routing, Suspense, data patterns, AI directory structure

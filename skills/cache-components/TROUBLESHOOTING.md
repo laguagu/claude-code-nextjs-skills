@@ -2,6 +2,20 @@
 
 Common issues, debugging techniques, and solutions for Cache Components.
 
+## Live error inspection via next-devtools-mcp
+
+Next.js 16+ ships an MCP endpoint at `/_next/mcp`. When `next-devtools-mcp` is
+configured in `.mcp.json`, use these tools BEFORE asking the user to copy-paste
+errors:
+
+- `get_errors` — current build/runtime/type errors from the running dev server
+  (hydration mismatches, `'use cache'` violations, type errors all surface here)
+- `get_logs` — path to dev log file (browser console + server output)
+- `get_page_metadata` — for a specific page, shows route, components, rendering details
+
+Setup is one-line in `.mcp.json` — see
+[nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp).
+
 ## Build-Time Feedback Philosophy
 
 Cache Components introduces **early feedback** during development. Unlike before where errors might only appear in production, Cache Components produces build errors that **guide you toward optimal patterns**.
