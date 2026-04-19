@@ -145,20 +145,22 @@ Document count?
 
 ### Choose Vector Type
 
+Choose by **dimensions**, not by provider — the column type only depends on
+embedding size and pgvector's HNSW index limits.
+
 ```
-Embedding model?
-├─ OpenAI text-embedding-3-small (1536)      → vector(1536)
-├─ OpenAI text-embedding-3-large (3072)      → halfvec(3072) (50% memory savings)
-├─ Voyage voyage-4 / voyage-4-large (1024)   → vector(1024) or halfvec(1024)
-├─ Voyage voyage-multilingual-2 (1024)       → vector(1024) (best Finnish/multilingual)
-├─ Gemini embedding-001 (3072 or 1024 Matryoshka) → halfvec(…)
-├─ Cohere embed-v4 (1024)                    → vector(1024)
-├─ Qwen3-Embedding-8B (up to 4096)           → vector(…) (best open MTEB multilingual)
-├─ BGE-M3 / Jina v3 (1024)                   → vector(1024) (self-hosted, Finnish OK)
-└─ Other models → vector(dimensions)
+Embedding dimensions (N)?
+├─ N ≤ 2000  → vector(N)   — HNSW indexable directly
+├─ 2000 < N ≤ 4000 → halfvec(N) — vector(N)'s HNSW limit is 2000; halfvec extends to 4000
+└─ N > 4000  → vector(N) without HNSW, or quantize via dimensionality reduction
 ```
 
-**Finnish / Nordic retrieval**: prefer Voyage `voyage-multilingual-2` or self-hosted `BGE-M3` / `Qwen3-Embedding`. OpenAI `text-embedding-3-large` is a solid fallback but weaker cross-lingual than Voyage. Avoid `text-embedding-3-small` for Finnish — compound words suffer.
+Common dimensions for current OpenAI models: `text-embedding-3-small` = 1536,
+`text-embedding-3-large` = 3072. Other providers vary — check provider docs.
+
+For **multilingual** / non-English content, prefer multilingual-tuned embedding
+models (look for "multilingual" in the model name). Models tuned only on
+English may handle compound words and inflection poorly.
 
 ## Operators
 
@@ -193,91 +195,39 @@ Embedding model?
 
 ## Re-ranking (Optional)
 
-Two-stage retrieval improves precision: fast recall → precise rerank.
+Two-stage retrieval improves precision: fast recall → precise rerank with a
+cross-encoder. Use when results need higher precision and you have <50
+candidates after initial retrieval.
 
-### When to Use
+**Key rule**: rerankers must be wrapped so a failure (missing key, HTTP error,
+timeout) returns `null` and the caller falls back to original retrieval order
+— never let a reranker outage break search.
 
-- Results need higher precision
-- Using < 50 candidates after initial search
-- Have budget for API calls (Cohere) or compute (local models)
+For provider comparison, generic `Promise<T | null>` wrapper, and self-hosted
+options, see [reranking.md](references/reranking.md).
 
-### Options
+## Multilingual / non-English content tips
 
-| Method | Latency (30 docs) | Quality | Notes |
-|--------|-------------------|---------|-------|
-| Cohere Rerank v4.0-fast | ~150ms | Excellent | Free tier 1000/month |
-| Cohere Rerank v4.0-pro | ~300ms | Best | 32K context, self-learning |
-| Voyage Rerank 2.5-lite | ~600ms | Very Good | Default for most apps; ~2× cheaper than full |
-| Voyage Rerank 2.5 | ~1200ms | Excellent | When latency budget allows full quality |
-| Zerank 2 (Zeroentropy) | ~100ms | Best | Fastest paid option |
-| Jina Reranker v2 | ~150ms | Very Good | Good multilingual |
-| BGE-reranker-v2-m3 (self-host) | ~300ms | Very Good | Open weights, Finnish OK |
-| Cross-encoder (local, e.g. ms-marco-MiniLM) | ~500ms | Good | CPU-friendly |
+When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 
-Check provider docs for current pricing — models and prices change monthly.
-
-> **Voyage payment gotcha**: Without a payment method on file, Voyage limits API
-> to 3 RPM (effectively unusable). Add a card at
-> [dash.voyageai.com/billing](https://dash.voyageai.com/billing) to unlock the
-> 200M tokens/month free tier. No charge until you exceed the quota.
-
-### Production-pattern: graceful fallback
-
-Reranking should be an *enhancement*, not a *requirement*. Wrap reranker calls
-to return `null` on any failure (missing key, HTTP error, AbortController
-timeout) — the caller falls back to the original retrieval order. Pattern is
-provider-agnostic. Full example in
-[reranking.md](references/reranking.md#production-patterns-apply-to-any-reranker).
-
-### TypeScript Example (Cohere)
-
-```typescript
-import { CohereClient } from 'cohere-ai';
-
-const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
-
-async function rerankResults(query: string, documents: string[]) {
-  // ALWAYS use a timeout in production — a slow reranker shouldn't hang the request
-  const response = await cohere.rerank(
-    {
-      model: 'rerank-v4.0-fast',  // or 'rerank-v4.0-pro' for best quality
-      query,
-      documents,
-      topN: 10,
-    },
-    { signal: AbortSignal.timeout(4000) },
-  );
-  return response.results;
-}
-```
-
-For a production-ready wrapper that returns `null` on failure (so search
-continues with original results), see
-[reranking.md → Production patterns](references/reranking.md#production-patterns-apply-to-any-reranker).
-
-## Multilingual & Finnish search tips
-
-When the corpus is Finnish (or contains Finnish):
-
-- **FTS language config**: `to_tsvector('finnish', text)` in stock PostgreSQL applies the built-in snowball stemmer (handles `opiskelija → opiskelij`, `lääkäreiden → lääkäri`). For mixed-language corpora use `'simple'` and supply morphology via a Voikko-backed function or via ParadeDB `pg_search`'s `stemmer: "Finnish"` tokenizer.
-- **Prefix tsquery** (handles Finnish inflection without a real morphology engine):
+- **FTS language config**: pass the matching language to `to_tsvector(language, text)` to apply the built-in snowball stemmer (e.g., `'finnish'` handles `opiskelija → opiskelij`). For mixed-language corpora, use `'simple'` and rely on prefix/trigram fallbacks instead.
+- **Combine stemmer + unaccent** for accent-insensitive matching ("café" matches "cafe"). See [hybrid-search.md → Custom FTS configuration](references/hybrid-search.md#custom-fts-configuration-eg-language--unaccent) for the 3-step DDL pattern.
+- **Prefix tsquery** for languages with rich inflection (no full morphology engine required):
 
   ```sql
   CREATE OR REPLACE FUNCTION prefix_tsquery(p text)
   RETURNS tsquery LANGUAGE sql IMMUTABLE AS $$
     SELECT to_tsquery('simple',
       string_agg(word || ':*', ' & '))
-    FROM regexp_split_to_table(lower(regexp_replace(p, '[^\w\säöåÄÖÅ-]', ' ', 'g')), '\s+') AS word
+    FROM regexp_split_to_table(lower(regexp_replace(p, '[^\w\s-]', ' ', 'g')), '\s+') AS word
     WHERE length(word) >= 2
   $$;
   ```
-  Then `search_tsv @@ prefix_tsquery('sairaanhoitaja tampere')` matches inflected forms.
+  Matches `kartta`, `karttaa`, `karttoja` from a single `kartta:*` token.
 
-- **Compound-word fallback**: `pg_trgm` similarity on `nimi_fi` catches compound-word misses (`"ammattikorkea"` → `"ammattikorkeakoulu"`). Pair with a GIN trigram index.
-- **BM25 stemmer**: in ParadeDB pg_search, tokenize with `{ "type": "default", "stemmer": "Finnish" }` — a `raw` tokenizer only matches full fields.
-- **Embeddings**: `voyage-multilingual-2` or `BGE-M3` for best Finnish semantic quality. `text-embedding-3-large` is acceptable but loses some compound-word precision.
-- **Query translation (optional)**: if users type English against Finnish content, detect language heuristically (ä/ö presence + suffix/stem count), and translate with a small chat model before hitting FTS.
-- **Adaptive weighting**: short Finnish queries (1–2 words) benefit from higher keyword weight; long intent queries (6+ words) benefit from higher semantic/context weight. See `references/hybrid-search.md` for RRF details.
+- **Compound-word fallback**: pair semantic search with `pg_trgm` similarity to catch compound-word misses (e.g., a query for `"ammattikorkea"` should still find `"ammattikorkeakoulu"`).
+- **BM25 stemmer in ParadeDB**: tokenize with `{ "type": "default", "stemmer": "<language>" }` — a `raw` tokenizer only matches full fields.
+- **Multilingual embeddings**: prefer models explicitly trained on your target language(s). English-only embeddings often miss inflected forms and compound words.
 
 ## References
 
