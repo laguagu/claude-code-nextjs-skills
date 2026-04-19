@@ -1,6 +1,6 @@
 ---
 name: react-best-practices
-description: React and Next.js performance optimization guide from Vercel Engineering (66 rules in 8 categories). Use when writing, reviewing, or refactoring React/Next.js code to eliminate waterfalls, reduce bundle size, prevent re-renders, optimize Server Components, or fix performance bottlenecks. Triggers on data fetching, Promise.all, Suspense, useMemo, dynamic imports, bundle analysis, code-splitting, and rendering performance tasks.
+description: React and Next.js performance optimization guide from Vercel Engineering (70 rules in 8 categories). Use when writing, reviewing, or refactoring React/Next.js code to eliminate waterfalls, reduce bundle size, prevent re-renders, optimize Server Components, or fix performance bottlenecks. Triggers on data fetching, Promise.all, Suspense, useMemo, dynamic imports, bundle analysis, code-splitting, and rendering performance tasks.
 license: MIT
 metadata:
   author: vercel
@@ -9,7 +9,7 @@ metadata:
 
 # Vercel React Best Practices
 
-Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 66 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
+Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 70 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
 
 ## Version Compatibility
 
@@ -47,6 +47,7 @@ Reference these guidelines when:
 
 ### 1. Eliminating Waterfalls (CRITICAL)
 
+- `async-cheap-condition-before-await` - Check cheap sync conditions before awaiting flags or remote values
 - `async-defer-await` - Move await into branches where actually used
 - `async-parallel` - Use Promise.all() for independent operations
 - `async-dependencies` - Use better-all for partial dependencies
@@ -56,6 +57,7 @@ Reference these guidelines when:
 ### 2. Bundle Size Optimization (CRITICAL)
 
 - `bundle-barrel-imports` - Import directly, avoid barrel files
+- `bundle-analyzable-paths` - Prefer statically analyzable import and file-system paths to avoid broad bundles and traces
 - `bundle-dynamic-imports` - Use next/dynamic for heavy components
 - `bundle-defer-third-party` - Load analytics/logging after hydration
 - `bundle-conditional` - Load modules only when feature is activated
@@ -68,6 +70,7 @@ Reference these guidelines when:
 - `server-cache-lru` - Use LRU cache for cross-request caching
 - `server-dedup-props` - Avoid duplicate serialization in RSC props
 - `server-hoist-static-io` - Hoist static I/O (fonts, logos) to module level
+- `server-no-shared-module-state` - Avoid module-level mutable request state in RSC/SSR
 - `server-serialization` - Minimize data passed to client components
 - `server-parallel-fetching` - Restructure components to parallelize fetches
 - `server-parallel-nested-fetching` - Chain nested fetches per item in Promise.all
@@ -131,6 +134,7 @@ Reference these guidelines when:
 
 ### 8. Advanced Patterns (LOW)
 
+- `advanced-effect-event-deps` - Don't put `useEffectEvent` results in effect deps
 - `advanced-event-handler-refs` - Store event handlers in refs
 - `advanced-init-once` - Initialize app once per app load
 - `advanced-use-latest` - useLatest for stable callback refs
