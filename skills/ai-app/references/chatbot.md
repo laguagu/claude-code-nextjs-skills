@@ -373,7 +373,7 @@ export async function POST(req: Request) {
 }
 ```
 
-Available Perplexity models: `sonar`, `sonar-pro`, `sonar-reasoning`, `sonar-reasoning-pro`, `sonar-deep-research`
+Perplexity ships multiple Sonar variants (base, pro, reasoning, deep-research) — check the Perplexity docs for the current set before hard-coding a name.
 
 ### Alternative: OpenAI Web Search Tool
 

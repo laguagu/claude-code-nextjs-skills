@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
 ## Generation logic: generateText + Output.object
 
-Use a cheap, fast model (e.g. `gpt-4o-mini`) — suggestions are non-critical and latency matters more than quality.
+Use a cheap, fast model (e.g. `gpt-5.4-mini`) — suggestions are non-critical and latency matters more than quality.
 
 ```ts
 // lib/ai/generate-suggestions.ts
@@ -61,7 +61,7 @@ export async function generateSuggestions(
 ): Promise<string[]> {
   try {
     const { output } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: openai("gpt-5.4-mini"),
       output: Output.object({ schema: suggestionsSchema }),
       prompt: `Based on this conversation, suggest 2-3 concise follow-up questions.
 
