@@ -18,7 +18,13 @@ Build distinctive, production-grade interfaces that avoid generic "AI slop" aest
 ## Quick Start
 
 ```bash
-bunx --bun shadcn@latest init --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" --template next
+bunx --bun shadcn@latest init -t next
+```
+
+For a custom design system, generate a preset code in `shadcn/create` and apply it:
+
+```bash
+bunx --bun shadcn@latest init --preset <CODE> --template next
 ```
 
 ## Component Rules

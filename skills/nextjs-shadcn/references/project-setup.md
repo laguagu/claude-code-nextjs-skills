@@ -2,17 +2,21 @@
 
 ## Create New Project
 
-### With Full Preset URL (Recommended)
+### Minimal Setup
+
+Use the CLI to scaffold a Next.js project directly:
 
 ```bash
-bunx --bun shadcn@latest init \
-  --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
-  --template next
+bunx --bun shadcn@latest init -t next
 ```
 
 ### With Preset Code
 
-Preset codes are short opaque strings from [ui.shadcn.com/create](https://ui.shadcn.com/create). Pass them directly — don't decode them:
+```bash
+bunx --bun shadcn@latest init --preset <CODE> --template next
+```
+
+Preset codes are short opaque strings from [ui.shadcn.com/create](https://ui.shadcn.com/create). Pass them directly — don't decode them. Prefer this when you want a specific visual system without hardcoding individual style, font, or icon choices into the skill:
 
 ```bash
 bunx --bun shadcn@latest init --preset b4h07r5A1 --template next
@@ -22,62 +26,26 @@ bunx --bun shadcn@latest init --preset b4h07r5A1 --template next
 
 ```bash
 bunx --bun shadcn@latest init \
-  --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
-  --template next --monorepo
+  --template next \
+  --monorepo
 ```
 
-### Full Preset URL Options
+### Existing Project
 
-```
-https://ui.shadcn.com/init?
-  base=radix|base-ui
-  &style=vega|nova|maia|lyra|mira
-  &baseColor=neutral|slate|gray|zinc|stone
-  &theme=neutral|blue|green|orange|red|rose|violet
-  &iconLibrary=lucide|tabler|hugeicons|phosphor
-  &font=geist-sans|inter|noto-sans|nunito-sans|figtree|roboto|raleway|dm-sans|public-sans|outfit|jetbrains-mono
-  &menuAccent=subtle|bold
-  &menuColor=default|accent
-  &radius=default|sm|md|lg|xl
-  &template=next
-  &rtl=false|true
-```
+If the Next.js app already exists, run the initializer from the project root:
 
-### Example Presets
-
-**Classic (vega + inter)** — traditional shadcn/ui look:
 ```bash
-bunx --bun shadcn@latest init \
-  --preset "https://ui.shadcn.com/init?base=radix&style=vega&baseColor=zinc&iconLibrary=lucide&font=inter" \
-  --template next
+bunx --bun shadcn@latest init
 ```
 
-**Compact (nova + geist-sans)** — reduced padding, modern feel:
-```bash
-bunx --bun shadcn@latest init \
-  --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&iconLibrary=lucide&font=geist-sans" \
-  --template next
-```
+### Inspect Before Changing
 
-**Soft (maia + figtree)** — rounded, generous spacing:
-```bash
-bunx --bun shadcn@latest init \
-  --preset "https://ui.shadcn.com/init?base=radix&style=maia&baseColor=stone&iconLibrary=phosphor&font=figtree&radius=lg" \
-  --template next
-```
+Use the CLI to inspect project state or preview registry changes before writing files:
 
-**Sharp (lyra + jetbrains-mono)** — boxy, technical:
 ```bash
-bunx --bun shadcn@latest init \
-  --preset "https://ui.shadcn.com/init?base=radix&style=lyra&baseColor=slate&iconLibrary=lucide&font=jetbrains-mono&radius=sm" \
-  --template next
-```
-
-**Dense (mira + dm-sans)** — compact data interfaces:
-```bash
-bunx --bun shadcn@latest init \
-  --preset "https://ui.shadcn.com/init?base=radix&style=mira&baseColor=gray&iconLibrary=tabler&font=dm-sans" \
-  --template next
+bunx --bun shadcn@latest info
+bunx --bun shadcn@latest add button --dry-run
+bunx --bun shadcn@latest docs button
 ```
 
 ## Add Components
@@ -138,5 +106,5 @@ project/
 | Build | `bun --bun next build` |
 | Start prod | `bun --bun next start` |
 | Add shadcn component | `bunx --bun shadcn@latest add component` |
-| Create project | `bunx --bun shadcn@latest init --preset <code> --template next` |
+| Create project | `bunx --bun shadcn@latest init -t next` |
 
