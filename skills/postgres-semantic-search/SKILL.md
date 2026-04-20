@@ -256,7 +256,7 @@ When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 
 - **Compound-word fallback**: pair semantic search with `pg_trgm` similarity to catch compound-word misses (e.g., a query for `"ammattikorkea"` should still find `"ammattikorkeakoulu"`).
 - **BM25 stemmer in ParadeDB**: tokenize with `{ "type": "default", "stemmer": "<language>" }` — a `raw` tokenizer only matches full fields.
-- **Multilingual embeddings**: prefer models explicitly trained on your target language(s). English-only embeddings often miss inflected forms and compound words.
+- **Multilingual embeddings**: prefer models explicitly trained on your target language(s). English-only embeddings often miss inflected forms and compound words. The gap can be large — multilingual-tuned embeddings have been observed to beat general-purpose English-tuned ones by 10+pp Hit@5 on non-English retrieval. Benchmark your specific language + domain before committing.
 
 ## References
 
