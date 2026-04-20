@@ -90,6 +90,25 @@ Stage 2: Cross-encoder rerank (precise)
 - Very large candidate sets (> 100 docs → too slow, pre-filter first)
 - Simple exact-match queries (BM25 alone is already optimal)
 
+## Rerankers can regress — benchmark first
+
+Vendor-claimed "+N pp" is usually measured on English, general-domain data. On
+multilingual or heavily domain-specific corpora the same reranker can *hurt*
+retrieval quality — double-digit Hit@K losses have been observed in production.
+
+Likely causes:
+
+- Reranker trained predominantly on English; cross-encoder attention is less
+  calibrated for the target language's morphology.
+- Chunks embedded with a contextual prefix (document title + section) already
+  saturate relevance — rerank reshuffles near-ties harmfully.
+- Eval-set bias: questions LLM-generated from the same chunks as answers favor
+  bi-encoder similarity, amplifying apparent rerank regression.
+
+**Rule**: never ship a reranker from a paper or vendor benchmark alone. A/B on
+your own eval set (see [evaluation.md](evaluation.md)). Require ≥ +3 pp Hit@5
+AND p95 latency within budget before adopting.
+
 ## Provider docs
 
 Check the provider's docs for the current recommended model and request

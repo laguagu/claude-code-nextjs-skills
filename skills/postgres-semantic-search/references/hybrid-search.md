@@ -87,6 +87,31 @@ WHERE to_tsvector('finnish_unaccent', content) @@ websearch_to_tsquery('finnish_
 The same pattern works for any language: `german_unaccent`, `spanish_unaccent`,
 etc. Always create the custom config once (DDL), then reference it everywhere.
 
+### Dual FTS (exact + prefix) for agglutinative languages
+
+`websearch_to_tsquery` handles OR / quoted phrases well but still misses
+inflected forms (`vuosiloma` → `vuosilomaa`). `plainto_tsquery` fails
+differently — ANDs every token, returning 0 hits on 15-word natural questions.
+For Finnish, Turkish, Hungarian, Estonian and similar, run both queries and
+take the max rank, damping the fuzzier source so exact matches keep winning
+ties:
+
+```sql
+WITH ws_q AS (SELECT websearch_to_tsquery('finnish_unaccent', $1) AS q),
+     px_q AS (SELECT prefix_tsquery($1) AS q)
+SELECT id,
+       GREATEST(
+         COALESCE(ts_rank_cd(tsv, (SELECT q FROM ws_q)), 0),
+         COALESCE(ts_rank_cd(tsv, (SELECT q FROM px_q)), 0) * 0.7
+       ) AS fts_score
+FROM documents
+WHERE tsv @@ (SELECT q FROM ws_q) OR tsv @@ (SELECT q FROM px_q)
+ORDER BY fts_score DESC LIMIT 30;
+```
+
+This boosts recall without over-ranking fuzzy prefix matches against exact
+phrase hits. See `prefix_tsquery` definition in the main SKILL.md.
+
 ### Option 2: pg_search BM25
 
 Better ranking than ts_rank. Requires `pg_search` extension.
@@ -214,6 +239,28 @@ WITH chunk_results AS (
 SELECT * FROM chunk_results WHERE doc_rank = 1  -- Best chunk per document
 ORDER BY rank LIMIT 10;
 ```
+
+### Contextual chunk embeddings
+
+Chunk text alone often lacks disambiguating context ("section 28 says…" — of
+which document?). Before embedding, prepend a short prefix describing the
+chunk's location in the parent document:
+
+```
+embed_input = `${document_title}, §${section_number} ${section_title}\n\n${chunk_text}`
+```
+
+Generate the prefix once per chunk with a cheap LLM at ingest time
+(GPT-4o-mini, Claude Haiku). Anthropic reports up to −49% retrieval errors
+with this pattern; similar gains are observed on domain-specific corpora.
+
+Caveats:
+
+- One-time cost, typically ~$1–5 per 5k chunks with a mini model.
+- Re-generate the prefix if chunking strategy changes.
+- Do **not** include the prefix in the FTS `tsv` column — it inflates false
+  positives on common document-title keywords. Embed with context, index
+  FTS on raw chunk text.
 
 ## Best Practices
 

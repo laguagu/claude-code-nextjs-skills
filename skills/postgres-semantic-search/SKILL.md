@@ -13,7 +13,8 @@ description: |
   ParadeDB, pg_search, reranking, Cohere rerank, Voyage rerank,
   graceful fallback, iterative_scan, filtered HNSW, websearch_to_tsquery,
   unaccent, multilingual FTS, pg_trgm, trigram, fuzzy search, LIKE, ILIKE,
-  autocomplete, typo tolerance, fuzzystrmatch
+  autocomplete, typo tolerance, fuzzystrmatch,
+  evaluation, benchmarking, Hit@K, MRR, contextual embeddings, halfvec cast
 argument-hint: "[question or use case]"
 ---
 
@@ -162,6 +163,34 @@ For **multilingual** / non-English content, prefer multilingual-tuned embedding
 models (look for "multilingual" in the model name). Models tuned only on
 English may handle compound words and inflection poorly.
 
+**Storage vs. index trick** for 2000 < N ≤ 4000: keep the column as `vector(N)`
+(full float4, useful for future re-embedding or re-ranking experiments) and
+*only* cast at index creation and query time. This preserves precision on disk
+while staying within HNSW's dimension limit.
+
+```sql
+CREATE INDEX ON docs USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops);
+-- Query must cast identically so the planner picks the index:
+SELECT * FROM docs ORDER BY embedding::halfvec(3072) <=> $1 LIMIT 10;
+```
+
+If storage is tight or you never plan to re-embed, use `halfvec(N)` as the
+column type directly.
+
+## Measure before adopting
+
+Every optimization in this skill (hybrid fusion, reranking, query expansion,
+embedding-model swaps) *can* regress on a specific corpus. Vendor and paper
+benchmarks are usually English, general-domain. Real counter-examples observed
+in production:
+
+- Query expansion (HyDE) regressing Hit@5 by tens of points on a domain corpus.
+- A widely recommended reranker regressing Hit@5 double-digits on multilingual text.
+
+**Rule**: build a domain eval set ([evaluation.md](references/evaluation.md)),
+then A/B each change. Adopt with ≥ +3 pp Hit@5 and p95 latency within budget;
+reject otherwise.
+
 ## Operators
 
 | Operator | Distance | Use Case |
@@ -237,6 +266,8 @@ When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 - [indexing.md](references/indexing.md) - HNSW, IVFFlat, GIN parameters
 - [hybrid-search.md](references/hybrid-search.md) - FTS, BM25, RRF algorithms
 - [performance.md](references/performance.md) - Cold-start, memory, HNSW vs IVFFlat
+- [evaluation.md](references/evaluation.md) - Eval-set construction, Hit@K / MRR, adoption thresholds, reranker/expansion benchmarking
+- [reranking.md](references/reranking.md) - Two-stage retrieval, graceful fallback, when rerankers regress
 
 ## Scripts
 

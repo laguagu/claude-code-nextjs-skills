@@ -62,6 +62,35 @@ SET hnsw.ef_search = 80;
 
 **Benchmark for your data** - optimal values depend on dataset size.
 
+## Runtime Embedding Cache
+
+Every hybrid-search request embeds the user query before hitting Postgres —
+typically a 150–300 ms HTTP round-trip to the embedding provider. On
+short-lived repeats (same instance, minutes apart), an in-memory LRU removes
+the call entirely.
+
+```typescript
+import { LRUCache } from 'lru-cache';
+
+const embedCache = new LRUCache<string, number[]>({
+  max: 256,
+  ttl: 5 * 60 * 1000,   // 5 min — long enough for bursty repeats, short enough to stay tiny
+});
+
+async function embedCached(q: string): Promise<number[]> {
+  const hit = embedCache.get(q);
+  if (hit) return hit;
+  const vec = await embed(q);
+  embedCache.set(q, vec);
+  return vec;
+}
+```
+
+Footprint at 256 × 1024-dim float32 ≈ 1 MB. Serverless note: this cache warms
+per-instance only. Pair it with a cross-instance cache (Redis, managed KV,
+or a `search_cache` Postgres table) when cold starts dominate production
+traffic.
+
 ## Memory Configuration
 
 ### PostgreSQL Settings
