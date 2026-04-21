@@ -4,32 +4,12 @@ description: Opens the running app in a browser and verifies recent UI changes a
 argument-hint: "[url or route]"
 ---
 
-# /go — Quick browser smoke test
+# /go — Browser check
 
-Verify recent UI changes by actually opening the app in a browser. Don't trust that code compiles — trust what the page renders.
+Verify your work in the browser instead of trusting that code compiles. Use whatever browser tools the environment offers (Chrome extension, next-devtools MCP, Playwright — whichever is reachable). If login is needed, credentials usually live in `.env.local` or the project's secrets manager.
 
-## Workflow
+Two things are easy to miss:
+- **Functional verification** — did the page actually return what was expected? Searching for "X" should show results containing X, not just render without errors.
+- **Console and network** — JS errors and 4xx/5xx are silent killers.
 
-1. **Make sure the dev server is running.** If not, start it (`bun dev` or whatever the project uses). Ask the user for the URL only if it's not obvious from the project.
-
-2. **Open the browser.** Use whatever browser tool is available — Chrome extension, Playwright MCP, next-devtools, whichever the agent can reach. If nothing is available, report that and stop.
-
-3. **Test what makes sense for the change.** Pick the flows that exercise what you just touched. Three things are easy to forget — make sure they happen:
-   - **Functional verification** — did the page actually return what was expected? Searching for "X" should show results containing X, not just render without errors.
-   - **Mobile viewport** — switch to ~375 px and look for layout breakage. Desktop view hides most responsive bugs.
-   - **Console and network** — open devtools. Errors and 4xx/5xx are silent killers.
-
-4. **Report back in three buckets**:
-   - **Works:** what was verified
-   - **Broken:** concrete failures that need fixing
-   - **Suspicious:** anything that smells off but you're not sure
-
-5. **Fix loop.** If something is broken, fix it → reload → verify in the browser again. Stop after 3 iterations without progress and ask for direction rather than thrashing.
-
-## Gotchas
-
-- Next.js HMR sometimes silently keeps stale modules. If a change should be visible but isn't, force a hard reload.
-- React Server Component errors land in the **server** terminal, not the browser console. Check both.
-- On Windows, `localhost` occasionally resolves to IPv6 and hangs. Try `127.0.0.1` if `localhost` won't load.
-- The agent's screenshot is one frame in time — if something is animated or async, take a second look after the loading state settles.
-- Don't deploy to production as part of `/go`. Stay on the local dev server unless the user explicitly asks otherwise.
+If something is broken, fix → reload → verify again. Don't thrash on the same issue — ask for direction instead.
