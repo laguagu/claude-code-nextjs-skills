@@ -74,6 +74,7 @@ Generate questions that:
 - Help the user learn more, get details, or take the next step
 - Are concise (under 10 words each)
 - Are in the same language as the user's question
+- NEVER invent product, component, parser, or package names. You may ONLY reference names that appear verbatim in the assistant's answer above. If you are not sure a name is real, use a generic phrase instead (e.g. "the right PDF parser for scanned docs" rather than a specific name).
 
 Return 2-3 follow-up questions.`,
     });
@@ -85,6 +86,13 @@ Return 2-3 follow-up questions.`,
   }
 }
 ```
+
+<a id="grounding"></a>
+### Grounding (why the anti-invention rule above matters)
+
+The nano model is more prone to confident hallucination than the main chat model — it only sees the last Q/A pair as context, no tool results, and is tuned for speed over care. Seen in production: main chat answered about real PDF parsers, nano follow-up then suggested *"When should I use OCRPDFParser?"* — a component that does not exist. Users clicking that question would get a confused main-model answer, or worse, the main model would "roll with it" and produce more hallucinated content.
+
+The rule above limits suggestions to names that *appear verbatim in the answer text* and requires generic phrasing otherwise. For stronger guarantees, post-filter: reject any suggestion that contains a word ending in `Parser`, `Extractor`, `Workflow`, etc. that isn't in the last tool-result payload — catches slippage the prompt doesn't.
 
 ## Client integration
 

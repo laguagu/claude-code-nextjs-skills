@@ -2,6 +2,8 @@
 
 ## Contents
 
+- [Prefer structured filters over freeform query](#prefer-structured-filters-over-freeform-query)
+- [No silent SQL fallbacks](#no-silent-sql-fallbacks)
 - [When SQL-first beats RAG](#when-sql-first-beats-rag)
 - [Pattern: weighted FTS + trigram fallback](#pattern-weighted-fts--trigram-fallback)
 - [Provider alias normalization](#provider-alias-normalization)
@@ -9,6 +11,67 @@
 - [Tool definition](#tool-definition)
 - [Separate search from detail lookup](#separate-search-from-detail-lookup)
 - [When to use RAG instead](#when-to-use-rag-instead)
+
+## Prefer structured filters over freeform query
+
+If the catalog has a known vocabulary (tags, categories, knowledge processes, input formats), make those the primary tool input and keep freeform text as a last-resort fallback. Same intent → same filter shape → same SQL → same result set across runs.
+
+**Failure mode avoided**: a `query: z.string()` tool input lets `gpt-5.4` rephrase the same user question differently each turn ("RAG components", "retrieval augmented generation", "RAG retrieval vector search"). Combined with FTS AND-matching, small phrasing changes produce very different result sets. Seen in production: 11 % stability (intersection/union across 5 runs) on "What RAG components are available?". After restructuring to `tags: string[]` with array overlap: 100 % stability.
+
+### Pattern: tag array overlap
+
+```ts
+export const searchComponentsInput = z.object({
+  tags: z.array(z.string()).optional()
+    .describe("Filter by tags (array overlap). Use canonical values from the vocabulary (e.g. ['rag'], ['parser','pdf']). Prefer over freeText whenever a tag matches intent."),
+  category: z.string().optional(),
+  knowledgeProcess: z.string().optional(),
+  inputFormat: z.string().optional(),
+  freeText: z.string().optional()
+    .describe("Fallback only. Use when NO tag fits. 1–2 keywords, English."),
+});
+```
+
+SQL uses PostgreSQL's array-overlap operator (no FTS token-soup needed when tags are given):
+
+```sql
+WHERE c.tags && $1::text[]          -- ANY overlap; deterministic
+  -- only if freeText is present, fall through to weighted FTS + trigram
+```
+
+### Canonical vocabulary block in the agent prompt
+
+Inject the canonical tag/category/format list into the system prompt — auto-generated from the catalog so it scales when the data grows. Add a 5–10 row mapping table for the highest-traffic intents:
+
+```
+| User intent | Tool call |
+|---|---|
+| "What RAG components are available?" | searchComponents({ tags: ["rag"] }) |
+| "Which PDF parser should I use?"     | searchComponents({ tags: ["parser","pdf"] }) |
+| "Audio transcription components"     | searchComponents({ tags: ["transcriber"] }) |
+| "End-to-end pipelines / modules"     | searchComponents({ category: "software_module" }) |
+
+Rules:
+- Prefer tags over freeText whenever a canonical tag matches intent
+- Never combine freeText with tags — tags alone are enough
+- Omit filters that don't narrow the search
+- If user writes in Finnish, translate intent to English tags — don't pass Finnish words as tags or freeText
+```
+
+Finnish variant of the same question then maps to the same tool call, so multilingual stability is free.
+
+## No silent SQL fallbacks
+
+Tempting-but-wrong pattern: "if 0 rows, drop filters and retry; if still 0, simplify the query string and retry." Each fallback level silently changes the SQL the user's question actually executed, which makes results depend on token length and FTS stopwords rather than intent.
+
+Seen in production before removal: the query `"RAG retrieval augmented generation components"` failed FTS AND-matching → fallback dropped the `category` filter → FTS still failed → fallback 2 simplified to the longest non-stopword, `"generation"` → ILIKE `%generation%` matched the word "generation" in *pipeline module descriptions* (Schema Generation, Answer Generation) instead of any RAG component. Same prompt produced different component sets across runs depending on which fallback level hit.
+
+Rules:
+- Never drop filters on empty results — return 0 honestly; the benchmark/prompt will correct next time
+- Never simplify the query text; if the LLM picked bad text, fix the prompt, not the SQL
+- The three-tier `ILIKE OR FTS OR trigram` condition inside a single SQL statement is fine (it's deterministic for one input). Sequential retries with different inputs are not.
+
+The only acceptable "fallback" is the `limit`-based pagination: the result set is deterministic for a given filter set, ordered by relevance score.
 
 ## When SQL-first beats RAG
 
