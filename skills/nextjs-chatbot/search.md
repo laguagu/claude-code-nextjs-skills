@@ -14,64 +14,44 @@
 
 ## Prefer structured filters over freeform query
 
-If the catalog has a known vocabulary (tags, categories, knowledge processes, input formats), make those the primary tool input and keep freeform text as a last-resort fallback. Same intent → same filter shape → same SQL → same result set across runs.
+Applies when the catalog has a known vocabulary (tags, categories, input formats) and same question → same result matters. Skip if you're doing open-ended search / autocomplete / RAG retrieval — those genuinely need freeform input.
 
-**Failure mode avoided**: a `query: z.string()` tool input lets `gpt-5.4` rephrase the same user question differently each turn ("RAG components", "retrieval augmented generation", "RAG retrieval vector search"). Combined with FTS AND-matching, small phrasing changes produce very different result sets. Seen in production: 11 % stability (intersection/union across 5 runs) on "What RAG components are available?". After restructuring to `tags: string[]` with array overlap: 100 % stability.
-
-### Pattern: tag array overlap
+Primary input = structured filters; `freeText` is a fallback. Same intent → same filter shape → same SQL → same result set across runs. A `query: z.string()` input lets the LLM rephrase the same question differently each turn and, combined with FTS AND-matching, produces very different result sets; on one `gpt-5.4` chatbot this meant 11 % stability on "What X are available?", vs. 100 % after switching to `tags: string[]` with array overlap.
 
 ```ts
 export const searchComponentsInput = z.object({
   tags: z.array(z.string()).optional()
-    .describe("Filter by tags (array overlap). Use canonical values from the vocabulary (e.g. ['rag'], ['parser','pdf']). Prefer over freeText whenever a tag matches intent."),
+    .describe("Filter by tags (array overlap). Prefer over freeText when a canonical tag matches intent."),
   category: z.string().optional(),
-  knowledgeProcess: z.string().optional(),
   inputFormat: z.string().optional(),
   freeText: z.string().optional()
-    .describe("Fallback only. Use when NO tag fits. 1–2 keywords, English."),
+    .describe("Fallback only. Use when no tag fits. 1–2 keywords."),
 });
 ```
 
-SQL uses PostgreSQL's array-overlap operator (no FTS token-soup needed when tags are given):
-
 ```sql
-WHERE c.tags && $1::text[]          -- ANY overlap; deterministic
-  -- only if freeText is present, fall through to weighted FTS + trigram
+WHERE c.tags && $1::text[]   -- ANY overlap; deterministic
+  -- fall through to weighted FTS + trigram only if freeText is present
 ```
 
-### Canonical vocabulary block in the agent prompt
-
-Inject the canonical tag/category/format list into the system prompt — auto-generated from the catalog so it scales when the data grows. Add a 5–10 row mapping table for the highest-traffic intents:
+Inject a canonical vocabulary block + a 5–10 row mapping table into the system prompt (auto-generated from the catalog so it scales as data grows). Example mapping:
 
 ```
 | User intent | Tool call |
 |---|---|
 | "What RAG components are available?" | searchComponents({ tags: ["rag"] }) |
 | "Which PDF parser should I use?"     | searchComponents({ tags: ["parser","pdf"] }) |
-| "Audio transcription components"     | searchComponents({ tags: ["transcriber"] }) |
-| "End-to-end pipelines / modules"     | searchComponents({ category: "software_module" }) |
+| "End-to-end pipelines"               | searchComponents({ category: "software_module" }) |
 
-Rules:
-- Prefer tags over freeText whenever a canonical tag matches intent
-- Never combine freeText with tags — tags alone are enough
-- Omit filters that don't narrow the search
-- If user writes in Finnish, translate intent to English tags — don't pass Finnish words as tags or freeText
+Rules: prefer tags over freeText; never combine them; omit filters that don't narrow the search;
+if the user writes in another language, translate intent to English tags (don't pass foreign words).
 ```
-
-Finnish variant of the same question then maps to the same tool call, so multilingual stability is free.
 
 ## No silent SQL fallbacks
 
-Tempting-but-wrong pattern: "if 0 rows, drop filters and retry; if still 0, simplify the query string and retry." Each fallback level silently changes the SQL the user's question actually executed, which makes results depend on token length and FTS stopwords rather than intent.
+For catalog-style tools where stability matters, avoid sequential retries that silently change the SQL ("if 0 rows, drop filters"; "simplify to longest non-stopword"). Each retry makes results depend on token length rather than intent. For example, dropping a `category` filter then simplifying `"RAG retrieval augmented generation components"` to `"generation"` caused ILIKE `%generation%` to match "Answer Generation" in unrelated pipeline descriptions — different runs hit different fallback levels.
 
-Seen in production before removal: the query `"RAG retrieval augmented generation components"` failed FTS AND-matching → fallback dropped the `category` filter → FTS still failed → fallback 2 simplified to the longest non-stopword, `"generation"` → ILIKE `%generation%` matched the word "generation" in *pipeline module descriptions* (Schema Generation, Answer Generation) instead of any RAG component. Same prompt produced different component sets across runs depending on which fallback level hit.
-
-Rules:
-- Never drop filters on empty results — return 0 honestly; the benchmark/prompt will correct next time
-- Never simplify the query text; if the LLM picked bad text, fix the prompt, not the SQL
-- The three-tier `ILIKE OR FTS OR trigram` condition inside a single SQL statement is fine (it's deterministic for one input). Sequential retries with different inputs are not.
-
-The only acceptable "fallback" is the `limit`-based pagination: the result set is deterministic for a given filter set, ordered by relevance score.
+A single SQL statement with `ILIKE OR FTS OR trigram` conditions is fine (deterministic for one input). Sequential retries with different inputs are the problem. For autocomplete, fuzzy-match UX, or "show *something* even if imperfect" scenarios, silent fallbacks are OK — they improve perceived responsiveness at the cost of strict stability.
 
 ## When SQL-first beats RAG
 

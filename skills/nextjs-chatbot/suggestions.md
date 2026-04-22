@@ -90,9 +90,7 @@ Return 2-3 follow-up questions.`,
 <a id="grounding"></a>
 ### Grounding (why the anti-invention rule above matters)
 
-The nano model is more prone to confident hallucination than the main chat model — it only sees the last Q/A pair as context, no tool results, and is tuned for speed over care. Seen in production: main chat answered about real PDF parsers, nano follow-up then suggested *"When should I use OCRPDFParser?"* — a component that does not exist. Users clicking that question would get a confused main-model answer, or worse, the main model would "roll with it" and produce more hallucinated content.
-
-The rule above limits suggestions to names that *appear verbatim in the answer text* and requires generic phrasing otherwise. For stronger guarantees, post-filter: reject any suggestion that contains a word ending in `Parser`, `Extractor`, `Workflow`, etc. that isn't in the last tool-result payload — catches slippage the prompt doesn't.
+The nano model sees only the last Q/A pair — no tool results — and is tuned for speed, which makes it more prone to confident hallucination than the main chat model. On a catalog-style chatbot it'll happily propose follow-ups referencing component names that don't exist. The rule above limits suggestions to names that appear verbatim in the answer, with generic phrasing otherwise; for stronger guarantees, post-filter and reject any suggestion naming an entity that isn't in the last tool-result payload.
 
 ## Client integration
 
