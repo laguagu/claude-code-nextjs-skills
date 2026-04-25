@@ -32,7 +32,7 @@ shadcn generates base variables automatically based on your chosen preset. Custo
 }
 ```
 
-**Choose preset**: Use [ui.shadcn.com/create](https://ui.shadcn.com/create) to select theme (vega, nova, maia, lyra, mira) and colors.
+**Choose preset**: Use [ui.shadcn.com/create](https://ui.shadcn.com/create) to select named style (vega, nova, maia, lyra, mira, luma, sera), base color, font, icon library, and radius. The customizer outputs a single preset code that encodes all choices.
 
 ### Theme Customization
 
