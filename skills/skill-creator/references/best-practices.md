@@ -234,6 +234,7 @@ Run with: `uv run scripts/extract.py`
 | Over-explaining basics | Wastes tokens | Trust the agent's knowledge |
 | First-person descriptions | Discovery problems | Always third person |
 | Overly rigid MUSTs | Less effective | Explain the reasoning instead |
+| Prescribing technique to a trained agent | Restates the model's training, adds noise, and the model may follow it literally even when wrong | Specify *intent* (scope, output, success criteria) — let the model choose technique |
 
 ## Pre-publish checklist
 
