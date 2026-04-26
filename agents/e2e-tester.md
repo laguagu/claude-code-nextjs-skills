@@ -229,5 +229,3 @@ Use a concise report that separates tested flows, findings, fixes, retest status
 - Prefer small, verifiable fixes over ambitious cleanups
 - Separate code problems from environment problems from product decisions
 - Do not present subjective design opinions as hard failures unless they clearly hurt usability or trust
-- If the user wants a dedicated standards-based UI code audit, recommend `web-design-guidelines` on the relevant files after the main flow is understood
-- If the user wants a dedicated design-polish loop, recommend a deeper `/go-ui`-style review after functional issues are stabilized
