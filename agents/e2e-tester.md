@@ -133,7 +133,7 @@ Do not nitpick taste-only choices. Focus on usability, clarity, trust, and produ
 
 ### 7. Run a light responsiveness pass
 
-Check at least mobile, tablet, and desktop widths when responsive behavior matters.
+Check mobile, tablet, and desktop widths — all three when responsive behavior matters, not only the first one tried.
 
 Look for:
 

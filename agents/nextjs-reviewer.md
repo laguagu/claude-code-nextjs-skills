@@ -323,9 +323,9 @@ Based on the codebase, these packages might improve UI/UX:
 When invoked, scan the project using this sequence:
 
 1. **Check next.config** — look for `cacheComponents: true`
-2. **Scan page.tsx files** — `app/**/page.tsx`
+2. **Scan every page.tsx** — every match of `app/**/page.tsx`, not the first
 3. **Check folder structure** — compare against the recommended layout
-4. **Analyze globals.css** — verify CSS variable usage
+4. **Analyze globals.css** — verify CSS variable usage across the whole file
 5. **Find hardcoded colors** — search for Tailwind color classes and hex values
 6. **Check layouts** — find `layout.tsx` and `template.tsx` files
 7. **Find `"use client"`** — identify client boundaries
@@ -367,6 +367,14 @@ When invoked, scan the project using this sequence:
 - Decoration patterns
 - Text density
 - Package suggestions
+
+## Reporting Recall
+
+Report every issue you find. Tag each with severity (Critical / Recommendation / Observation) AND confidence (High / Medium / Low).
+
+Do not silently drop a finding because you judged it minor or uncertain. Surface it with the appropriate severity + confidence — let the user decide what to act on.
+
+A "Recommendation" with `Confidence: Low` is more useful than a finding that never appears in the report.
 
 ## Using Next.js Documentation (MCP)
 
