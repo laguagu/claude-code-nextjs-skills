@@ -9,14 +9,14 @@ Operate Hetzner Cloud through the `hcloud` CLI. When in doubt about server types
 
 ## Authenticate
 
-Generate a token in Hetzner Console → project → Security → API Tokens. Pick **Read** for read-only / monitoring use cases and **Read & Write** only when the agent needs to mutate resources — narrower scopes limit blast radius if a token leaks. Then either:
+Generate a token in Hetzner Console → project → Security → API Tokens, then either:
 
 ```bash
 hcloud context create <name>      # interactive: stored in cli.toml, persists across shells
 export HCLOUD_TOKEN="…"           # CI/scripts: most commands read this automatically
 ```
 
-`hcloud context create` is the one common case that prompts even with the env var set — pass `--token-from-env` to skip the prompt in non-interactive sessions.
+`hcloud context create` is the one common case that still prompts even with the env var set — pass `--token-from-env` to skip the prompt in non-interactive sessions.
 
 Health check: `hcloud datacenter list`.
 
