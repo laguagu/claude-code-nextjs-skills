@@ -36,6 +36,7 @@ It does **not** manage:
 | Locations and datacenters | `hcloud location list` |
 | OS images | `hcloud image list --type system` (add `--architecture arm` for ARM) |
 | Command/flag details | `hcloud <resource> <verb> --help` |
+| Everything in this project at a glance | `hcloud all list` |
 
 Structured output for scripts: `--output json | jq …`, `--output columns=id,name,status`, `--output format='{{.PublicNet.IPv4.IP}}'`.
 
@@ -69,9 +70,9 @@ hcloud firewall replace-rules --rules-file rules.json <fw>
 
 4. **`hcloud zone` is only half of DNS.** The registrar's NS records must point to Hetzner's nameservers before queries resolve. Without that, the zone is just an internal database.
 
-5. **`hel1` (Helsinki) for Finnish workloads.** Lowest latency for FI users, GDPR-compliant, same `eu-central` network zone as `fsn1`/`nbg1` so private networks can span them. Pretraining defaults to `fsn1` — override for FI projects.
+5. **Match location to where users are; pretraining defaults to `fsn1`.** Run `hcloud location list` and pick the closest. Private networks can't span network zones, only locations within one: `eu-central` (fsn1/hel1/nbg1), `us-east` (ash), `us-west` (hil), `ap-southeast` (sin).
 
-6. **Don't quote prices or server-type specs from memory.** ARM (`cax*`) is usually better value than x86 (`cpx*`) for web/API workloads, but always verify with `hcloud server-type list` before committing.
+6. **Don't quote prices or server-type specs from memory.** Always verify with `hcloud server-type list` before committing — names, specs, and pricing shift.
 
 7. **Deletion is immediate and unrecoverable.** No undo on `server delete` or `volume delete`. `describe` first; create a snapshot (`hcloud server create-image --type snapshot <srv>`) beforehand if you might want the server back.
 
