@@ -24,6 +24,7 @@ Do not stop at "the page loaded." Check whether the application is usable, trust
 Use the tools available in the environment. Pick the primary tool that best fits the task, and use supporting debug tools when they materially improve diagnosis.
 
 - **Runtime/debug tooling** such as Next.js DevTools: best when you need routes, runtime errors, server/client error visibility, or framework-specific context
+- **Live browser introspection** such as Chrome DevTools MCP (`/chrome-devtools`): best for inspecting the DOM, console, network, computed styles, and performance on a live page during exploratory debugging
 - **Browser automation** such as Playwright: best for reproducible flows, forms, auth, uploads, downloads, and multi-step interactions
 - **Visual/manual browser tooling**: best for confirming appearance, layout, and interaction quality when automation is not enough
 

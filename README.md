@@ -30,6 +30,7 @@
 | [shadcn](skills/shadcn/) | shadcn/ui component management |
 | [frontend-design](skills/frontend-design/) | Production-grade frontend interfaces |
 | [web-design-guidelines](skills/web-design-guidelines/) | UI/UX review against Web Interface Guidelines |
+| [chrome-devtools](skills/chrome-devtools/) | Live browser inspection via Chrome DevTools MCP (DOM, console, network, performance) |
 
 ### ⚡ Next.js
 
@@ -83,6 +84,7 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 | [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/next-skills](https://skills.sh/vercel-labs/next-skills/next-best-practices) | - |
 | [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/supabase](https://github.com/supabase/supabase) | Apache 2.0 |
+| [chrome-devtools](skills/chrome-devtools/) | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills/blob/main/skills/browser-testing-with-devtools/SKILL.md) | - |
 
 ## 📥 Installation
 
@@ -91,9 +93,9 @@ Copy or symlink skills to:
 - **Claude Code**: `~/.claude/skills/` (global) or `.claude/skills/` (project)
 - **Other agents** (Codex, Windsurf, Cursor): `~/.agents/skills/` or `.agents/skills/`
 
-## 🔧 MCP Server
+## 🔧 MCP Servers
 
-Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
+Recommended MCP servers that pair with these skills:
 
 ```json
 {
@@ -101,10 +103,17 @@ Includes [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp):
     "next-devtools": {
       "command": "npx",
       "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["chrome-devtools-mcp@latest"]
     }
   }
 }
 ```
+
+- [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp) — pairs with `next-best-practices`, `e2e-tester`
+- [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) — pairs with `chrome-devtools`, `go`, `go-ui`, `e2e-tester`. Install via CLI: `claude mcp add chrome-devtools --scope user npx chrome-devtools-mcp@latest`
 
 ## 📚 See Also
 

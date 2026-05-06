@@ -6,7 +6,7 @@ argument-hint: "[url or route]"
 
 # /go — Browser check
 
-Verify your work in the browser instead of trusting that code compiles. Use whatever browser tools the environment offers (Chrome extension, next-devtools MCP, Playwright — whichever is reachable). If login is needed, credentials usually live in `.env.local` or the project's secrets manager.
+Verify your work in the browser instead of trusting that code compiles. Use whatever browser tools the environment offers (Chrome extension, next-devtools MCP, chrome-devtools MCP, Playwright — whichever is reachable). If `chrome-devtools` MCP is available and you need console errors, network status, or computed styles to confirm the fix, prefer it over a blind reload. If login is needed, credentials usually live in `.env.local` or the project's secrets manager.
 
 Two things are easy to miss:
 - **Functional verification** — did the page actually return what was expected? Searching for "X" should show results containing X, not just render without errors.
