@@ -25,14 +25,14 @@ Use Chrome DevTools MCP to give your agent eyes into the browser. This bridges t
 
 ### Installation
 
-```bash
-# Add Chrome DevTools MCP server to your Claude Code config
-# In your project's .mcp.json or Claude Code settings:
+```jsonc
+// Privacy-conscious config — disables Google usage statistics, CrUX field-data sharing, and update checks
 {
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["chrome-devtools-mcp@latest"]
+      "args": ["chrome-devtools-mcp@latest", "--isolated", "--no-usage-statistics", "--no-performance-crux"],
+      "env": { "CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS": "1" }
     }
   }
 }
