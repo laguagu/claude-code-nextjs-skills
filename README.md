@@ -63,6 +63,7 @@
 | Skill | Description |
 |-------|-------------|
 | [skill-creator](skills/skill-creator/) | Create, test, and optimize custom skills (extended) |
+| [handoff](skills/handoff/) | Write a HANDOFF.md so a fresh agent can continue your work |
 
 ## 🤖 Custom Agents
 
@@ -87,6 +88,14 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/agent-skills](https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices) | MIT |
 | [chrome-devtools](skills/chrome-devtools/) | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills/blob/main/skills/browser-testing-with-devtools/SKILL.md) | - |
 | [shadcn](skills/shadcn/) | [shadcn/ui](https://ui.shadcn.com/docs/skills) | MIT |
+
+## 🔄 Updating
+
+Skills under [Based On](#-based-on) drift as their upstreams change. To refresh one: fetch the
+upstream folder, `diff` it against the local copy, and copy over the changed content files — but
+keep the local `SKILL.md` frontmatter, since `name`/`description` and cross-skill references are
+often customized. Skip a blind `npx skills update`: there is no lock file and some folders are
+renamed from upstream.
 
 ## 📥 Installation
 

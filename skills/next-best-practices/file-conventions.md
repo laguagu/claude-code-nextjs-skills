@@ -92,8 +92,26 @@ Prefix with `_` to exclude from routing.
 
 ## Middleware / Proxy
 
-The current convention is `proxy.ts` at the project root (renamed from the
-earlier `middleware.ts`; same capabilities).
+### Next.js 14-15: `middleware.ts`
+
+```ts
+// middleware.ts (root of project)
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  // Auth, redirects, rewrites, etc.
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/api/:path*'],
+};
+```
+
+### Next.js 16+: `proxy.ts`
+
+Renamed for clarity - same capabilities, different names:
 
 ```ts
 // proxy.ts (root of project)
@@ -101,18 +119,21 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
-  // Auth, redirects, rewrites, etc.
+  // Same logic as middleware
   return NextResponse.next();
 }
 
-export const proxyConfig = {
+export const config = {
   matcher: ['/dashboard/:path*', '/api/:path*'],
 };
 ```
 
-**Legacy**: older Next.js versions used `middleware.ts` exporting
-`middleware()` and `config`. Run `npx @next/codemod@latest upgrade` to
-auto-rename.
+| Version | File | Export | Config |
+|---------|------|--------|--------|
+| v14-15 | `middleware.ts` | `middleware()` | `config` |
+| v16+ | `proxy.ts` | `proxy()` | `config` |
+
+**Migration**: Run `npx @next/codemod@latest upgrade` to auto-rename.
 
 ## File Conventions Reference
 
