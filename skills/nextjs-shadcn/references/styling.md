@@ -159,28 +159,60 @@ export default function Template({ children }: { children: React.ReactNode }) {
 
 ### View Transitions API
 
-Next.js built-in support (works with `<Link>`):
+Enable in `next.config.ts`:
 
 ```ts
-// next.config.ts
 import type { NextConfig } from "next"
 
 const config: NextConfig = {
-  experimental: {
-    viewTransition: true
-  }
+  experimental: { viewTransition: true },
 }
 
 export default config
 ```
 
-Use `<Link>` normally - transitions work automatically:
+With the flag on, `<Link>` navigations get a default browser cross-fade. For
+*meaningful* transitions, use React's `<ViewTransition>` component — no extra
+install, the App Router runs React canary. Without browser support it degrades
+gracefully: no animation, app still works.
 
 ```tsx
-import Link from "next/link"
-
-<Link href="/about">About</Link>
+import { ViewTransition } from "react"
 ```
+
+`<ViewTransition>` animations fire on Transitions, `<Suspense>`, and
+`useDeferredValue`. Route navigations are Transitions, so they activate
+automatically on navigation; plain `setState` does not trigger them.
+
+| Pattern | Communicates | Key API |
+|---------|--------------|---------|
+| Shared-element morph | "Same thing, going deeper" | Same `name` on both elements |
+| Suspense reveal | "Data loaded" | `enter`/`exit` on fallback + content, `default="none"` |
+| Directional slide | "Forward / back" | `<Link transitionTypes={["nav-forward"]}>` + `enter`/`exit` keyed by type |
+| Same-route crossfade | "Same place, different content" | `key={slug}` + `share="auto"` `enter="auto"` |
+
+Shared-element morph is the most common and works with zero CSS — wrap both the
+source and destination element with the same `name`:
+
+```tsx
+// grid thumbnail
+<ViewTransition name={`photo-${photo.id}`}>
+  <Image src={photo.src} alt={photo.title} />
+</ViewTransition>
+
+// detail page hero — same name
+<ViewTransition name={`photo-${photo.id}`}>
+  <Image src={photo.src} alt={photo.title} fill />
+</ViewTransition>
+```
+
+React matches the names across the old/new route and animates size and
+position. Customize with `share="morph"` and `::view-transition-group(.morph)`
+CSS. Respect `prefers-reduced-motion` by zeroing animation durations on the
+`::view-transition-*` pseudo-elements.
+
+Patterns 2–4 (CSS keyframes, directional/Suspense examples):
+[Designing view transitions](https://nextjs.org/docs/app/guides/view-transitions).
 
 ### Motion Library
 
