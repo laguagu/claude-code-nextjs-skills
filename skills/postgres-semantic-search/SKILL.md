@@ -3,21 +3,18 @@ name: postgres-semantic-search
 description: |
   PostgreSQL-based semantic and hybrid search with pgvector and ParadeDB.
   Use when implementing vector search, semantic search, hybrid search,
-  or full-text search in PostgreSQL. Covers pgvector setup, indexing
-  (HNSW, IVFFlat), hybrid search (FTS + BM25 + RRF), ParadeDB as
-  Elasticsearch alternative, and re-ranking with Cohere/cross-encoders.
-  Supports vector(1536) and halfvec(3072) types for OpenAI embeddings.
+  or full-text search in PostgreSQL. Covers pgvector indexing, hybrid
+  FTS/BM25 + RRF, ParadeDB, reranking, halfvec, multilingual search,
+  query translation, and domain evals.
 
   Triggers: pgvector, vector search, semantic search, hybrid search,
-  embedding search, PostgreSQL RAG, BM25, RRF, HNSW index, similarity search,
-  ParadeDB, pg_search, reranking, Cohere rerank, Voyage rerank,
+  embedding search, PostgreSQL RAG, BM25, RRF, HNSW index, similarity
+  search, ParadeDB, pg_search, reranking, Cohere rerank, Voyage rerank,
   graceful fallback, iterative_scan, filtered HNSW, websearch_to_tsquery,
   unaccent, multilingual FTS, pg_trgm, trigram, fuzzy search, LIKE, ILIKE,
-  autocomplete, typo tolerance, fuzzystrmatch,
-  evaluation, benchmarking, Hit@K, MRR, contextual embeddings, halfvec cast,
-  multilingual search, cross-lingual retrieval, cross-language search,
-  non-English corpus, Finnish search, per-language indexing, language-aware
-  embeddings, query translation, RRF fusion across languages
+  autocomplete, typo tolerance, fuzzystrmatch, evaluation, benchmarking,
+  Hit@K, MRR, halfvec cast, cross-lingual retrieval, non-English corpus,
+  per-language indexing, query translation, RRF fusion across languages
 argument-hint: "[question or use case]"
 ---
 
@@ -260,23 +257,19 @@ When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 - **Compound-word fallback**: pair semantic search with `pg_trgm` similarity to catch compound-word misses (e.g., a query for `"ammattikorkea"` should still find `"ammattikorkeakoulu"`).
 - **BM25 stemmer in ParadeDB**: tokenize with `{ "type": "default", "stemmer": "<language>" }` — a `raw` tokenizer only matches full fields.
 - **Multilingual embeddings**: prefer models explicitly trained on your target language(s). English-only embeddings often miss inflected forms and compound words. The gap can be large — multilingual-tuned embeddings have been observed to beat general-purpose English-tuned ones by 10+pp Hit@5 on non-English retrieval. Benchmark your specific language + domain before committing.
-- **Cross-language RRF fusion for monolingual corpora**: when the corpus is one
-  language and queries arrive in many, run TWO hybrid passes per off-language
-  query and RRF-merge them. Pass 1 uses the original-language embedding
-  (multilingual model handles the cross-lingual mapping). Pass 2 first
-  translates the query to the corpus language (LLM, short prompt), then
-  embeds the translation and keyword-searches on it. Pass 1 covers general
-  terms; pass 2 catches domain-specific terms that collapse in cross-lingual
-  embedding space. See [hybrid-search.md → Cross-language RRF fusion
-  pattern](references/hybrid-search.md#cross-language-rrf-fusion-pattern).
+- **Cross-language RRF fusion for monolingual corpora**: when the corpus is
+  one language and queries arrive in many, run two hybrid passes per
+  off-language query (original-language embedding + translated-language
+  embedding, same FTS text) and RRF-merge. Recovers domain terms that
+  cross-lingual embeddings collapse. See [hybrid-search.md →
+  Cross-language RRF fusion pattern](references/hybrid-search.md#cross-language-rrf-fusion-pattern).
 
-- **Per-language indexing for multilingual content**: once translated content
-  is available, add a `language_code` column to the chunk table (default to
-  the original corpus language so existing rows backfill atomically), include
-  it in the uniqueness constraint, and scope ingest writes/deletes to one
-  language so adding a new language never drops the existing one. Search
-  stays language-agnostic (HNSW cosine doesn't care about the column) and
-  native-language queries hit native-language embeddings directly.
+- **Per-language indexing for multilingual content**: when translated
+  content exists, add `language_code` to the chunk table (default to the
+  original language so existing rows backfill), include it in the
+  uniqueness constraint, and scope ingest writes/deletes to one language.
+  Search stays language-agnostic; native-language queries hit native
+  embeddings directly.
 
   ```sql
   ALTER TABLE chunks ADD COLUMN language_code TEXT NOT NULL DEFAULT 'en';

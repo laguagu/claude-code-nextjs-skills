@@ -297,70 +297,25 @@ ParadeDB is ideal when you need:
 ## Cross-language RRF fusion pattern
 
 When the corpus is one language and queries arrive in many, a single hybrid
-pass underperforms on off-language queries because multilingual embeddings
-collapse domain-specific terms (technical jargon, proper nouns, compound
-words) onto distant points in cross-lingual space. Two-pass RRF fusion
-recovers the gap without changing the index.
-
-### When this pays off
-
-Run a paired-language self-overlap probe BEFORE adopting fusion — embed the
-same concept as a query in each target language, pull top-K with the current
-single-pass setup, measure how often the lists agree. If the overlap is
-< 60-70% on domain-heavy queries, fusion is worth the second hybrid call
-per off-language query. If overlap is already > 85%, the embedding model is
-doing fine — skip fusion and check rerankers / better embeddings instead.
-
-### Pattern
+pass underperforms on off-language queries: multilingual embeddings collapse
+domain-specific terms (jargon, proper nouns, compound words) onto distant
+points in cross-lingual space. Two-pass RRF recovers them without changing
+the index.
 
 ```text
 query_lang != corpus_lang ?
-    pass_1 = hybrid_search(query_text_translated_to_corpus_lang,
-                           embedding=embed(query_original))         # multilingual semantic
-    pass_2 = hybrid_search(query_text_translated_to_corpus_lang,
-                           embedding=embed(query_translated))       # native semantic
+    pass_1 = hybrid_search(translated_text, embedding=embed(query_original))
+    pass_2 = hybrid_search(translated_text, embedding=embed(translated_text))
     results = rrf_merge([pass_1, pass_2], k=60)
 else:
-    results = hybrid_search(query_text, embedding=embed(query))
+    results = hybrid_search(query_text, embedding=embed(query_text))
 ```
 
-Both passes use the same FTS keyword text (translated). The two embeddings
-attack the semantic side from different angles:
+Both passes use the same translated FTS text. Pass 1 leans on the model's
+cross-lingual map; pass 2 anchors in native-language embedding space and
+recovers the domain terms pass 1 missed. RRF (k=60) fuses by rank, so the
+two passes' score scales don't have to align.
 
-- **Pass 1** keeps the original query's embedding — preserves intent
-  nuance, leans on the multilingual model's cross-lingual mapping.
-- **Pass 2** embeds the translation — clusters tightly with native-language
-  documents and catches domain terms the cross-lingual map missed.
-
-RRF (k=60 default) fuses by rank position only, so different score scales
-across the two passes are not a problem.
-
-### Implementation notes
-
-- Cache the translation. Translation calls (short LLM prompt, "extract
-  key search terms in <target_lang>") are 100-300ms; cache by normalized
-  query string with model + target-language in the key.
-- Cache both embeddings the same way.
-- Skip fusion for already-corpus-language queries — gate on a fast
-  language-detection heuristic (character set + common-word frequency)
-  before any model call.
-- Fusion runs ~2x semantic + 2x keyword calls per off-language query. The
-  latency budget should account for this (typical: +200-500ms wall-clock
-  if pass 2's embedding is cached, +800-1500ms cold).
-
-### Bench scripts to copy
-
-Two patterns that work well:
-
-1. **Paired-language self-overlap probe** — pull the same concept's results
-   in each target language from a live API; measure pairwise Hit@K overlap.
-   No ground truth needed. Good for fast iteration on fusion changes and
-   embedding swaps.
-2. **In-memory model comparator** — pull a slice of segments + embed them
-   in each candidate model in memory, score against ground truth. Avoids
-   reindexing production just to validate a model swap.
-
-Cross-language Hit@K on a labeled ground truth is the only number that
-matters for adoption; self-overlap can mislead when two models are both
-wrong in the same way. Use the labeled bench as the gate (adoption rule:
-≥ +3pp Hit@K AND the native-language regression within ±2pp baseline).
+Cache the translation and both embeddings — keyed by normalized query +
+model + target language. Gate fusion behind a language-detection check so
+already-corpus-language queries take the single-pass path.
