@@ -1,5 +1,15 @@
 # SEO Troubleshooting Guide
 
+## Contents
+
+- [Google Indexing Issues](#google-indexing-issues)
+- [Google Search Console Usage](#google-search-console-usage)
+- [Common Technical Issues](#common-technical-issues)
+- [Building Authority](#building-authority)
+- [Timeline Expectations](#timeline-expectations)
+- [Debug Checklist](#debug-checklist)
+- [Tools](#tools)
+
 ## Google Indexing Issues
 
 ### "Discovered - currently not indexed"
@@ -147,6 +157,22 @@ export default {
 3. Implement lazy loading
 4. Reduce JavaScript bundle size
 5. Use SSG where possible
+
+### Accidentally blocked from AI search
+
+**Symptom:** Site not appearing or cited in AI answers (ChatGPT, Perplexity, Google AI Overviews).
+
+**Causes:**
+- Old "block all AI" robots.txt templates
+- WAF/CDN rules disallowing citation bots (OAI-SearchBot, Claude-SearchBot, PerplexityBot)
+- Only deprecated tokens (anthropic-ai/Claude-Web) targeted, leaving real bots blocked or unhandled
+
+**Fix:**
+1. Allow citation bots in robots.txt
+2. Audit WAF/CDN rules together with robots.txt
+3. Verify access via server logs
+
+See [ai-search.md](ai-search.md) for AI crawler rules and GEO guidance.
 
 ## Building Authority
 

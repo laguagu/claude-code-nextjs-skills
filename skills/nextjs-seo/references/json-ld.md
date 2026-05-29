@@ -2,6 +2,18 @@
 
 Structured data helps search engines understand your content and enables rich results.
 
+## Contents
+
+- [Implementation Pattern](#implementation-pattern)
+- [Common Schemas](#common-schemas) — WebSite, Organization, WebApplication, FAQPage, Product, Article, BreadcrumbList
+- [Deprecated / no longer rich-result-eligible](#deprecated--no-longer-rich-result-eligible)
+- [Which schema types still drive rich results (2026)](#which-schema-types-still-drive-rich-results-2026)
+- [@graph multi-entity pattern](#graph-multi-entity-pattern)
+- [Structured data for AI search](#structured-data-for-ai-search)
+- [Usage in Next.js](#usage-in-nextjs)
+- [Testing Tools](#testing-tools)
+- [Best Practices](#best-practices)
+
 ## Implementation Pattern
 
 ```typescript
@@ -65,7 +77,7 @@ const organizationSchema = {
     email: 'contact@company.com',
     contactType: 'customer service',
   },
-  foundingDate: '2024',
+  foundingDate: 'YYYY', // your real founding year
   areaServed: {
     '@type': 'Country',
     name: 'Finland',
@@ -99,6 +111,8 @@ const webAppSchema = {
 ```
 
 ### FAQPage Schema
+
+> **⚠️ FAQ rich results are deprecated.** Google restricted them to authoritative gov/health sites in Aug 2023 and **fully removed them for all sites as of 2026-05-07** (Rich Results Test support drops June 2026, Search Console API August 2026). FAQPage no longer produces any rich result in Google Search. Keep this markup only as an optional AI-search / LLM-extraction signal (machine-readable Q&A) — not for SERP enhancement. Existing markup is harmless but has no visible SERP effect.
 
 ```typescript
 const faqSchema = {
@@ -146,7 +160,7 @@ const productSchema = {
     url: 'https://your-site.com/product',
     priceCurrency: 'EUR',
     price: '99.99',
-    priceValidUntil: '2025-12-31',
+    priceValidUntil: '2026-12-31', // use a real future date
     availability: 'https://schema.org/InStock',
     itemCondition: 'https://schema.org/NewCondition',
   },
@@ -155,6 +169,29 @@ const productSchema = {
     ratingValue: '4.5',
     reviewCount: '89',
   },
+};
+```
+
+#### Product snippet vs merchant listing experience
+
+Google treats `Product` markup as two distinct experiences:
+
+- **(a) Product snippet** — for editorial / non-purchase pages (reviews, roundups, comparisons). Supports review features (`aggregateRating` / `review`) and pros & cons via `positiveNotes` / `negativeNotes`. No price required.
+- **(b) Merchant listing experience** — for pages where the product is purchasable. Needs `offers` with `price` + `priceCurrency` + `availability`, and benefits from `shippingDetails` and `hasMerchantReturnPolicy` for richer shopping results.
+
+For products with variants, use `ProductGroup` with `hasVariant`, `variesBy`, and a stable `productGroupID`:
+
+```typescript
+const productGroupSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProductGroup',
+  name: 'T-Shirt',
+  productGroupID: 'TSHIRT-001',
+  variesBy: ['https://schema.org/color', 'https://schema.org/size'],
+  hasVariant: [
+    { '@type': 'Product', sku: 'TSHIRT-001-RED-M', color: 'Red', size: 'M' },
+    { '@type': 'Product', sku: 'TSHIRT-001-BLU-L', color: 'Blue', size: 'L' },
+  ],
 };
 ```
 
@@ -167,8 +204,8 @@ const articleSchema = {
   headline: 'Article Title',
   description: 'Article description',
   image: 'https://your-site.com/article-image.jpg',
-  datePublished: '2024-01-15T08:00:00+00:00',
-  dateModified: '2024-01-16T10:00:00+00:00',
+  datePublished: 'YYYY-MM-DDT08:00:00+00:00', // set dynamically from the CMS, not hardcoded
+  dateModified: 'YYYY-MM-DDT10:00:00+00:00', // set dynamically from the CMS, not hardcoded
   author: {
     '@type': 'Person',
     name: 'Author Name',
@@ -213,6 +250,88 @@ const breadcrumbSchema = {
   ],
 };
 ```
+
+## Deprecated / no longer rich-result-eligible
+
+Do **not** implement these for SERP rich results — Google no longer renders them:
+
+- **FAQ** — removed for all sites as of 2026-05-07.
+- **HowTo** — deprecated September 2023.
+- The 7 features Google retired in 2025:
+  - Book Actions
+  - Course Info
+  - Claim Review / Fact Check
+  - Estimated Salary
+  - Learning Video
+  - Special Announcement
+  - Vehicle Listing
+
+You may still emit some of these as machine-readable signals (e.g. for AI / LLM extraction), but expect zero visible SERP enhancement from Google.
+
+## Which schema types still drive rich results (2026)
+
+Google's [Search Gallery](https://developers.google.com/search/docs/appearance/structured-data/search-gallery) is the source of truth for which structured-data types are currently eligible for rich results — check it before investing in any schema. High-value types for typical Next.js sites:
+
+- **Product / merchant listing** — product snippets and shopping results
+- **Review snippet** — star ratings
+- **Breadcrumb** — breadcrumb trail in SERP
+- **Article** — news/blog/article enhancements
+- **Recipe**
+- **Event**
+- **Video**
+- **Organization** — logo / knowledge panel signals
+- **LocalBusiness**
+- **Job posting**
+- **Software app**
+
+## @graph multi-entity pattern
+
+Use a single `<script type="application/ld+json">` with an `@graph` array to wire multiple entities together via `@id` cross-references. This avoids duplicating the Organization on every page and lets Google connect the dots:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://your-site.com/#organization",
+      "name": "Company Name",
+      "url": "https://your-site.com",
+      "logo": "https://your-site.com/logo.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://your-site.com/#website",
+      "url": "https://your-site.com",
+      "name": "Site Name",
+      "publisher": { "@id": "https://your-site.com/#organization" }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://your-site.com/products/product-slug/#webpage",
+      "url": "https://your-site.com/products/product-slug",
+      "name": "Product Name",
+      "isPartOf": { "@id": "https://your-site.com/#website" },
+      "breadcrumb": { "@id": "https://your-site.com/products/product-slug/#breadcrumb" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://your-site.com/products/product-slug/#breadcrumb",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://your-site.com" },
+        { "@type": "ListItem", "position": 2, "name": "Products", "item": "https://your-site.com/products" },
+        { "@type": "ListItem", "position": 3, "name": "Product Name", "item": "https://your-site.com/products/product-slug" }
+      ]
+    }
+  ]
+}
+```
+
+## Structured data for AI search
+
+Schema is **not required** for AI Overviews — Google has stated structured data is not needed to appear in AI Overviews. Still, well-formed JSON-LD that matches the visible page plausibly helps AI systems parse, ground, and cite your content. Frame this as a correlation / trust signal, **not** a confirmed ranking factor. See [ai-search.md](ai-search.md) for AI-search and GEO guidance.
+
+> Caveat: the Rich Results Test only validates currently-supported types, so valid FAQ/HowTo markup will correctly show "no eligible rich results" — that is expected, not an error.
 
 ## Usage in Next.js
 

@@ -1,5 +1,13 @@
 # Sitemap & Robots.txt in Next.js
 
+## Contents
+
+- [Sitemap Configuration](#sitemap-configuration) — basic, dynamic, image, video, multiple, localized sitemaps
+- [Robots.txt Configuration](#robotstxt-configuration)
+- [Static file conventions](#static-file-conventions)
+- [Sitemap Best Practices](#sitemap-best-practices)
+- [Robots.txt Best Practices](#robotstxt-best-practices)
+
 ## Sitemap Configuration
 
 ### Basic Static Sitemap
@@ -131,6 +139,12 @@ export default async function sitemap(props: {
 // Generates: /sitemap/0.xml, /sitemap/1.xml, /sitemap/2.xml
 ```
 
+> **Note**: Sitemaps can ALSO be split by nesting `sitemap.(xml|ts|js)` under
+> route segments (e.g. `app/products/sitemap.ts`). Generated multi-sitemaps are
+> served at `/.../sitemap/[id].xml` relative to the file's route segment — so a
+> root `app/sitemap.ts` with `generateSitemaps` yields `/sitemap/0.xml`, while
+> `app/products/sitemap.ts` yields `/products/sitemap/0.xml`.
+
 ### Localized Sitemap
 
 ```typescript
@@ -193,10 +207,11 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: 'Googlebot',
         allow: '/',
         disallow: '/admin/',
+        crawlDelay: 2, // optional; Googlebot ignores crawl-delay, Bing/Yandex honor it
       },
       {
         userAgent: 'GPTBot',
-        disallow: '/', // Block AI crawlers
+        disallow: '/', // Opts out of OpenAI model TRAINING only (not citation/search)
       },
     ],
     sitemap: 'https://your-site.com/sitemap.xml',
@@ -204,6 +219,16 @@ export default function robots(): MetadataRoute.Robots {
   };
 }
 ```
+
+> **`host` caveat**: `host` is type-valid but a **non-standard directive Google
+> ignores** (originally Yandex-only). Prefer canonical URLs / 301 redirects to
+> declare the preferred host.
+
+> **AI crawlers**: Blanket-blocking `GPTBot` only opts out of **training** — it
+> does not block citation/search bots. Citation bots (`OAI-SearchBot`,
+> `PerplexityBot`) should usually stay **allowed** so your content can be cited.
+> AI crawler control (training vs search/citation bots, the full 2026 user-agent
+> list, and a recommended pattern) lives in [ai-search.md](ai-search.md).
 
 ### Environment-Based Robots
 
@@ -235,7 +260,36 @@ export default function robots(): MetadataRoute.Robots {
 }
 ```
 
+## Static file conventions
+
+Hand-authored `app/sitemap.xml` and `app/robots.txt` files are also valid
+first-class conventions — good alternatives to the programmatic `.ts` forms for
+small or simple sites that don't need dynamic generation.
+
+```txt
+# app/robots.txt
+User-Agent: *
+Allow: /
+Disallow: /private/
+
+Sitemap: https://your-site.com/sitemap.xml
+```
+
+```xml
+<!-- app/sitemap.xml -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://your-site.com</loc>
+    <lastmod>2026-01-01</lastmod>
+  </url>
+</urlset>
+```
+
 ## Sitemap Best Practices
+
+> **Google ignores `priority` and `changeFrequency`** — only `lastModified`
+> (lastmod) is used, and only when accurate. Set lastmod from real
+> content-update timestamps; don't over-invest in priority tuning.
 
 | Guideline | Recommendation |
 |-----------|----------------|
@@ -251,3 +305,12 @@ export default function robots(): MetadataRoute.Robots {
 2. **Don't block sitemap** - Never disallow `/sitemap.xml`
 3. **Use specific paths** - `/admin/` instead of broad blocks
 4. **Test before deploy** - Use Google Search Console robots.txt tester
+
+### `MetadataRoute.Robots` fields
+
+Per-rule fields: `userAgent`, `allow`, `disallow`, `crawlDelay?: number`.
+Top-level fields: `sitemap`, `host`.
+
+- `crawlDelay?: number` — seconds between requests. **Googlebot ignores
+  crawl-delay; Bing/Yandex honor it.**
+- `host` — non-standard, ignored by Google (see `host` caveat above).

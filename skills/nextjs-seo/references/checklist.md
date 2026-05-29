@@ -1,5 +1,9 @@
 # Next.js SEO Audit Checklist
 
+## Contents
+
+Critical | Important | Nice to Have | Audit Tools | Red Flags
+
 ## Critical (Must Have)
 
 ### Technical Foundation
@@ -13,6 +17,8 @@
 - [ ] No `noindex` on pages you want indexed
 - [ ] Canonical URLs set for all pages
 - [ ] `viewport` exported separately from `metadata`
+- [ ] `favicon.ico` (or `app/icon`) present — appears in Google SERPs and browser tabs
+- [ ] `app/manifest.ts` present (name, short_name, theme_color, icons) — PWA completeness
 
 ### Rendering
 
@@ -24,7 +30,10 @@
 
 - [ ] LCP (Largest Contentful Paint) < 2.5s
 - [ ] INP (Interaction to Next Paint) < 200ms
+- [ ] INP optimized (INP replaced FID in March 2024)
 - [ ] CLS (Cumulative Layout Shift) < 0.1
+- [ ] CWV checked on FIELD data (PageSpeed Insights / Search Console CrUX, 75th percentile) — not just Lighthouse (Lighthouse can't measure INP)
+- [ ] Mobile parity — same content/metadata/structured-data on mobile (mobile-first indexing complete since July 2024)
 
 ## Important (Should Have)
 
@@ -32,7 +41,8 @@
 
 - [ ] WebSite schema on homepage
 - [ ] Organization schema
-- [ ] Relevant page-specific schemas (Article, Product, FAQ)
+- [ ] Relevant page-specific schemas (Article, Product) for rich results
+- [ ] FAQPage = AI-search/LLM signal only (rich results removed 2026-05-07)
 - [ ] JSON-LD matches visible content
 - [ ] Validated with Rich Results Test
 
@@ -40,6 +50,7 @@
 
 - [ ] Open Graph title and description
 - [ ] OG image (1200x630 recommended)
+- [ ] OG image set via `opengraph-image` file convention or `ImageResponse` (not just a hardcoded URL)
 - [ ] Twitter Card configured
 - [ ] Images tested with Facebook Debugger
 
