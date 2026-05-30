@@ -143,6 +143,17 @@ permanentRedirect('/new-url')
 
 ## Auth Errors
 
+> **Experimental (Next.js 16):** `forbidden()` and `unauthorized()` (and their
+> `forbidden.tsx` / `unauthorized.tsx` files) are **experimental and not
+> recommended for production**. They require enabling the flag in config:
+>
+> ```ts
+> // next.config.ts
+> const nextConfig = { experimental: { authInterrupts: true } }
+> ```
+>
+> `redirect`, `permanentRedirect`, and `notFound` are stable and need no flag.
+
 Trigger auth-related error pages:
 
 ```tsx

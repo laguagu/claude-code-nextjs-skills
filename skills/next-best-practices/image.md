@@ -54,6 +54,33 @@ module.exports = {
 }
 ```
 
+## Next.js 16 Config Changes
+
+Several `images` defaults changed in v16 — be aware when reviewing/upgrading:
+
+```js
+// next.config.ts
+const nextConfig = {
+  images: {
+    // quality is now coerced to the closest value in this list.
+    // Default changed from [1..100] to [75]. Add any other quality you use:
+    qualities: [50, 75, 90],
+
+    // Required to optimize LOCAL images whose `src` has a query string
+    // (v16 security change to prevent enumeration attacks).
+    localPatterns: [{ pathname: '/assets/**', search: '' }],
+
+    // Default changed from 60s to 4 hours (14400). Tune as needed.
+    minimumCacheTTL: 14400,
+  },
+}
+```
+
+- `images.domains` is **deprecated** — always use `remotePatterns` (below).
+- `next/legacy/image` is deprecated — use `next/image`.
+- `<Image quality={90} />` requires `90` to be present in `images.qualities`,
+  otherwise it is coerced to the nearest configured value.
+
 ## Responsive Images
 
 Use `sizes` to tell the browser which size to download:

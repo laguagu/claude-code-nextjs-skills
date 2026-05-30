@@ -57,7 +57,7 @@ Server Actions are the recommended way to handle mutations.
 // app/actions.ts
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 export async function createPost(formData: FormData) {
   const title = formData.get('title') as string;
@@ -70,7 +70,9 @@ export async function createPost(formData: FormData) {
 export async function deletePost(id: string) {
   await db.post.delete({ where: { id } });
 
-  revalidateTag('posts');
+  // In a Server Action, prefer updateTag (read-your-writes: expires the tag
+  // AND refreshes immediately so the user sees the change right away).
+  updateTag('posts');
 }
 ```
 
@@ -87,6 +89,12 @@ export default function NewPost() {
   );
 }
 ```
+
+> **Next.js 16 cache invalidation:** `revalidateTag(tag)` with a single argument
+> is **deprecated**. Either pass a `cacheLife` profile for stale-while-revalidate
+> (`revalidateTag('posts', 'max')`), or in a Server Action use `updateTag('posts')`
+> for read-your-writes semantics. There's also `refresh()` for refreshing only
+> uncached data. See the `cache-components` skill.
 
 **Benefits**:
 - End-to-end type safety

@@ -1,10 +1,20 @@
 # Suspense Boundaries
 
-Client hooks that cause CSR bailout without Suspense boundaries.
+`useSearchParams` is the one client hook that causes a CSR bailout without a
+Suspense boundary. Other navigation hooks (`usePathname`, `useParams`,
+`useRouter`) do **not** require one.
 
 ## useSearchParams
 
-Always requires Suspense boundary in static routes. Without it, the entire page becomes client-side rendered.
+In a prerendered (static) route, calling `useSearchParams` makes the Client
+Component tree up to the nearest Suspense boundary client-side rendered. Without
+a boundary, a **production build fails** with the
+[Missing Suspense boundary with useSearchParams](https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout)
+error.
+
+> **Dev caveat:** routes render on-demand in dev, so `useSearchParams` doesn't
+> suspend and may appear to work without `Suspense` — the failure only shows up
+> in a production build.
 
 ```tsx
 // Bad: Entire page becomes CSR
@@ -32,36 +42,28 @@ export default function Page() {
 }
 ```
 
-## usePathname
+## Forcing dynamic rendering instead
 
-Requires Suspense boundary when route has dynamic parameters.
+If you intend the route to be dynamic anyway, call
+[`connection()`](https://nextjs.org/docs/app/api-reference/functions/connection)
+in a Server Component before rendering the hook's consumer. This opts the
+subtree out of prerendering, so no Suspense boundary is needed:
 
 ```tsx
-// In dynamic route [slug]
-// Bad: No Suspense
-'use client'
-import { usePathname } from 'next/navigation'
+import { connection } from 'next/server'
+import SearchBar from './search-bar'
 
-export function Breadcrumb() {
-  const pathname = usePathname()
-  return <nav>{pathname}</nav>
+export default async function Page() {
+  await connection() // route is now dynamic
+  return <SearchBar />
 }
 ```
-
-```tsx
-// Good: Wrap in Suspense
-<Suspense fallback={<BreadcrumbSkeleton />}>
-  <Breadcrumb />
-</Suspense>
-```
-
-If you use `generateStaticParams`, Suspense is optional.
 
 ## Quick Reference
 
 | Hook | Suspense Required |
 |------|-------------------|
-| `useSearchParams()` | Yes |
-| `usePathname()` | Yes (dynamic routes) |
+| `useSearchParams()` | Yes (static routes) |
+| `usePathname()` | No |
 | `useParams()` | No |
 | `useRouter()` | No |

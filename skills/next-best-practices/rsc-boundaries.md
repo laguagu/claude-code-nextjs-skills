@@ -45,15 +45,24 @@ const Dashboard = async () => {
 
 ### 2. Non-Serializable Props to Client Components
 
-Props passed from Server → Client must be JSON-serializable.
+Props passed from Server → Client must be serializable by React's Server
+Components serialization (this is **broader than JSON** — see the
+[`'use client'` reference](https://react.dev/reference/rsc/use-client#serializable-types)).
 
-**Detect:** Server component passes these to a client component:
-- Functions (except Server Actions with `'use server'`)
-- `Date` objects
-- `Map`, `Set`, `WeakMap`, `WeakSet`
-- Class instances
-- `Symbol` (unless globally registered)
-- Circular references
+**Serializable (safe to pass):** `string`, `number`, `bigint`, `boolean`,
+`undefined`, `null`, globally-registered symbols (`Symbol.for`), `Array`,
+`Map`, `Set`, `TypedArray`, `ArrayBuffer`, **`Date`**, plain objects,
+Promises, JSX elements, and Server Functions (`'use server'`).
+
+**Detect (NOT serializable):** Server component passes these to a client component:
+- Functions that are not Server Actions and not exported from a client module
+- Class instances (and objects with a `null` prototype)
+- `WeakMap`, `WeakSet`
+- Non-global symbols (e.g. `Symbol('x')`)
+
+> **Note:** `Date`, `Map`, and `Set` **are** serializable across the boundary —
+> you do not need to convert them. The only common footguns are functions and
+> class instances.
 
 ```tsx
 // Bad: Function prop
@@ -73,51 +82,34 @@ export function ClientButton() {
 ```
 
 ```tsx
-// Bad: Date object (silently becomes string, then crashes)
+// OK: Date is serializable - pass it directly, it arrives as a Date
 // page.tsx (server)
 export default async function Page() {
   const post = await getPost()
-  return <PostCard createdAt={post.createdAt} /> // Date object
+  return <PostCard createdAt={post.createdAt} /> // Date object - fine
 }
 
-// PostCard.tsx (client) - will crash on .getFullYear()
+// PostCard.tsx (client) - receives a real Date
 'use client'
 export function PostCard({ createdAt }: { createdAt: Date }) {
-  return <span>{createdAt.getFullYear()}</span> // Runtime error!
-}
-
-// Good: Serialize to string on server
-// page.tsx (server)
-export default async function Page() {
-  const post = await getPost()
-  return <PostCard createdAt={post.createdAt.toISOString()} />
-}
-
-// PostCard.tsx (client)
-'use client'
-export function PostCard({ createdAt }: { createdAt: string }) {
-  const date = new Date(createdAt)
-  return <span>{date.getFullYear()}</span>
+  return <span>{createdAt.getFullYear()}</span> // Works
 }
 ```
 
 ```tsx
-// Bad: Class instance
+// OK: Map/Set are serializable too - no conversion needed
+<ClientComponent items={new Map([['a', 1]])} />
+<ClientComponent tags={new Set(['a', 'b'])} />
+```
+
+```tsx
+// Bad: Class instance (methods/prototype are lost)
 const user = new UserModel(data)
-<ClientProfile user={user} /> // Methods will be stripped
+<ClientProfile user={user} /> // Not serializable
 
 // Good: Pass plain object
 const user = await getUser()
 <ClientProfile user={{ id: user.id, name: user.name }} />
-```
-
-```tsx
-// Bad: Map/Set
-<ClientComponent items={new Map([['a', 1]])} />
-
-// Good: Convert to array/object
-<ClientComponent items={Object.fromEntries(map)} />
-<ClientComponent items={Array.from(set)} />
 ```
 
 ### 3. Server Actions Are the Exception
@@ -151,9 +143,11 @@ export function ClientForm({ onSubmit }: { onSubmit: (data: FormData) => Promise
 |---------|--------|-----|
 | `'use client'` + `async function` | No | Fetch in server parent, pass data |
 | Pass `() => {}` to client | No | Define in client or use server action |
-| Pass `new Date()` to client | No | Use `.toISOString()` |
-| Pass `new Map()` to client | No | Convert to object/array |
 | Pass class instance to client | No | Pass plain object |
+| Pass `new WeakMap()`/`WeakSet()` | No | Convert to array/object |
+| Pass `Symbol('x')` (non-global) | No | Use `Symbol.for('x')` or a string |
+| Pass `new Date()` to client | Yes | - (serializable, arrives as `Date`) |
+| Pass `new Map()`/`new Set()` | Yes | - (serializable) |
 | Pass server action to client | Yes | - |
-| Pass `string/number/boolean` | Yes | - |
-| Pass plain object/array | Yes | - |
+| Pass `string/number/bigint/boolean` | Yes | - |
+| Pass plain object/array/Promise | Yes | - |

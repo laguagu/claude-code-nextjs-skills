@@ -2,18 +2,39 @@
 
 Tricks to speed up debugging Next.js applications.
 
-## MCP Endpoint (Dev Server)
+## Next.js DevTools MCP (Dev Server)
 
-Next.js exposes a `/_next/mcp` endpoint in development for AI-assisted debugging via MCP (Model Context Protocol).
+Next.js 16+ ships a built-in MCP endpoint at `/_next/mcp` in the dev server for
+AI-assisted debugging. **Requires Next.js 16 or above.**
 
-- **Next.js 16+**: Enabled by default, use `next-devtools-mcp`
-- **Next.js < 16**: Requires `experimental.mcpServer: true` in next.config.js
+### Recommended setup: `next-devtools-mcp`
+
+The official, documented way is to add the `next-devtools-mcp` package to your
+project's `.mcp.json`. It auto-discovers and forwards to the running dev server
+(works across multiple instances/ports):
+
+```json
+// .mcp.json (project root)
+{
+  "mcpServers": {
+    "next-devtools": {
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    }
+  }
+}
+```
+
+Then `npm run dev` and your coding agent connects automatically.
 
 Reference: https://nextjs.org/docs/app/guides/mcp
 
-**Important**: Find the actual port of the running Next.js dev server (check terminal output or `package.json` scripts). Don't assume port 3000.
+### Calling the raw endpoint directly (advanced)
 
-### Request Format
+You can also hit the underlying `/_next/mcp` endpoint yourself. This is not the
+documented path but is useful for scripting.
+
+**Important**: Find the actual port of the running Next.js dev server (check terminal output or `package.json` scripts). Don't assume port 3000.
 
 The endpoint uses JSON-RPC 2.0 over HTTP POST:
 

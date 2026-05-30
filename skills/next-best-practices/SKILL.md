@@ -132,8 +132,8 @@ See [hydration-error.md](./hydration-error.md) for:
 ## Suspense Boundaries
 
 See [suspense-boundaries.md](./suspense-boundaries.md) for:
-- CSR bailout with `useSearchParams` and `usePathname`
-- Which hooks require Suspense boundaries
+- CSR bailout with `useSearchParams` (only this hook requires a boundary)
+- Forcing dynamic rendering with `connection()` instead
 
 ## Parallel & Intercepting Routes
 
