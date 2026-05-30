@@ -2,6 +2,23 @@
 
 Common patterns for implementing Cache Components effectively.
 
+## Contents
+
+- [Pattern 1: Static + Cached + Dynamic Page](#pattern-1-static--cached--dynamic-page)
+- [Pattern 2: Read-Your-Own-Writes with Server Actions](#pattern-2-read-your-own-writes-with-server-actions)
+- [Pattern 3: Granular Cache Invalidation](#pattern-3-granular-cache-invalidation)
+- [Pattern 4: Cached Data Fetching Functions](#pattern-4-cached-data-fetching-functions)
+- [Pattern 5: Stale-While-Revalidate for Background Updates](#pattern-5-stale-while-revalidate-for-background-updates)
+- [Pattern 6: Conditional Caching Based on Content](#pattern-6-conditional-caching-based-on-content)
+- [Pattern 7: Nested Cached Components](#pattern-7-nested-cached-components)
+- [Pattern 8: E-commerce Product Page](#pattern-8-e-commerce-product-page)
+- [Pattern 9: Multi-tenant SaaS Application](#pattern-9-multi-tenant-saas-application)
+- [Pattern 10: Subshell Composition with generateStaticParams](#pattern-10-subshell-composition-with-generatestaticparams)
+- [Pattern 11: Hierarchical Params for Deep Routes](#pattern-11-hierarchical-params-for-deep-routes)
+- [When to Use Suspense with Cached Components](#when-to-use-suspense-with-cached-components)
+- [Anti-Patterns to Avoid](#anti-patterns-to-avoid)
+- [Pattern 12: Interleaving with Children (Pass-Through)](#pattern-12-interleaving-with-children-pass-through)
+
 ## Pattern 1: Static + Cached + Dynamic Page
 
 The foundational pattern for Partial Prerendering:

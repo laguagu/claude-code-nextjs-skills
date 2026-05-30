@@ -2,6 +2,25 @@
 
 Complete API reference for Next.js Cache Components.
 
+## Contents
+
+- [Directive: `'use cache'`](#directive-use-cache)
+- [`cacheLife()`](#function-cachelife)
+- [`cacheTag()`](#function-cachetag)
+- [Understanding Cache Scope](#understanding-cache-scope)
+- [`updateTag()`](#function-updatetag)
+- [`revalidateTag()`](#function-revalidatetag)
+- [`updateTag()` vs `revalidateTag()`](#updatetag-vs-revalidatetag-when-to-use-each)
+- [`revalidatePath()`](#function-revalidatepath)
+- [`connection()`](#function-connection)
+- [Configuration: `next.config.ts`](#configuration-nextconfigts)
+- [`generateStaticParams` with Cache Components](#generatestaticparams-with-cache-components)
+- [GET Route Handlers](#get-route-handlers-with-cache-components)
+- [Deprecated Segment Configurations](#deprecated-segment-configurations)
+- [Migration Scenarios](#migration-scenarios)
+- [Runtime Behaviors](#runtime-behaviors)
+- [Type Definitions](#type-definitions)
+
 ## Directive: `'use cache'`
 
 Marks a function or file as cacheable. The cached output is included in the static shell during Partial Prerendering.
@@ -29,7 +48,7 @@ async function Component() {
 | ---------------------- | ------------------------------ | ------------------------ |
 | `'use cache'`          | Standard cache (default)       | Default handler + Remote |
 | `'use cache: remote'`  | Platform remote cache          | Remote handler only      |
-| `'use cache: private'` | Per-request private cache      | Default handler (request-scoped) |
+| `'use cache: private'` _(experimental)_ | Per-request private cache | Browser memory only (never stored on server) |
 
 ### `'use cache: remote'`
 
@@ -46,19 +65,34 @@ async function HeavyComputation() {
 
 ### `'use cache: private'`
 
-Creates a per-request private cache scope. Unlike `'use cache'`, which shares cached results across all users and requests, `'use cache: private'` ensures that cached data is scoped to the current request only. This is useful for compliance scenarios where data must not leak between requests, even within the same server instance.
+> **⚠️ Experimental**: This directive is experimental and **not recommended for
+> production** — its behavior may change. See the
+> [official docs](https://nextjs.org/docs/app/api-reference/directives/use-cache-private).
+
+Unlike `'use cache'`, the private variant **lets you access runtime request APIs**
+(`cookies()`, `headers()`, `searchParams`) inside a cached scope. Its results are
+**never stored on the server** — they are cached only in the **browser's memory**
+and **do not persist across page reloads**. This makes it suitable for compliance
+scenarios where data must not be stored server-side, even temporarily.
 
 ```tsx
-async function UserComplianceData({ userId }: { userId: string }) {
+import { cookies } from 'next/headers'
+
+async function UserComplianceData() {
   'use cache: private'
   cacheLife('seconds')
 
-  // Data is cached within this request only - not shared across requests
-  return await fetchSensitiveReport(userId)
+  // Runtime APIs are allowed here; result cached in browser memory only
+  const session = (await cookies()).get('session')?.value
+  return await fetchSensitiveReport(session)
 }
 ```
 
-**When to use**: Only when you cannot extract runtime data as function parameters AND compliance requirements prevent sharing cached output across requests. This is a last-resort variant — prefer `'use cache'` with parameterized arguments for most cases.
+**When to use**: Reach for `'use cache: private'` only when (a) you want to cache a
+function that already accesses runtime data and refactoring to pass values as
+arguments is impractical, OR (b) compliance prevents storing the data on the
+server even temporarily. Prefer `'use cache'` with parameterized arguments for
+most cases.
 
 ### Understanding Cache Handlers
 
@@ -72,7 +106,7 @@ Next.js uses **cache handlers** to store and retrieve cached data. The directive
 **How variants map to handlers:**
 
 - `'use cache'` → Uses **both** default and remote handlers. Data is cached locally for fast access and remotely for sharing across instances
-- `'use cache: remote'` → Uses **only** the remote handler. Skips local cache, always fetches from distributed cache
+- `'use cache: remote'` → Stores the cached output in the **remote** handler instead of in-memory. Durable and shared across all server instances (adds network latency)
 
 **When to use each:**
 

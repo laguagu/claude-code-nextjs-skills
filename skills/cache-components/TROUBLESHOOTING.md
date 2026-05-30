@@ -2,6 +2,27 @@
 
 Common issues, debugging techniques, and solutions for Cache Components.
 
+## Contents
+
+- [Live error inspection via next-devtools-mcp](#live-error-inspection-via-next-devtools-mcp)
+- [Build-Time Feedback Philosophy](#build-time-feedback-philosophy)
+- [Quick Debugging Checklist](#quick-debugging-checklist)
+- [Error: UseCacheTimeoutError](#error-usecachetimeouterror)
+- [Error: Cannot use 'use cache' with sync function](#error-cannot-use-use-cache-with-sync-function)
+- [Error: Dynamic Data Outside Suspense](#error-dynamic-data-outside-suspense)
+- [Error: Uncached Data Outside Suspense](#error-uncached-data-outside-suspense)
+- [Error: Empty generateStaticParams](#error-empty-generatestaticparams)
+- [Error: Request Data Inside Cache](#error-request-data-inside-cache)
+- [Issue: Cache Not Being Used](#issue-cache-not-being-used)
+- [Issue: Stale Data After Mutation](#issue-stale-data-after-mutation)
+- [Issue: Different Cache Values for Same Key](#issue-different-cache-values-for-same-key)
+- [Issue: React.cache Deduplication Not Working Inside 'use cache'](#issue-reactcache-deduplication-not-working-inside-use-cache)
+- [Issue: Cache Too Aggressive (Stale Data)](#issue-cache-too-aggressive-stale-data)
+- [Issue: Build Takes Too Long](#issue-build-takes-too-long)
+- [Debugging Techniques](#debugging-techniques)
+- [Common Mistakes Checklist](#common-mistakes-checklist)
+- [Performance Optimization Tips](#performance-optimization-tips)
+
 ## Live error inspection via next-devtools-mcp
 
 Next.js 16+ ships an MCP endpoint at `/_next/mcp`. When `next-devtools-mcp` is

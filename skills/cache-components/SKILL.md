@@ -2,6 +2,8 @@
 name: cache-components
 description: "Expert guidance for Next.js Cache Components and Partial Prerendering (PPR). Use when implementing 'use cache' directive, configuring cache lifetimes with cacheLife(), tagging cached data with cacheTag(), invalidating caches with updateTag()/revalidateTag(), optimizing static vs dynamic content boundaries, managing 'use cache: private' for compliance scenarios, pass-through/interleaving patterns, GET Route Handler caching, debugging cache issues, and reviewing Cache Component implementations."
 argument-hint: "[pattern or question]"
+metadata:
+  version: "1.0"
 ---
 
 # Next.js Cache Components
@@ -80,7 +82,8 @@ When writing a React Server Component, walk through these steps in order:
    - Yes → read `cookies()`/`headers()` outside the cached scope, pass values
      into a `'use cache'` function, and wrap the dynamic caller in `<Suspense>`.
    - No (compliance prevents cross-request sharing) → use `'use cache: private'`
-     as a last resort, still wrapped in `<Suspense>`.
+     (experimental — not recommended for production) as a last resort, still
+     wrapped in `<Suspense>`.
 
 **Key insight**: `'use cache'` is for data that is the _same across users_. User-specific
 data stays dynamic and streams through `<Suspense>`. Reach for `'use cache: private'` only
@@ -426,7 +429,7 @@ When generating Cache Component code:
 4. **Tag meaningfully** - Use semantic tags that match your invalidation needs
 5. **Extract runtime data** - Move `cookies()`/`headers()` outside cached scope
 6. **Wrap dynamic content** - Use `<Suspense>` for non-cached async components
-7. **Use `'use cache: private'` as last resort** - Only when runtime data cannot be extracted as params AND compliance requires no cross-request sharing
+7. **Use `'use cache: private'` as last resort** - Experimental (not recommended for production). Only when runtime data cannot be extracted as params AND compliance requires no cross-request sharing
 
 ## Review Checklist
 
