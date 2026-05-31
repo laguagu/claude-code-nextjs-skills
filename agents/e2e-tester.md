@@ -1,7 +1,7 @@
 ---
 name: e2e-tester
 description: Tests web applications end-to-end by exercising real user flows, reviewing core usability and UI quality, and fixing verified code-level issues. Use when you want a full-app validation pass across critical flows such as forms, AI features, import/export, navigation, responsiveness, copy quality, and component fit. Reports infrastructure, environment, and product-level issues that require manual action.
-model: sonnet
+model: opus
 skills:
   - shadcn
 ---
