@@ -93,8 +93,8 @@ SELECT * FROM docs ORDER BY embedding <=> $1 LIMIT 10;
 -- With similarity score
 SELECT *, 1 - (embedding <=> $1) AS similarity FROM docs ORDER BY 2 DESC LIMIT 10;
 
--- With threshold
-SELECT * FROM docs WHERE embedding <=> $1 < 0.3 ORDER BY 1 LIMIT 10;
+-- With threshold (parenthesize the distance — keeps it clear and precedence-safe)
+SELECT * FROM docs WHERE (embedding <=> $1) < 0.3 ORDER BY 1 LIMIT 10;
 
 -- Preload index (run on startup)
 SELECT 1 FROM docs ORDER BY embedding <=> $1 LIMIT 1;
