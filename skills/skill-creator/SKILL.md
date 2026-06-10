@@ -493,6 +493,8 @@ The agents/ directory contains instructions for specialized subagents. Read them
 
 The references/ directory has additional documentation:
 - `references/schemas.md` — JSON structures for evals.json, grading.json, etc.
+- `references/best-practices.md` — Comprehensive skill-authoring reference (frontmatter rules, description writing, progressive disclosure, script design, anti-patterns). Read when writing or reviewing a skill's content quality.
+- `references/cross-agent-guide.md` — Platform-specific discovery paths and cross-agent compatibility. Read when a skill must run across Claude Code, Codex, or Gemini CLI.
 
 ---
 
