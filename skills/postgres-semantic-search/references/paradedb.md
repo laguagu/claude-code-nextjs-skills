@@ -75,6 +75,8 @@ docker exec -it paradedb psql -U myuser -d mydatabase -W
 CREATE EXTENSION pg_search;
 ```
 
+> **Note:** pg_search is deprecated for **new** Neon projects as of 2026-03-19 (existing projects keep working). See https://neon.com/docs/extensions/pg_search.
+
 ### Self-hosted Postgres
 
 ```sql
@@ -226,6 +228,8 @@ LIMIT 10;
 
 ## Boolean Queries
 
+> **Legacy v1 API note:** since pg_search 0.20.0 the v2 operator API is the default (`|||`, `&&&`, `###`, `===`, `pdb.score()`, `pdb.snippet()`). The legacy `@@@` + `paradedb.*` functions shown below still work but are slated for removal — prefer the v2 syntax in new code.
+
 ```sql
 -- Complex boolean logic
 SELECT * FROM documents
@@ -240,9 +244,10 @@ ORDER BY pdb.score(id) DESC;
 ## Fuzzy Search
 
 ```sql
--- Typo-tolerant search (edit distance 2)
+-- Typo-tolerant search (edit distance 2) via tokenizer cast
+-- Works with the |||, &&&, and === operators
 SELECT * FROM documents
-WHERE id @@@ paradedb.fuzzy('content', 'postgre', distance => 2)
+WHERE content ||| 'postgre'::pdb.fuzzy(2)
 ORDER BY pdb.score(id) DESC;
 ```
 
@@ -355,4 +360,4 @@ REINDEX INDEX search_idx;
 - [ParadeDB AI Docs](https://docs.paradedb.com/llms-full.txt) - Full docs for AI agents (always current)
 - [ParadeDB MCP Endpoint](https://docs.paradedb.com/mcp) - For MCP-compatible tools
 - [GitHub Repository](https://github.com/paradedb/paradedb)
-- [Quickstart Guide](https://docs.paradedb.com/documentation/getting-started/quickstart)
+- [Install Guide](https://docs.paradedb.com/documentation/getting-started/install)

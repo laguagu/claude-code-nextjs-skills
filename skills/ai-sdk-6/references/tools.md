@@ -68,13 +68,13 @@ const result = streamText({
 for await (const event of result.fullStream) {
   switch (event.type) {
     case "tool-call":
-      console.log("Tool called:", event.toolName, event.args);
+      console.log("Tool called:", event.toolName, event.input);
       break;
     case "tool-result":
-      console.log("Tool result:", event.result);
+      console.log("Tool result:", event.output);
       break;
     case "text-delta":
-      process.stdout.write(event.textDelta);
+      process.stdout.write(event.text);
       break;
   }
 }

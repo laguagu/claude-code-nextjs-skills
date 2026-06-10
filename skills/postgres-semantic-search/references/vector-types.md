@@ -17,7 +17,7 @@ CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
 **Properties:**
 - 32 bits (4 bytes) per dimension
 - Full precision
-- Max dimensions: 16,000 (HNSW), 2,000 (IVFFlat)
+- Storage: up to 16,000 dims; HNSW/IVFFlat indexing: up to 2,000 dims
 
 **Memory per row:**
 - 1536 dims: ~6 KB
@@ -49,7 +49,7 @@ CREATE INDEX ON documents USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_
 
 ### bit (binary vectors)
 
-Binary vectors for binary quantization. Pgvector 0.8.0+.
+Binary vectors for binary quantization. Pgvector 0.7.0+.
 
 ```sql
 embedding bit(3072)
@@ -87,7 +87,7 @@ response = openai.embeddings.create(
 
 ```sql
 -- SQL - truncate stored embedding
-SELECT embedding[:1536] AS truncated
+SELECT subvector(embedding, 1, 1536) AS truncated
 FROM documents;
 ```
 
@@ -123,7 +123,7 @@ SELECT embedding::halfvec(1536) FROM documents;
 SELECT embedding::vector(1536) FROM documents;
 
 -- Truncate dimensions
-SELECT embedding[:768]::vector(768) FROM documents;
+SELECT subvector(embedding, 1, 768)::vector(768) FROM documents;
 ```
 
 ## Storage Estimation

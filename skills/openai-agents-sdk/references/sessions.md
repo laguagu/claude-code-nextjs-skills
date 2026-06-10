@@ -24,8 +24,7 @@ result = await Runner.run(agent, inputs)
 Automatic conversation history with SQLite:
 
 ```python
-from agents import Agent, Runner
-from agents.extensions.sessions import SQLiteSession
+from agents import Agent, Runner, SQLiteSession
 
 agent = Agent(name="ChatBot", instructions="Remember our conversation.")
 
@@ -40,8 +39,7 @@ result2 = await Runner.run(agent, "What's my name?", session=session)
 ## Advanced SQLite Session
 
 ```python
-from agents import Agent, Runner
-from agents.extensions.sessions import SQLiteSession
+from agents import Agent, Runner, SQLiteSession
 
 # Custom database path
 session = SQLiteSession(
@@ -70,28 +68,30 @@ For distributed systems:
 
 ```python
 from agents import Agent, Runner
-from agents.extensions.sessions import RedisSession
+from agents.extensions.memory import RedisSession
 
-session = RedisSession(
-    session_id="user_789",
-    redis_url="redis://localhost:6379",
+session = RedisSession.from_url(
+    "user_789",
+    url="redis://localhost:6379",
     ttl=3600,  # 1 hour expiry
 )
+# Or pass an existing client: RedisSession("user_789", redis_client=client)
 
 agent = Agent(name="ScalableBot", instructions="Be helpful.")
 
 result = await Runner.run(agent, "Hello!", session=session)
 ```
 
-## OpenAI Session
+## OpenAI Conversations Session
 
-Using OpenAI's built-in memory:
+Using OpenAI's hosted Conversations API as storage:
 
 ```python
-from agents import Agent, Runner
-from agents.extensions.sessions import OpenAISession
+from agents import Agent, Runner, OpenAIConversationsSession
 
-session = OpenAISession(session_id="openai_session_123")
+# Omit conversation_id to start a new conversation,
+# or resume an existing one (keyword-only argument)
+session = OpenAIConversationsSession(conversation_id="conv_123")
 
 agent = Agent(
     name="OpenAIMemoryBot",
@@ -103,24 +103,24 @@ result = await Runner.run(agent, "Remember I like Python", session=session)
 
 ## Compaction Session
 
-Automatically summarize long conversations:
+Automatically compact long conversations using the Responses API:
 
 ```python
-from agents import Agent, Runner
-from agents.extensions.sessions import CompactionSession, SQLiteSession
+from agents import Agent, Runner, OpenAIResponsesCompactionSession, SQLiteSession
 
 base_session = SQLiteSession("long_conversation")
 
-# Compacts history when it exceeds threshold
-session = CompactionSession(
-    base_session=base_session,
-    max_messages=20,  # Compact after 20 messages
-    summary_model="gpt-5.4-mini",  # Model for summarization
+# Wraps another session and compacts history server-side when needed
+session = OpenAIResponsesCompactionSession(
+    session_id="long_conversation",
+    underlying_session=base_session,
 )
+# Optional keyword-only params: client=, model="gpt-4.1",
+# compaction_mode="auto", should_trigger_compaction=callable
 
 agent = Agent(name="LongChatBot", instructions="Have long conversations.")
 
-# After many messages, older ones are summarized
+# After many messages, older ones are compacted automatically
 for i in range(30):
     await Runner.run(agent, f"Message {i}", session=session)
 ```
@@ -130,14 +130,16 @@ for i in range(30):
 For sensitive conversations:
 
 ```python
-from agents import Agent, Runner
-from agents.extensions.sessions import EncryptedSession, SQLiteSession
+from agents import Agent, Runner, SQLiteSession
+from agents.extensions.memory import EncryptedSession
 
 base_session = SQLiteSession("sensitive_chat")
 
 session = EncryptedSession(
-    base_session=base_session,
+    session_id="sensitive_chat",
+    underlying_session=base_session,
     encryption_key="your-32-byte-encryption-key-here",
+    ttl=600,  # Items older than this can no longer be decrypted
 )
 
 agent = Agent(name="SecureBot", instructions="Handle sensitive information.")
@@ -148,11 +150,16 @@ result = await Runner.run(agent, "My SSN is 123-45-6789", session=session)
 
 ## Session Comparison
 
-| Session Type | Storage | Use Case |
-|--------------|---------|----------|
-| Manual (to_input_list) | Memory | Simple, single-request |
-| SQLiteSession | Local file | Single-server apps |
-| RedisSession | Redis | Distributed systems |
-| OpenAISession | OpenAI | Using OpenAI memory |
-| CompactionSession | Wrapper | Long conversations |
-| EncryptedSession | Wrapper | Sensitive data |
+| Session Type | Import | Storage | Use Case |
+|--------------|--------|---------|----------|
+| Manual (to_input_list) | - | Memory | Simple, single-request |
+| SQLiteSession | `agents` | Local file | Single-server apps |
+| AsyncSQLiteSession | `agents.extensions.memory` | Local file | Async SQLite access |
+| AdvancedSQLiteSession | `agents.extensions.memory` | Local file | Branching, usage analytics |
+| SQLAlchemySession | `agents.extensions.memory` | Any SQL DB | Postgres/MySQL etc. |
+| RedisSession | `agents.extensions.memory` | Redis | Distributed systems |
+| EncryptedSession | `agents.extensions.memory` | Wrapper | Sensitive data |
+| OpenAIConversationsSession | `agents` | OpenAI Conversations API | Hosted history |
+| OpenAIResponsesCompactionSession | `agents` | Wrapper | Long conversations |
+| MongoDBSession | `agents.extensions.memory` | MongoDB | Document store |
+| DaprSession | `agents.extensions.memory` | Dapr state store | Dapr-based apps |

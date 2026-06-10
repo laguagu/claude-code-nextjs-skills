@@ -2,7 +2,7 @@
 
 ## Input Guardrails
 
-Validate and filter input before the agent processes it:
+Validate and filter input before the agent processes it. Note: input guardrails run in parallel with the agent by default (`run_in_parallel=True`); pass `run_in_parallel=False` for a strict pre-check that blocks before the agent starts.
 
 ```python
 from agents import Agent, Runner, input_guardrail
@@ -28,7 +28,7 @@ async def check_length(
             tripwire_triggered=True,
             output_info="Input too long (max 10000 characters)",
         )
-    return GuardrailFunctionOutput(tripwire_triggered=False)
+    return GuardrailFunctionOutput(output_info=None, tripwire_triggered=False)
 
 agent = Agent(
     name="SafeAgent",
@@ -62,7 +62,7 @@ async def check_no_pii(
             tripwire_triggered=True,
             output_info="Output contains potential PII",
         )
-    return GuardrailFunctionOutput(tripwire_triggered=False)
+    return GuardrailFunctionOutput(output_info=None, tripwire_triggered=False)
 
 agent = Agent(
     name="PIISafeAgent",
@@ -89,7 +89,7 @@ async def check_user_permissions(
             tripwire_triggered=True,
             output_info="Admin access not permitted for your role",
         )
-    return GuardrailFunctionOutput(tripwire_triggered=False)
+    return GuardrailFunctionOutput(output_info=None, tripwire_triggered=False)
 
 agent = Agent(
     name="RoleBasedAgent",
@@ -108,30 +108,28 @@ result = await Runner.run(
 
 ## Tool Guardrails
 
-Validate tool inputs before execution:
+Validate tool inputs before execution with `@tool_input_guardrail` (and tool results with `@tool_output_guardrail`). The function receives a single `data` argument; tool arguments are at `data.context.tool_arguments`. Return `ToolGuardrailFunctionOutput` via its classmethods: `.allow()`, `.reject_content(message=...)`, or `.raise_exception()`.
 
 ```python
-from agents import function_tool, tool_guardrail
-from agents import ToolGuardrailFunctionOutput, RunContextWrapper
+from agents import function_tool, tool_input_guardrail
+from agents import ToolGuardrailFunctionOutput, ToolInputGuardrailData
 from typing import Annotated
 
-@tool_guardrail
-async def validate_file_path(
-    ctx: RunContextWrapper, agent: Agent, tool_input: dict
-) -> ToolGuardrailFunctionOutput:
-    path = tool_input.get("file_path", "")
+@tool_input_guardrail
+def validate_file_path(data: ToolInputGuardrailData) -> ToolGuardrailFunctionOutput:
+    path = str(data.context.tool_arguments.get("file_path", ""))
 
     # Block access to sensitive directories
     forbidden = ["/etc", "/root", "~/.ssh"]
     for forbidden_path in forbidden:
         if path.startswith(forbidden_path):
-            return ToolGuardrailFunctionOutput(
-                tripwire_triggered=True,
-                output_info=f"Access to {forbidden_path} not allowed",
+            return ToolGuardrailFunctionOutput.reject_content(
+                message=f"Access to {forbidden_path} not allowed",
+                output_info={"blocked_path": path},
             )
-    return ToolGuardrailFunctionOutput(tripwire_triggered=False)
+    return ToolGuardrailFunctionOutput.allow()
 
-@function_tool(guardrails=[validate_file_path])
+@function_tool(tool_input_guardrails=[validate_file_path])
 def read_file(file_path: Annotated[str, "Path to file"]) -> str:
     """Read contents of a file."""
     with open(file_path) as f:
@@ -152,7 +150,7 @@ agent = Agent(
 try:
     result = await Runner.run(agent, "Some bad_word input")
 except InputGuardrailTripwireTriggered as e:
-    print(f"Input blocked: {e.guardrail_result.output_info}")
+    print(f"Input blocked: {e.guardrail_result.output.output_info}")
 ```
 
 ## GuardrailFunctionOutput Fields

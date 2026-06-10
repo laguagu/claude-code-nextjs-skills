@@ -304,7 +304,7 @@ Sitemap: https://your-site.com/sitemap.xml
 1. **Don't block CSS/JS** - Google needs them for rendering
 2. **Don't block sitemap** - Never disallow `/sitemap.xml`
 3. **Use specific paths** - `/admin/` instead of broad blocks
-4. **Test before deploy** - Use Google Search Console robots.txt tester
+4. **Test before deploy** - Use the Search Console robots.txt report (Settings → robots.txt) and the URL Inspection tool
 
 ### `MetadataRoute.Robots` fields
 

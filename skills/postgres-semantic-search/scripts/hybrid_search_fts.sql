@@ -55,17 +55,17 @@ BEGIN
             d.metadata,
             ROW_NUMBER() OVER (
                 ORDER BY ts_rank_cd(
-                    to_tsvector(fts_language, unaccent(d.content)),
-                    plainto_tsquery(fts_language, unaccent(query_text))
+                    to_tsvector(fts_language::regconfig, unaccent(d.content)),
+                    plainto_tsquery(fts_language::regconfig, unaccent(query_text))
                 ) DESC
             )::INTEGER AS rank
         FROM documents d
         WHERE v_has_text
-          AND to_tsvector(fts_language, unaccent(d.content))
-              @@ plainto_tsquery(fts_language, unaccent(query_text))
+          AND to_tsvector(fts_language::regconfig, unaccent(d.content))
+              @@ plainto_tsquery(fts_language::regconfig, unaccent(query_text))
         ORDER BY ts_rank_cd(
-            to_tsvector(fts_language, unaccent(d.content)),
-            plainto_tsquery(fts_language, unaccent(query_text))
+            to_tsvector(fts_language::regconfig, unaccent(d.content)),
+            plainto_tsquery(fts_language::regconfig, unaccent(query_text))
         ) DESC
         LIMIT match_count * 3
     ),
@@ -140,12 +140,12 @@ BEGIN
         SELECT
             d.id,
             ts_rank_cd(
-                to_tsvector(fts_language, unaccent(d.content)),
-                plainto_tsquery(fts_language, unaccent(query_text))
+                to_tsvector(fts_language::regconfig, unaccent(d.content)),
+                plainto_tsquery(fts_language::regconfig, unaccent(query_text))
             )::FLOAT AS score
         FROM documents d
-        WHERE to_tsvector(fts_language, unaccent(d.content))
-              @@ plainto_tsquery(fts_language, unaccent(query_text))
+        WHERE to_tsvector(fts_language::regconfig, unaccent(d.content))
+              @@ plainto_tsquery(fts_language::regconfig, unaccent(query_text))
     ),
     -- Normalize keyword scores to 0-1 range
     keyword_normalized AS (
@@ -226,12 +226,12 @@ BEGIN
             d.metadata,
             'keyword'::TEXT AS search_type,
             ts_rank_cd(
-                to_tsvector(fts_language, unaccent(d.content)),
-                plainto_tsquery(fts_language, unaccent(query_text))
+                to_tsvector(fts_language::regconfig, unaccent(d.content)),
+                plainto_tsquery(fts_language::regconfig, unaccent(query_text))
             )::FLOAT AS score
         FROM documents d
-        WHERE to_tsvector(fts_language, unaccent(d.content))
-              @@ plainto_tsquery(fts_language, unaccent(query_text))
+        WHERE to_tsvector(fts_language::regconfig, unaccent(d.content))
+              @@ plainto_tsquery(fts_language::regconfig, unaccent(query_text))
         ORDER BY score DESC
         LIMIT match_count;
         RETURN;

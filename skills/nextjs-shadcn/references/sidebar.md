@@ -33,7 +33,6 @@ import { AppSidebar } from "@/components/layout/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarRail,
 } from "@/components/ui/sidebar"
 
 export default function DashboardLayout({
@@ -44,7 +43,6 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarRail />
       <SidebarInset>{children}</SidebarInset>
     </SidebarProvider>
   )
@@ -85,6 +83,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { NAV_GROUPS, FOOTER_NAV_ITEMS } from "./nav"
@@ -145,6 +144,8 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   )
 }
@@ -190,7 +191,7 @@ export const FOOTER_NAV_ITEMS: NavItem[] = [
 
 | Variant | Description |
 |---------|-------------|
-| `default` | Standard sidebar |
+| `sidebar` | Standard sidebar (default) |
 | `inset` | Sidebar with padding, content area has rounded corners |
 | `floating` | Sidebar floats over content |
 

@@ -46,7 +46,7 @@ const { output } = await generateText({
 });
 ```
 
-Output types: `Output.object()`, `Output.array()`, `Output.choice()`, `Output.json()`
+Output types: `Output.object()`, `Output.array()`, `Output.choice()`, `Output.json()`, `Output.text()` (default)
 
 ### Agent Class (v6 Key Feature)
 
@@ -74,7 +74,7 @@ const myAgent = new ToolLoopAgent({
 
 // Usage
 const { text } = await myAgent.generate({ prompt: "Hello" });
-const stream = myAgent.stream({ prompt: "Hello" });
+const stream = await myAgent.stream({ prompt: "Hello" });
 ```
 
 ### API Route with Agent
@@ -104,7 +104,7 @@ return createAgentUIStreamResponse({
   uiMessages: messages,
   experimental_transform: smoothStream({
     delayInMs: 15,
-    chunking: "word", // "word" | "line" | "none"
+    chunking: "word", // "word" | "line" | RegExp | Intl.Segmenter | callback
   }),
 });
 ```
@@ -166,6 +166,7 @@ For detailed information, see:
 - [agents.md](references/agents.md) - ToolLoopAgent, loop control, workflows
 - [core-functions.md](references/core-functions.md) - generateText, streamText, Output patterns
 - [tools.md](references/tools.md) - Tool definition with Zod schemas
+- [workflows.md](references/workflows.md) - Sequential, parallel, routing, and orchestrator-worker patterns
 - [ui-hooks.md](references/ui-hooks.md) - useChat, UIMessage, streaming
 - [middleware.md](references/middleware.md) - Custom middleware patterns
 - [mcp.md](references/mcp.md) - MCP server integration

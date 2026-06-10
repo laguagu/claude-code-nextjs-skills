@@ -123,6 +123,13 @@ export default async function Page({
 - **Server Actions** = ONLY for mutations (create, update, delete)
 - **Data fetching** = In Server Components or `'use cache'` functions
 
+`"use cache"` (and `cacheTag`/`cacheLife`/`updateTag`) requires the Cache Components opt-in flag — Next.js 16 does not enable it by default:
+
+```ts
+// next.config.ts
+const nextConfig = { cacheComponents: true }
+```
+
 ```tsx
 // ❌ WRONG: Server Action for data fetching
 "use server"
@@ -182,6 +189,7 @@ export async function createPost(formData: FormData) {
 
   await db.insert(posts).values(parsed);
   updateTag("posts"); // Read-your-writes
+  // Or SWR-style revalidation: revalidateTag("posts", "max")
 }
 ```
 

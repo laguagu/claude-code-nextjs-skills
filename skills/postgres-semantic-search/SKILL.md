@@ -91,10 +91,10 @@ embedding <#> query  -- Negative inner product
 SELECT * FROM docs ORDER BY embedding <=> $1 LIMIT 10;
 
 -- With similarity score
-SELECT *, 1 - (embedding <=> $1) AS similarity FROM docs ORDER BY 2 DESC LIMIT 10;
+SELECT *, 1 - (embedding <=> $1) AS similarity FROM docs ORDER BY embedding <=> $1 LIMIT 10;
 
 -- With threshold (parenthesize the distance — keeps it clear and precedence-safe)
-SELECT * FROM docs WHERE (embedding <=> $1) < 0.3 ORDER BY 1 LIMIT 10;
+SELECT * FROM docs WHERE (embedding <=> $1) < 0.3 ORDER BY embedding <=> $1 LIMIT 10;
 
 -- Preload index (run on startup)
 SELECT 1 FROM docs ORDER BY embedding <=> $1 LIMIT 1;
@@ -298,6 +298,7 @@ When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 - [hybrid_search_bm25.sql](scripts/hybrid_search_bm25.sql) - BM25 hybrid functions
 - [fuzzy_search.sql](scripts/fuzzy_search.sql) - pg_trgm fuzzy search, autocomplete, weighted FTS
 - [indexes.sql](scripts/indexes.sql) - Index creation scripts
+- [embeddings.ts](scripts/embeddings.ts) - Embedding generation helpers (TypeScript)
 
 ## Common Patterns
 
@@ -373,7 +374,7 @@ For ParadeDB-specific questions, always apply the Documentation Fetch Policy in 
 - [PostgreSQL FTS](https://www.postgresql.org/docs/current/textsearch.html) - Built-in full-text search
 
 ### Embedding providers
-- [OpenAI Embeddings](https://platform.openai.com/docs/guides/embeddings) - model list + dimensions
+- [OpenAI Embeddings](https://developers.openai.com/api/docs/guides/embeddings) - model list + dimensions
 - [Voyage Embeddings](https://docs.voyageai.com/docs/embeddings) - includes multilingual model
 - [Cohere Embed](https://docs.cohere.com/docs/embeddings) - model list
 - [HuggingFace Hub](https://huggingface.co/models?pipeline_tag=sentence-similarity) - open-weight embeddings
@@ -386,5 +387,5 @@ For ParadeDB-specific questions, always apply the Documentation Fetch Policy in 
 
 ### Hosting / extensions
 - [Supabase Vector Guide](https://supabase.com/docs/guides/ai/vector-columns) - Supabase-specific integration
-- [ParadeDB pg_search](https://docs.paradedb.com/documentation/getting-started/quickstart) - BM25 extension documentation
+- [ParadeDB pg_search](https://docs.paradedb.com/documentation/getting-started/install) - BM25 extension documentation
 - [ParadeDB AI Docs](https://docs.paradedb.com/llms-full.txt) - Fetch for latest ParadeDB API (always current)

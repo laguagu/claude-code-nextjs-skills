@@ -1,6 +1,11 @@
 -- Hybrid Search with pg_search BM25 + RRF
 -- Requires: CREATE EXTENSION pg_search;
 
+-- NOTE (pg_search API versions): since pg_search 0.20.0 the v2 operator API
+-- is the default (`|||`, `&&&`, `###`, `===`, `pdb.score()`, `pdb.snippet()`).
+-- The legacy `@@@` + `paradedb.*` functions used in the functions below still
+-- work but are slated for removal — prefer the v2 syntax in new code.
+
 -- ===========================================
 -- 1. SETUP BM25 INDEX
 -- ===========================================
@@ -9,16 +14,7 @@
 -- Run this AFTER creating the documents table
 
 /*
--- Option A: Using paradedb.create_bm25 (pg_search)
-CALL paradedb.create_bm25(
-    index_name => 'documents_bm25',
-    table_name => 'documents',
-    key_field => 'id',
-    text_fields => paradedb.field('content') ||
-                   paradedb.field('title', tokenizer => paradedb.tokenizer('default'))
-);
-
--- Option B: Using native BM25 index syntax (pg_search 0.20+)
+-- Native BM25 index syntax (CALL paradedb.create_bm25 has been removed from pg_search)
 CREATE INDEX documents_bm25_idx ON documents
 USING bm25 (id, content, title)
 WITH (key_field = 'id');
@@ -319,12 +315,9 @@ $$;
 
 /*
 -- First, create BM25 index
-CALL paradedb.create_bm25(
-    index_name => 'documents_bm25',
-    table_name => 'documents',
-    key_field => 'id',
-    text_fields => paradedb.field('content')
-);
+CREATE INDEX documents_bm25_idx ON documents
+USING bm25 (id, content)
+WITH (key_field = 'id');
 
 -- Basic hybrid search
 SELECT * FROM hybrid_search_bm25(

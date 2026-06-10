@@ -32,8 +32,8 @@ CREATE INDEX IF NOT EXISTS documents_embedding_halfvec_idx
 ON documents USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops)
 WITH (m = 24, ef_construction = 100);
 
--- Set query-time search depth
-ALTER INDEX documents_embedding_halfvec_idx SET (ef_search = 80);
+-- Set query-time search depth (session GUC, applies to all HNSW indexes)
+SET hnsw.ef_search = 80;
 */
 
 -- ===========================================

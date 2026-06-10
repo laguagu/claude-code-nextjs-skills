@@ -97,7 +97,7 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 | PageSpeed Insights | Core Web Vitals | pagespeed.web.dev |
 | Rich Results Test | Structured data | search.google.com/test/rich-results |
 | Lighthouse | Overall audit | Chrome DevTools |
-| Mobile-Friendly Test | Mobile usability | search.google.com/test/mobile-friendly |
+| Chrome DevTools device emulation | Mobile usability | Chrome DevTools (Google's Mobile-Friendly Test was retired Dec 2023) |
 | Ahrefs/Semrush | Backlinks, rankings | ahrefs.com / semrush.com |
 
 ## Quick Commands

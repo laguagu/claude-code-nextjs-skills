@@ -19,16 +19,17 @@ async for event in result.stream_events():
 ## Stream Items
 
 ```python
-from agents import Agent, Runner
+from agents import Agent, Runner, ItemHelpers
 
 agent = Agent(name="Assistant", instructions="Be helpful.")
 
 result = Runner.run_streamed(agent, input="Tell me about Python")
 
-async for item in result.stream_items():
-    print(f"Item type: {item.type}")
-    if hasattr(item, "text"):
-        print(f"Text: {item.text}")
+async for event in result.stream_events():
+    if event.type == "run_item_stream_event":
+        print(f"Item type: {event.item.type}")
+        if event.item.type == "message_output_item":
+            print(f"Text: {ItemHelpers.text_message_output(event.item)}")
 ```
 
 ## SSE Streaming with FastAPI
@@ -106,7 +107,7 @@ async def check_input(
             tripwire_triggered=True,
             output_info="Inappropriate content",
         )
-    return GuardrailFunctionOutput(tripwire_triggered=False)
+    return GuardrailFunctionOutput(output_info=None, tripwire_triggered=False)
 
 agent = Agent(
     name="SafeBot",
@@ -134,7 +135,6 @@ async for event in result.stream_events():
         if isinstance(event.data, ResponseTextDeltaEvent):
             print(event.data.delta, end="")
 
-# Then get full result
-final_result = await result.final_result()
-print(f"\n\nFull output: {final_result.final_output}")
+# Once the stream is consumed, final_output is populated
+print(f"\n\nFull output: {result.final_output}")
 ```

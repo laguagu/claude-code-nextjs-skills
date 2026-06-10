@@ -124,13 +124,22 @@ orchestrator = Agent(
 
 Control what messages are passed during handoff:
 
+An input filter receives and returns `HandoffInputData` (fields: `input_history`, `pre_handoff_items`, `new_items`):
+
 ```python
 from agents import Agent, handoff
-from agents import TResponseInputItem
+from agents.handoffs import HandoffInputData
 
-def filter_messages(messages: list[TResponseInputItem]) -> list[TResponseInputItem]:
-    # Only keep last 5 messages
-    return messages[-5:]
+def filter_messages(data: HandoffInputData) -> HandoffInputData:
+    # Only keep last 5 items of the input history
+    history = data.input_history
+    if isinstance(history, tuple):
+        history = history[-5:]
+    return HandoffInputData(
+        input_history=history,
+        pre_handoff_items=data.pre_handoff_items,
+        new_items=data.new_items,
+    )
 
 specialist = Agent(
     name="Specialist",
@@ -148,3 +157,5 @@ agent = Agent(
     ],
 )
 ```
+
+Ready-made filters are available in `agents.extensions.handoff_filters`, e.g. `handoff_filters.remove_all_tools` to strip tool calls from the handed-off history.

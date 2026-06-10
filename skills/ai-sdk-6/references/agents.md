@@ -52,7 +52,7 @@ const { text, toolCalls } = await myAgent.generate({
 });
 
 // Streaming
-const stream = myAgent.stream({
+const stream = await myAgent.stream({
   prompt: "Tell me a story",
 });
 

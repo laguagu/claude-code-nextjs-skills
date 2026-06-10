@@ -53,10 +53,23 @@ agent = Agent(
     instructions="Search the web and analyze data.",
     tools=[
         WebSearchTool(user_location={"type": "approximate", "city": "Helsinki"}),
-        CodeInterpreterTool(),
+        CodeInterpreterTool(tool_config={"type": "code_interpreter", "container": {"type": "auto"}}),
     ],
 )
 ```
+
+Hosted tools (run on OpenAI's servers):
+- `WebSearchTool` - web search
+- `FileSearchTool` - retrieval from OpenAI vector stores
+- `CodeInterpreterTool` - sandboxed code execution (requires `tool_config`)
+- `HostedMCPTool` - remote MCP server tools
+- `ImageGenerationTool` - image generation
+
+Local runtime tools (execute on your machine):
+- `ComputerTool` - computer use / GUI automation
+- `ShellTool` - shell command execution
+- `LocalShellTool` - local shell commands
+- `ApplyPatchTool` - apply file patches
 
 ## Agents as Tools
 
@@ -95,23 +108,20 @@ result = await Runner.run(orchestrator, "Translate 'hello' to Spanish and French
 
 ## Tool Guardrails
 
+Use `@tool_input_guardrail` / `@tool_output_guardrail` and attach via `tool_input_guardrails=` / `tool_output_guardrails=` on `@function_tool`. Return `ToolGuardrailFunctionOutput` via `.allow()`, `.reject_content(message=...)`, or `.raise_exception()`.
+
 ```python
-from agents import Agent, function_tool, tool_guardrail
-from agents import ToolGuardrailFunctionOutput, RunContextWrapper
+from agents import function_tool, tool_input_guardrail
+from agents import ToolGuardrailFunctionOutput, ToolInputGuardrailData
 
-@tool_guardrail
-async def validate_query(
-    ctx: RunContextWrapper, agent: Agent, tool_input: dict
-) -> ToolGuardrailFunctionOutput:
-    query = tool_input.get("query", "")
+@tool_input_guardrail
+def validate_query(data: ToolInputGuardrailData) -> ToolGuardrailFunctionOutput:
+    query = str(data.context.tool_arguments.get("query", ""))
     if len(query) < 3:
-        return ToolGuardrailFunctionOutput(
-            tripwire_triggered=True,
-            output_info="Query too short",
-        )
-    return ToolGuardrailFunctionOutput(tripwire_triggered=False)
+        return ToolGuardrailFunctionOutput.reject_content(message="Query too short")
+    return ToolGuardrailFunctionOutput.allow()
 
-@function_tool(guardrails=[validate_query])
+@function_tool(tool_input_guardrails=[validate_query])
 def search(query: Annotated[str, "Search query"]) -> list[str]:
     """Search for items."""
     return ["result1", "result2"]

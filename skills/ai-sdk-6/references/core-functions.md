@@ -91,9 +91,9 @@ const result = streamText({
   model: anthropic("claude-sonnet-4-6"),
   prompt: "Hello",
   onChunk: ({ chunk }) => {
-    // chunk types: 'text', 'reasoning', 'source', 'tool-call',
-    // 'tool-call-streaming-start', 'tool-call-delta', 'tool-result'
-    if (chunk.type === "text") {
+    // chunk types: 'text-delta', 'reasoning-delta', 'source', 'tool-call',
+    // 'tool-input-start', 'tool-input-delta', 'tool-result', 'raw'
+    if (chunk.type === "text-delta") {
       console.log("Text:", chunk.text);
     }
   },
@@ -316,7 +316,7 @@ All core functions support these options:
   prepareStep: ({ steps, stepNumber }) => ({ ... }),
 
   // Structured output (v6)
-  output: Output.object({ schema }) | Output.array({ element }) | Output.choice({ options }),
+  output: Output.object({ schema }) | Output.array({ element }) | Output.choice({ options }) | Output.text(),
 
   // Provider options
   providerOptions: {

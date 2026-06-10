@@ -104,7 +104,7 @@ Navigate to: **Indexing > Pages**
 
 ### JavaScript Rendering Problems
 
-**Symptom:** Content missing in Google's cached version.
+**Symptom:** Content missing in URL Inspection → View Crawled Page rendered HTML.
 
 **Solutions:**
 1. Use SSR/SSG instead of CSR for SEO content

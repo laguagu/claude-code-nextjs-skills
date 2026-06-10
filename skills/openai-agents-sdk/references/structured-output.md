@@ -24,7 +24,7 @@ agent = Agent(
     model=get_model(),
     model_settings=ModelSettings(
         max_tokens=64000,
-        # Reasoning effort: "none", "low", "medium", "high"
+        # Reasoning effort: "none", "minimal", "low", "medium", "high", "xhigh"
         reasoning=Reasoning(effort="low"),
     ),
     # strict_json_schema=True forces LLM to return valid JSON
@@ -36,7 +36,7 @@ output: ProductSelectionOutput = result.final_output
 
 # Use the result
 for product in output.products:
-    print(f"{product.name}: {product.score} - {product.relevance_reason}")
+    print(f"{product.name}: {product.match_score} - {product.relevance_reason}")
 ```
 
 ## Simple Output Type

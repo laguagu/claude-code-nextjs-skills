@@ -257,14 +257,15 @@ Do **not** implement these for SERP rich results — Google no longer renders th
 
 - **FAQ** — removed for all sites as of 2026-05-07.
 - **HowTo** — deprecated September 2023.
-- The 7 features Google retired in 2025:
-  - Book Actions
+- The 6 features Google retired in 2025 (Book Actions was initially on this list but was un-deprecated in June 2025 — it remains limited to large book providers):
   - Course Info
   - Claim Review / Fact Check
   - Estimated Salary
   - Learning Video
   - Special Announcement
   - Vehicle Listing
+- **Practice Problems** — deprecated June 2025; support fully removed January 2026.
+- **Dataset** markup is only used by [Dataset Search](https://datasetsearch.research.google.com/), not Google Search results (clarified November 2025).
 
 You may still emit some of these as machine-readable signals (e.g. for AI / LLM extraction), but expect zero visible SERP enhancement from Google.
 

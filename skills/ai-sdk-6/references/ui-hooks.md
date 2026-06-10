@@ -250,7 +250,6 @@ type SourceUrlUIPart = {
 // Step boundaries (multi-step)
 type StepStartUIPart = {
   type: "step-start";
-  stepId: string;
 };
 ```
 

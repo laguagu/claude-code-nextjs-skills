@@ -358,6 +358,6 @@ Streaming metadata is an advanced feature — **the default is correct for almos
 2. **Use title templates** - Consistent branding across pages
 3. **Write unique descriptions** - Each page needs unique description
 4. **Include canonical URLs** - Prevent duplicate content issues
-5. **Test with validators** - Use Facebook Debugger, Twitter Card Validator
+5. **Test with validators** - Use the Facebook Sharing Debugger; for X, preview in the post composer or use a third-party OG preview tool (e.g. opengraph.xyz)
 6. **Don't mix static and dynamic** - Use either `metadata` object or `generateMetadata` in the **same route segment** (a layout can use static metadata while its child page uses `generateMetadata`)
 7. **`themeColor`/`colorScheme`/`viewport` are deprecated inside `metadata`** - use the separate `export const viewport` (see above)

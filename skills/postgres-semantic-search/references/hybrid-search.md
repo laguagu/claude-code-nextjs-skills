@@ -120,13 +120,10 @@ Better ranking than ts_rank. Requires `pg_search` extension.
 -- Install
 CREATE EXTENSION pg_search;
 
--- Create BM25 index
-CALL paradedb.create_bm25(
-    index_name => 'documents_bm25',
-    table_name => 'documents',
-    key_field => 'id',
-    text_fields => paradedb.field('content')
-);
+-- Create BM25 index (CALL paradedb.create_bm25 has been removed from pg_search)
+CREATE INDEX documents_bm25_idx ON documents
+USING bm25 (id, content)
+WITH (key_field = 'id');
 
 -- Search
 SELECT id, paradedb.score(id) AS score

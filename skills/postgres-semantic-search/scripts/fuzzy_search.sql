@@ -52,8 +52,11 @@ LANGUAGE sql STABLE AS $$
             similarity(d.content, query_text)
         ) AS best_similarity
     FROM documents d
-    WHERE d.title % query_text
-       OR d.content % query_text
+    WHERE (d.title % query_text OR d.content % query_text)
+      AND GREATEST(
+            similarity(d.title, query_text),
+            similarity(d.content, query_text)
+          ) > similarity_threshold
     ORDER BY best_similarity DESC
     LIMIT max_results;
 $$;

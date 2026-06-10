@@ -144,7 +144,12 @@ export default async function Page() {
 
 ### Cached Data Function
 
-Use `'use cache'` for reusable cached queries:
+Use `'use cache'` for reusable cached queries. `"use cache"` (and `cacheTag`/`cacheLife`/`updateTag`) requires the Cache Components opt-in flag — Next.js 16 does not enable it by default:
+
+```ts
+// next.config.ts
+const nextConfig = { cacheComponents: true }
+```
 
 ```tsx
 // data/products.ts
@@ -449,11 +454,9 @@ Replaces middleware for request interception. Place at project root (same level 
 // proxy.ts (project root)
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { cookies } from "next/headers"
 
 export async function proxy(request: NextRequest) {
-  const cookieStore = await cookies()
-  const session = cookieStore.get("session")
+  const session = request.cookies.get("session")
 
   if (!session && request.nextUrl.pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/login", request.url))

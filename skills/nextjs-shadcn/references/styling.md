@@ -11,28 +11,31 @@ shadcn generates base variables automatically based on your chosen preset. Custo
 
 /* Note: Tailwind v3 projects use @tailwind base; @tailwind components; @tailwind utilities; instead */
 
-@layer base {
-  :root {
-    /* shadcn base variables come from preset */
-    --background: ...;
-    --foreground: ...;
-    --primary: ...;
-    --secondary: ...;
-    /* etc. */
+/* :root and .dark live OUTSIDE @layer base and hold full color values (OKLCH preferred) */
+:root {
+  /* shadcn base variables come from preset */
+  --background: ...;
+  --foreground: ...;
+  --primary: ...;
+  --secondary: ...;
+  /* etc. */
 
-    /* Add your own variables as needed */
-    --brand: 220 90% 56%;
-    --brand-foreground: 0 0% 100%;
-    --accent-2: 160 60% 45%;
-  }
+  /* Add your own variables as needed */
+  --brand: oklch(0.55 0.2 260);
+}
 
-  .dark {
-    /* Dark mode variants */
-  }
+.dark {
+  --brand: oklch(0.7 0.18 260);
+}
+
+@theme inline {
+  --color-brand: var(--brand);
 }
 ```
 
-**Choose preset**: Use [ui.shadcn.com/create](https://ui.shadcn.com/create) to select named style (vega, nova, maia, lyra, mira, luma, sera), base color, font, icon library, and radius. The customizer outputs a single preset code that encodes all choices.
+The `@theme inline` mapping is what makes the `bg-brand` / `text-brand` utilities work — a variable without it generates no utility.
+
+**Choose preset**: Use [ui.shadcn.com/create](https://ui.shadcn.com/create) to select named style (vega, nova, maia, lyra, mira, luma, sera, rhea), base color, font, icon library, and radius. The customizer outputs a single preset code that encodes all choices.
 
 ### Theme Customization
 
@@ -86,6 +89,9 @@ Available styles at ui.shadcn.com/create:
 | maia | Soft and rounded, with generous spacing |
 | lyra | Boxy and sharp. Pairs well with mono fonts |
 | mira | Compact. Made for dense interfaces |
+| luma | Newer official style — see ui.shadcn.com/create |
+| sera | Newer official style — see ui.shadcn.com/create |
+| rhea | A more compact Luma. Tighter spacing, smaller controls, denser surfaces — built for focused product interfaces |
 
 ### Fonts
 
@@ -358,7 +364,7 @@ export function GridBackground({
       <div
         className={cn(
           "absolute inset-0 -z-10",
-          "[background-image:linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)]"
+          "[background-image:linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)]"
         )}
         style={{ backgroundSize: `${size}px ${size}px` }}
       />
@@ -384,7 +390,7 @@ export function DotBackground({
         className={cn(
           "absolute inset-0 -z-10",
           "[background-size:20px_20px]",
-          "[background-image:radial-gradient(hsl(var(--muted-foreground)/0.3)_1px,transparent_1px)]"
+          "[background-image:radial-gradient(color-mix(in_oklab,var(--muted-foreground)_30%,transparent)_1px,transparent_1px)]"
         )}
       />
       {children}
@@ -403,7 +409,7 @@ export function GradientHero({ children }: { children: React.ReactNode }) {
         aria-hidden
         className="fixed inset-0 -z-10"
         style={{
-          background: "radial-gradient(125% 125% at 50% 10%, hsl(var(--background)) 40%, hsl(var(--primary)) 100%)"
+          background: "radial-gradient(125% 125% at 50% 10%, var(--background) 40%, var(--primary) 100%)"
         }}
       />
       {children}
@@ -447,7 +453,7 @@ export function Spotlight({ className }: { className?: string }) {
         className="absolute top-0 left-1/2 h-[60vh] w-[80vw] -translate-x-1/2 rounded-full opacity-20 blur-3xl"
         style={{
           background:
-            "radial-gradient(ellipse, hsl(var(--primary) / 0.3), transparent 70%)",
+            "radial-gradient(ellipse, color-mix(in oklab, var(--primary) 30%, transparent), transparent 70%)",
         }}
         animate={{ x: ["-10%", "10%", "-10%"] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -534,13 +540,9 @@ Hide scrollbar while preserving scroll functionality:
 bun add tailwind-scrollbar-hide
 ```
 
-```ts
-// tailwind.config.ts
-import scrollbarHide from "tailwind-scrollbar-hide"
-
-export default {
-  plugins: [scrollbarHide],
-}
+```css
+/* globals.css (Tailwind v4 — no config file needed) */
+@import "tailwind-scrollbar-hide/v4";
 ```
 
 ```tsx
