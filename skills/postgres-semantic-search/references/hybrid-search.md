@@ -116,6 +116,8 @@ phrase hits. See `prefix_tsquery` definition in the main SKILL.md.
 
 Better ranking than ts_rank. Requires `pg_search` extension.
 
+> **pg_search API note:** since pg_search 0.20.0 the v2 operator API is the default (`|||`, `&&&`, `###`, `===`, `pdb.score()`, `pdb.snippet()`). The legacy `@@@` + `paradedb.*` functions still work but are slated for removal — the example below uses the v2 syntax. See [paradedb.md](paradedb.md) for the full operator reference.
+
 ```sql
 -- Install
 CREATE EXTENSION pg_search;
@@ -125,10 +127,10 @@ CREATE INDEX documents_bm25_idx ON documents
 USING bm25 (id, content)
 WITH (key_field = 'id');
 
--- Search
-SELECT id, paradedb.score(id) AS score
+-- Search (v2 API)
+SELECT id, pdb.score(id) AS score
 FROM documents
-WHERE id @@@ paradedb.match('content', 'search terms')
+WHERE content ||| 'search terms'
 ORDER BY score DESC;
 ```
 

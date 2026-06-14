@@ -50,7 +50,7 @@ import {
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import {
-  Input,
+  PromptInput,
   PromptInputTextarea,
   PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
@@ -121,7 +121,7 @@ const ActionsDemo = () => {
           <ConversationScrollButton />
         </Conversation>
 
-        <Input
+        <PromptInput
           onSubmit={handleSubmit}
           className="mt-4 w-full max-w-2xl mx-auto relative"
         >
@@ -136,7 +136,7 @@ const ActionsDemo = () => {
             disabled={!input.trim()}
             className="absolute bottom-1 right-1"
           />
-        </Input>
+        </PromptInput>
       </div>
     </div>
   );

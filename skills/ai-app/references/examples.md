@@ -447,25 +447,25 @@ export default function AgentPage() {
                       </Message>
                     );
 
-                  case 'tool-invocation':
-                  case 'tool-result':
-                    return (
-                      <Tool key={i}>
-                        <ToolHeader
-                          title={part.toolName}
-                          type={part.type}
-                          state={part.state}
-                        />
-                        <ToolContent>
-                          <ToolInput input={part.input} />
-                          {part.state === 'output-available' && (
-                            <ToolOutput output={part.output} />
-                          )}
-                        </ToolContent>
-                      </Tool>
-                    );
-
                   default:
+                    // Handle typed tool parts (tool-<toolName>)
+                    if (part.type.startsWith('tool-')) {
+                      return (
+                        <Tool key={i}>
+                          <ToolHeader
+                            type={part.type}
+                            state={part.state}
+                          />
+                          <ToolContent>
+                            <ToolInput input={part.input} />
+                            <ToolOutput
+                              output={part.output}
+                              errorText={part.errorText}
+                            />
+                          </ToolContent>
+                        </Tool>
+                      );
+                    }
                     return null;
                 }
               })}

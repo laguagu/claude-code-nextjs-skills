@@ -24,7 +24,7 @@ agent = Agent(
     model=get_model(),
     model_settings=ModelSettings(
         max_tokens=64000,
-        # Reasoning effort: "none", "minimal", "low", "medium", "high", "xhigh"
+        # Reasoning effort: "none", "low", "medium", "high", "xhigh"
         reasoning=Reasoning(effort="low"),
     ),
     # strict_json_schema=True forces LLM to return valid JSON

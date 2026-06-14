@@ -65,7 +65,7 @@ result = await Runner.run(agent, "Tell me a joke")
 | Sessions | Automatic conversation history |
 | Multi-Agent Pipeline | Multi-step workflows |
 | Sandboxing | Isolated execution environment for agents |
-| Subagents | Spawn specialized subordinate agents (Python + TS) |
+| Subagents | Spawn specialized subordinate agents (Python; TS in beta/development) |
 | Observability | Built-in execution graph recording |
 
 ## Preferred: Live Docs via MCP

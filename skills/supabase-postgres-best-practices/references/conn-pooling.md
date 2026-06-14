@@ -38,4 +38,6 @@ Pool modes:
 - **Transaction mode**: connection returned after each transaction (best for most apps)
 - **Session mode**: connection held for entire session (needed for prepared statements, temp tables)
 
+**Supabase note:** Supabase uses [Supavisor](https://supabase.com/docs/guides/database/supavisor) as the shared (default) pooler for every project. PgBouncer is only an optional dedicated pooler on paid plans. Port facts are unchanged: 6543 for transaction mode, 5432 for session mode / direct connections.
+
 Reference: [Connection Pooling](https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pooler)

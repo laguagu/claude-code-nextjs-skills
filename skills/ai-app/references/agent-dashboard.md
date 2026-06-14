@@ -183,7 +183,6 @@ export default function AgentDashboard() {
                         return (
                           <Tool key={i}>
                             <ToolHeader
-                              title={part.toolName}
                               type={part.type}
                               state={part.state}
                             />
@@ -354,7 +353,7 @@ sendMessage(
 
 For sensitive tools that require user confirmation before execution.
 
-In AI SDK, tools requiring approval **omit the `execute` function**. The agent loop pauses when such a tool is called, allowing the client to handle approval.
+In AI SDK 6, tools requiring approval set **`needsApproval: true`** and keep their `execute` function. The agent loop pauses before execution and emits an `approval-requested` state on the typed tool part, allowing the client to handle approval. After the user responds, the loop resumes and `execute` runs (if approved).
 
 ### Agent with Approval Tools
 
@@ -368,14 +367,18 @@ export const adminAgent = new ToolLoopAgent({
   model: anthropic('claude-sonnet-4-6'),
   instructions: 'You are an admin assistant with access to sensitive operations.',
   tools: {
-    // Tool requiring approval - NO execute function
+    // Tool requiring approval - agent loop pauses for approval before execute runs
     deleteFile: tool({
       description: 'Delete a file (requires approval)',
       inputSchema: z.object({
         path: z.string().describe('File path to delete'),
       }),
-      outputSchema: z.string(),
-      // NO execute - agent loop pauses, client handles approval
+      outputSchema: z.object({ success: z.boolean(), message: z.string() }),
+      needsApproval: true,
+      execute: async ({ path }) => {
+        // Runs only AFTER the user approves
+        return { success: true, message: `Deleted ${path}` };
+      },
     }),
     // Tool with automatic execution
     readFile: tool({
@@ -394,11 +397,18 @@ export const adminAgent = new ToolLoopAgent({
 
 ### Approval UI
 
+The pending approval surfaces as a typed tool part (`tool-deleteFile`) with state
+`approval-requested`. Send the decision with `addToolApprovalResponse`, and set
+`sendAutomaticallyWhen` so the conversation resumes once every approval has a response.
+
 ```tsx
 import { useChat } from '@ai-sdk/react';
 import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithApprovalResponses,
+} from 'ai';
+import {
   Confirmation,
-  ConfirmationTitle,
   ConfirmationRequest,
   ConfirmationAccepted,
   ConfirmationRejected,
@@ -407,52 +417,23 @@ import {
 } from '@/components/ai-elements/confirmation';
 
 // In your component:
-const { messages, sendMessage, addToolOutput } = useChat({
+const { messages, sendMessage, addToolApprovalResponse } = useChat({
   transport: new DefaultChatTransport({ api: '/api/chat' }),
+  // Re-sends automatically after every approval/denial has a response
+  sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
 });
 
-// In message parts rendering - check for 'input-available' state
-if (part.type === 'tool-invocation' && part.state === 'input-available') {
+// In message parts rendering - match the typed tool part awaiting approval
+if (part.type === 'tool-deleteFile' && part.state === 'approval-requested' && part.approval) {
   return (
-    <Confirmation key={i} state={part.state}>
-      <ConfirmationTitle>
-        Tool <code>{part.toolName}</code> requires approval
-      </ConfirmationTitle>
+    <Confirmation key={i} approval={part.approval} state={part.state}>
       <ConfirmationRequest>
+        <p className="text-sm text-muted-foreground">
+          Tool <code>deleteFile</code> requires approval
+        </p>
         <p className="text-sm text-muted-foreground">
           Input: {JSON.stringify(part.input)}
         </p>
-        <ConfirmationActions>
-          <ConfirmationAction
-            variant="outline"
-            onClick={() => {
-              addToolOutput({
-                toolCallId: part.toolCallId,
-                output: 'Denied by user',
-              });
-              sendMessage();
-            }}
-          >
-            Deny
-          </ConfirmationAction>
-          <ConfirmationAction
-            onClick={async () => {
-              // Execute the actual operation after approval
-              const result = await fetch('/api/delete-file', {
-                method: 'POST',
-                body: JSON.stringify({ path: part.input.path }),
-              }).then((r) => r.json());
-
-              addToolOutput({
-                toolCallId: part.toolCallId,
-                output: JSON.stringify(result),
-              });
-              sendMessage();
-            }}
-          >
-            Allow
-          </ConfirmationAction>
-        </ConfirmationActions>
       </ConfirmationRequest>
       <ConfirmationAccepted>
         <p className="text-sm text-green-600">Approved</p>
@@ -460,6 +441,23 @@ if (part.type === 'tool-invocation' && part.state === 'input-available') {
       <ConfirmationRejected>
         <p className="text-sm text-red-600">Denied</p>
       </ConfirmationRejected>
+      <ConfirmationActions>
+        <ConfirmationAction
+          variant="outline"
+          onClick={() =>
+            addToolApprovalResponse({ id: part.approval!.id, approved: false })
+          }
+        >
+          Deny
+        </ConfirmationAction>
+        <ConfirmationAction
+          onClick={() =>
+            addToolApprovalResponse({ id: part.approval!.id, approved: true })
+          }
+        >
+          Allow
+        </ConfirmationAction>
+      </ConfirmationActions>
     </Confirmation>
   );
 }

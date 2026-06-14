@@ -105,8 +105,8 @@ Next.js uses **cache handlers** to store and retrieve cached data. The directive
 
 **How variants map to handlers:**
 
-- `'use cache'` → Uses **both** default and remote handlers. Data is cached locally for fast access and remotely for sharing across instances
-- `'use cache: remote'` → Stores the cached output in the **remote** handler instead of in-memory. Durable and shared across all server instances (adds network latency)
+- `'use cache'` → Uses the **default** handler (in-memory by default). Fast, but scoped to a single server instance unless you configure a custom `default` handler
+- `'use cache: remote'` → Opt-in. Stores the cached output in the **remote** handler instead of in-memory. Durable and shared across all server instances (adds network latency)
 
 **When to use each:**
 
@@ -781,12 +781,13 @@ export default nextConfig
 ```typescript
 const nextConfig: NextConfig = {
   cacheHandlers: {
-    default: {
-      maxMemorySize: 52428800, // 50MB
-    },
+    // Each handler is a module path string (use require.resolve)
+    default: require.resolve('./cache-handlers/default-handler.js'),
     // Platform-specific remote handler
-    remote: CustomRemoteHandler,
+    remote: require.resolve('./cache-handlers/remote-handler.js'),
   },
+  // In-memory cache size is a separate top-level option (number of bytes)
+  cacheMaxMemorySize: 52428800, // 50MB
 }
 ```
 
@@ -1399,15 +1400,11 @@ Cache behavior varies depending on your deployment target:
 ```typescript
 // next.config.ts
 const nextConfig: NextConfig = {
-  cacheHandlers: {
-    default: {
-      maxMemorySize: 52428800, // 50MB (default)
-    },
-  },
+  cacheMaxMemorySize: 52428800, // 50MB (default)
 }
 ```
 
-Setting `maxMemorySize: 0` disables in-memory caching entirely, which can be useful when using an external cache handler exclusively.
+Setting `cacheMaxMemorySize: 0` disables in-memory caching entirely, which can be useful when using an external cache handler exclusively.
 
 ---
 

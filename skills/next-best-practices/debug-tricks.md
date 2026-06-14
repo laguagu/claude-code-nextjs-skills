@@ -109,15 +109,18 @@ curl -X POST http://localhost:<port>/_next/mcp \
 
 Use `--debug-build-paths` to rebuild only specific routes instead of the entire app:
 
+The `--debug-build-paths` option takes **file paths** (not route URLs), supports glob patterns, and uses `=` syntax:
+
 ```bash
-# Rebuild a specific route
-next build --debug-build-paths "/dashboard"
+# Build a specific route
+next build --debug-build-paths="app/page.tsx"
 
-# Rebuild routes matching a glob
-next build --debug-build-paths "/api/*"
+# Include route group folders in the path
+next build --debug-build-paths="app/(marketing)/about/page.tsx"
 
-# Dynamic routes
-next build --debug-build-paths "/blog/[slug]"
+# Use glob patterns
+next build --debug-build-paths="app/**/page.tsx"
+next build --debug-build-paths="pages/*.tsx"
 ```
 
 Use this to:

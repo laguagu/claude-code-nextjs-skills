@@ -10,7 +10,7 @@ Opinionated blueprint for production **web** chatbots. Focuses on patterns **not
 ## Stack defaults
 
 - **Runtime:** bun
-- **Model:** `gpt-5.4` with `reasoningEffort: "none"`
+- **Model:** the latest GPT-5.x non-reasoning model with `reasoningEffort: "none"`
 - **AI SDK:** `ai@6` — `ToolLoopAgent`, `createAgentUIStreamResponse`
 - **UI:** shadcn/ui + ai-elements (see `/ai-elements` for component docs)
 - **ORM:** Drizzle + PostgreSQL
