@@ -5,6 +5,10 @@ description: Reference for common AI SDK errors and how to resolve them.
 
 # Common Errors
 
+Start by checking the installed `ai` major version. AI SDK 6 and 7 share many
+symbols, but some migration fixes differ. For v7-specific migration work, prefer
+`ai-sdk-7/references/migration-v6-to-v7.md`.
+
 ## `maxTokens` → `maxOutputTokens`
 
 ```typescript
@@ -23,27 +27,29 @@ const result = await generateText({
 });
 ```
 
-## `maxSteps` → `stopWhen: stepCountIs(n)`
+## `maxSteps` → `stopWhen`
 
 ```typescript
 // ❌ Incorrect
 const result = await generateText({
   model: 'anthropic/claude-opus-4-6',
   tools: { weather },
-  maxSteps: 5, // deprecated: use `stopWhen: stepCountIs(n)` instead
+  maxSteps: 5, // deprecated: use `stopWhen` instead
   prompt: 'What is the weather in NYC?',
 });
 
-// ✅ Correct
-import { generateText, stepCountIs } from 'ai';
+// ✅ Correct in AI SDK 7
+import { generateText, isStepCount } from 'ai';
 
 const result = await generateText({
   model: 'anthropic/claude-opus-4-6',
   tools: { weather },
-  stopWhen: stepCountIs(5),
+  stopWhen: isStepCount(5),
   prompt: 'What is the weather in NYC?',
 });
 ```
+
+For AI SDK 6, the helper is `stepCountIs`. For AI SDK 7, it is `isStepCount`.
 
 ## `parameters` → `inputSchema` (in tool definition)
 
@@ -171,7 +177,9 @@ const result = await generateText({
 
 ## `toDataStreamResponse` → `toUIMessageStreamResponse`
 
-When using `useChat` on the frontend, use `toUIMessageStreamResponse()` instead of `toDataStreamResponse()`. The UI message stream format is designed to work with the chat UI components and handles message state correctly.
+When using `useChat` on the frontend, use UI message streams instead of legacy
+data streams. In AI SDK 6, `toUIMessageStreamResponse()` may be available on the
+stream result. In AI SDK 7, prefer the stateless helpers from `ai`.
 
 ```typescript
 // ❌ Incorrect (when using useChat)
@@ -181,13 +189,57 @@ const result = streamText({
 
 return result.toDataStreamResponse(); // deprecated for useChat: use toUIMessageStreamResponse
 
-// ✅ Correct
+// ✅ AI SDK 6 pattern
 const result = streamText({
   // config
 });
 
 return result.toUIMessageStreamResponse();
 ```
+
+```typescript
+// ✅ AI SDK 7 pattern
+import {
+  createUIMessageStreamResponse,
+  streamText,
+  toUIMessageStream,
+} from 'ai';
+
+const result = streamText({
+  // config
+});
+
+const uiStream = toUIMessageStream({
+  stream: result.stream,
+  originalMessages,
+});
+
+return createUIMessageStreamResponse({ stream: uiStream });
+```
+
+## AI SDK 7 core renames
+
+If a typecheck fails after upgrading to AI SDK 7, search for these common
+renames before inventing a workaround:
+
+- `system` -> `instructions`
+- `fullStream` -> `stream`
+- `experimental_output` -> `output`
+- `onFinish` -> `onEnd`
+- `onStepFinish` -> `onStepEnd`
+- `experimental_onStart` -> `onStart`
+- `experimental_onStepStart` -> `onStepStart`
+- `experimental_telemetry` -> `telemetry`
+- `experimental_include` -> `include`
+- `includeRawChunks` -> `include.rawChunks`
+- `experimental_context` -> `context`
+- `experimental_activeTools` -> `activeTools`
+- `ToolCallOptions` -> `ToolExecutionOptions`
+- `isToolOrDynamicToolUIPart` -> `isToolUIPart`
+- `stepCountIs` -> `isStepCount`
+
+Also check result-shape changes: `result.usage` now covers all steps, while
+`result.finalStep.usage` is the previous final-step-only behavior.
 
 ## Removed managed input state in `useChat`
 
