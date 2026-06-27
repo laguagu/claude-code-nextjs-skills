@@ -13,7 +13,7 @@ wire custom tracing into every model call unless the installed docs require it.
 Install `@ai-sdk/otel` when the project uses OpenTelemetry:
 
 ```bash
-pnpm add @ai-sdk/otel
+bun add @ai-sdk/otel
 ```
 
 Register once:

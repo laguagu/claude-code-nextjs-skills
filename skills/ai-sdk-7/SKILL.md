@@ -29,8 +29,8 @@ AI SDK 7 requires Node.js >=22 and AI SDK packages are ESM-only. Convert
 Use the project's package manager and install only packages needed by the task:
 
 ```bash
-pnpm add ai @ai-sdk/react
-pnpm add @ai-sdk/openai # or the provider already used by the project
+bun add ai @ai-sdk/react
+bun add @ai-sdk/openai # or the provider already used by the project
 ```
 
 For durable agents, add `@ai-sdk/workflow` and `workflow`. For harness agents,

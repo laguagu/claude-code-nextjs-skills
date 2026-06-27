@@ -30,7 +30,7 @@ over model settings, tool loop behavior, structured output, or provider calls.
 Install the core package, one adapter, and a sandbox provider:
 
 ```bash
-pnpm add @ai-sdk/harness @ai-sdk/harness-claude-code @ai-sdk/sandbox-vercel
+bun add @ai-sdk/harness @ai-sdk/harness-claude-code @ai-sdk/sandbox-vercel
 ```
 
 Bridge-backed harnesses such as Claude Code and Codex require a real network
