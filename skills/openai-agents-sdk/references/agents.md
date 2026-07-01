@@ -19,7 +19,13 @@ print(result.final_output)
 result = await Runner.run(agent, "Tell me a joke")
 ```
 
-## Azure OpenAI (LiteLLM)
+## Other Providers (LiteLLM)
+
+`openai-agents` supports non-OpenAI models through [LiteLLM](https://docs.litellm.ai/), which normalizes 100+ providers (Azure, Anthropic, Bedrock, Vertex AI, Ollama, ...) behind one interface. Two integration approaches exist:
+
+### Direct model instantiation
+
+Pass a `litellm/<provider>/<model>` string, or instantiate `LitellmModel` directly (shown here with Azure — swap the prefix for other providers):
 
 ```python
 import os
@@ -27,13 +33,15 @@ from typing import Union
 from agents import Agent, ModelSettings
 from agents.extensions.models.litellm_model import LitellmModel
 
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "azure")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "azure")  # this project's own convention, not SDK-mandated
 MODEL = os.getenv("MODEL", "gpt-5.4")
 
 def get_model() -> Union[str, LitellmModel]:
     """Get model based on provider."""
     if LLM_PROVIDER == "azure":
         # azure/ prefix tells LiteLLM to use Azure endpoint
+        # requires AZURE_API_KEY, AZURE_API_BASE, AZURE_API_VERSION —
+        # see LiteLLM's provider docs below for current names/values, they change over time
         return LitellmModel(model=f"azure/{MODEL}")
     # Direct OpenAI
     return MODEL
@@ -44,6 +52,15 @@ agent = Agent(
     model=get_model(),  # Works with both Azure and OpenAI
 )
 ```
+
+### LiteLLM proxy
+
+Run a LiteLLM proxy server and point the SDK at it through a custom `ModelProvider`, authenticating with `LITELLM_API_KEY` (LiteLLM's own key, not the underlying provider's) against `LITELLM_BASE_URL`. Useful for centralized key management/routing across many providers. See LiteLLM's [OpenAI Agents SDK tutorial](https://docs.litellm.ai/docs/tutorials/openai_agents_sdk) for the full setup — it's a different wiring than direct instantiation above, not an alternative env var naming for the same thing.
+
+### References
+
+- **Provider list & model string prefixes:** https://openai.github.io/openai-agents-python/models/
+- **Per-provider env vars (Azure, Anthropic, Bedrock, ...):** https://docs.litellm.ai/docs/providers
 
 ## Dynamic System Prompt
 

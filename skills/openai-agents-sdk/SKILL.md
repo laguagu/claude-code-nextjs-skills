@@ -19,16 +19,10 @@ pip install openai-agents
 ### Environment Variables
 
 ```bash
-# OpenAI (direct)
 OPENAI_API_KEY=sk-...
-LLM_PROVIDER=openai
-
-# Azure OpenAI (via LiteLLM)
-LLM_PROVIDER=azure
-AZURE_API_KEY=...
-AZURE_API_BASE=https://your-resource.openai.azure.com
-AZURE_API_VERSION=2024-12-01-preview
 ```
+
+Using Azure or another provider instead? See [agents.md](references/agents.md#other-providers-litellm) — don't hardcode provider env vars here, they vary and go stale.
 
 ### Basic Agent
 
@@ -93,7 +87,7 @@ Fallback when MCP is unavailable: `https://developers.openai.com/api/docs/llms.t
 
 Offline/quick-lookup snippets. Verify model names and API signatures against the MCP or docs when accuracy matters.
 
-- [agents.md](references/agents.md) - Agent creation, Azure/LiteLLM integration
+- [agents.md](references/agents.md) - Agent creation, multi-provider setup via LiteLLM
 - [tools.md](references/tools.md) - Function tools, hosted tools, agents as tools
 - [structured-output.md](references/structured-output.md) - Pydantic output, AgentOutputSchema
 - [streaming.md](references/streaming.md) - Streaming patterns, SSE with FastAPI
