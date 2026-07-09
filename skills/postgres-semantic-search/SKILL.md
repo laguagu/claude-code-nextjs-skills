@@ -363,7 +363,7 @@ const results = await db.execute(sql`
 |------|-------|
 | General Postgres performance, indexes, RLS, connection pooling | `/supabase-postgres-best-practices` |
 | Chatbot orchestration, session DB, tool calls, HITL, feedback | `/nextjs-chatbot` |
-| AI SDK v6 usage for embeddings and retrieval | `/ai-sdk-6` |
+| AI SDK usage for embeddings and retrieval | `/ai-sdk` |
 
 For ParadeDB-specific questions, always apply the Documentation Fetch Policy in [references/paradedb.md](references/paradedb.md) — live docs at `https://docs.paradedb.com/llms-full.txt` are the authoritative source.
 

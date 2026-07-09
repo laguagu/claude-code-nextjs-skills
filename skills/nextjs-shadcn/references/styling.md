@@ -117,8 +117,9 @@ Priority order (use first available):
 
 1. **lucide** (default) - `bun add lucide-react`
 2. **tabler** - `bun add @tabler/icons-react`
-3. **hugeicons** - `bun add hugeicons-react`
+3. **hugeicons** - `bun add @hugeicons/react @hugeicons/core-free-icons` (the old `hugeicons-react` package is deprecated)
 4. **phosphor** - `bun add @phosphor-icons/react`
+5. **remix** - `bun add @remixicon/react`
 
 ```tsx
 // lucide example

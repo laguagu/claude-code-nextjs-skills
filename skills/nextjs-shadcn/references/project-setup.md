@@ -102,9 +102,9 @@ project/
 |------|---------|
 | Install deps | `bun install` |
 | Add package | `bun add package` |
-| Dev server | `bun --bun next dev` |
-| Build | `bun --bun next build` |
-| Start prod | `bun --bun next start` |
+| Dev server | `bun run --bun next dev` |
+| Build | `bun run --bun next build` |
+| Start prod | `bun run --bun next start` |
 | Add shadcn component | `bunx --bun shadcn@latest add component` |
 | Create project | `bunx --bun shadcn@latest init -t next` |
 
