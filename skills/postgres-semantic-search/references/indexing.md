@@ -111,7 +111,7 @@ Use for very large datasets where memory is critical.
 
 | Parameter | Recommendation |
 |-----------|---------------|
-| `lists` | `sqrt(rows)` or `rows / 1000` |
+| `lists` | `rows / 1000` for up to 1M rows; `sqrt(rows)` for over 1M rows |
 | `probes` | `sqrt(lists)` at query time |
 
 ```sql

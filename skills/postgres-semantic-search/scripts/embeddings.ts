@@ -68,7 +68,7 @@ export function toPostgresVector(embedding: number[]): string {
  * Parse PostgreSQL vector string to array
  */
 export function fromPostgresVector(pgVector: string): number[] {
-  return JSON.parse(pgVector.replace(/^\[/, '[').replace(/\]$/, ']'));
+  return JSON.parse(pgVector);
 }
 
 // ============================================

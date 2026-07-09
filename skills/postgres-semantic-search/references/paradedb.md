@@ -32,7 +32,7 @@ If `llms-full.txt` cannot be fetched due to DNS/network/access errors:
 
 ---
 
-ParadeDB is a YC S23 company with 400,000+ deployments. Used in production by Alibaba Cloud, Bilt Rewards, and others.
+ParadeDB is a YC S23 company; ParadeDB Community has hundreds of thousands of deployments (check [paradedb.com](https://www.paradedb.com) for the current count — this grows quickly). Used in production by Alibaba Cloud, Bilt Rewards, and others.
 
 ## Why ParadeDB?
 

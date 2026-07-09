@@ -353,7 +353,7 @@ const results = await db.execute(sql`
 
 ## Compatibility
 
-- **pgvector**: 0.8+ recommended (iterative scans, halfvec). Check [pgvector releases](https://github.com/pgvector/pgvector/releases).
+- **pgvector**: 0.8.2+ recommended as the safe floor — 0.7.0 added halfvec/bit/sparsevec, 0.8.0 added iterative scans, but 0.6.0–0.8.1 all carry a parallel-HNSW-build buffer overflow (CVE-2026-3172, CVSS 8.1: leaks data or crashes the server); fixed in 0.8.2. Check [pgvector releases](https://github.com/pgvector/pgvector/releases).
 - **pg_search**: Check [ParadeDB releases](https://github.com/paradedb/paradedb/releases) for latest.
 - **PostgreSQL**: 17+ recommended. pgvector supports 13-18.
 

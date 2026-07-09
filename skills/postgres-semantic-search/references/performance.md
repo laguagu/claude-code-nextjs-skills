@@ -2,20 +2,22 @@
 
 ## HNSW vs IVFFlat Performance
 
-Based on benchmarks with 1M vectors (1536 dimensions):
+Directional only — no specific numbers here. Published benchmarks (Supabase,
+Instaclustr, and others) disagree by an order of magnitude (3x-30x on query
+throughput) depending on dataset, recall target, and tuning, so any single
+pinned figure would be false precision. Benchmark your own workload before
+sizing infrastructure.
 
 | Metric | HNSW | IVFFlat |
 |--------|------|---------|
-| Query throughput | 40.5 QPS | 2.6 QPS |
-| Query latency (p50) | 15ms | 250ms |
-| Query latency (p99) | 45ms | 800ms |
-| Index build time | ~60 min | ~10 min |
+| Query throughput / latency | Higher / lower | Lower / higher |
+| Index build time | Slower | Faster |
 | Index memory | Higher | Lower |
-| Recall@10 | 99.1% | 95.2% |
+| Recall at comparable `ef_search` / `probes` | Higher | Lower |
 
 **Key takeaways:**
-- **HNSW is 15.5x faster** for queries (40.5 vs 2.6 QPS)
-- **IVFFlat builds 6x faster** and uses less memory
+- HNSW wins on query speed and recall; the margin over IVFFlat varies widely by setup — treat it as "meaningfully faster," not a fixed multiplier
+- IVFFlat builds faster and uses less memory
 - For most production workloads, HNSW's query speed advantage outweighs build time
 
 **When to choose IVFFlat:**
