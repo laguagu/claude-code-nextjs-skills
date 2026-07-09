@@ -80,10 +80,10 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 | Skill | Original Source | License |
 |-------|-----------------|---------|
 | [ai-sdk](skills/ai-sdk/) | [vercel/ai](https://github.com/vercel/ai/tree/main/skills) | Apache 2.0 |
-| [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/.claude-plugin/plugins/cache-components/skills/cache-components) | MIT |
+| [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills) | MIT |
 | [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
 | [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
-| [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/next-skills](https://skills.sh/vercel-labs/next-skills/next-best-practices) | - |
+| [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/vercel-plugin](https://skills.sh/vercel-labs/vercel-plugin/next-best-practices) | - |
 | [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/agent-skills](https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices) | MIT |
 | [chrome-devtools](skills/chrome-devtools/) | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills/blob/main/skills/browser-testing-with-devtools/SKILL.md) | - |
@@ -118,13 +118,20 @@ Recommended MCP servers that pair with these skills:
     "chrome-devtools": {
       "command": "npx",
       "args": ["chrome-devtools-mcp@latest"]
+    },
+    "ai-elements": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://registry.ai-sdk.dev/api/mcp"]
     }
   }
 }
 ```
 
+This repo's own [`.mcp.json`](.mcp.json) already wires up `next-devtools` and `ai-elements`; `chrome-devtools` is optional and shown here for reference.
+
 - [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp) — pairs with `next-best-practices`, `e2e-tester`
 - [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) — pairs with `chrome-devtools`, `go`, `e2e-tester`. Install via CLI: `claude mcp add chrome-devtools --scope user npx chrome-devtools-mcp@latest`
+- AI Elements registry MCP — pairs with `ai-elements`, `ai-app`, `nextjs-chatbot`
 
 ## 📚 See Also
 
