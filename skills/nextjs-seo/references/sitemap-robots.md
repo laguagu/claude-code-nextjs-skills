@@ -206,7 +206,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: '/admin/',
+        // RFC 9309: named groups do NOT inherit `*` rules — a crawler obeys only
+        // its most specific matching group, so repeat every disallow here
+        disallow: ['/api/', '/admin/'],
         crawlDelay: 2, // optional; Googlebot ignores crawl-delay, Bing/Yandex honor it
       },
       {

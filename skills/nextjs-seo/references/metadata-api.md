@@ -87,10 +87,11 @@ export const metadata: Metadata = {
     absolute: 'Override All',        // Ignores template
   },
 
-  // Description (150-160 characters recommended)
+  // Description (~150-160 chars is a guideline — Google has no hard limit)
   description: 'Compelling meta description with target keywords',
 
-  // Keywords (less important now, but still used)
+  // Keywords — Google ignores this tag entirely (explicitly unsupported; zero
+  // indexing/ranking effect). Omit it; shown here only because the field exists.
   keywords: ['keyword1', 'keyword2', 'long-tail keyword'],
 
   // Author information
@@ -351,6 +352,20 @@ export default config;
 ```
 
 Streaming metadata is an advanced feature — **the default is correct for almost all cases**, so usually you should not set `htmlLimitedBots` at all.
+
+> ⚠️ **Known Next.js 16.2.x bugs (PPR + streaming metadata):** the PPR shell can
+> be prerendered with the streaming-metadata tree even when streaming is fully
+> disabled, causing resume mismatches ([#93401](https://github.com/vercel/next.js/issues/93401));
+> and with a custom `htmlLimitedBots` pattern, bots outside the built-in list
+> (GoogleOther, GPTBot, AhrefsBot, …) can hit resume errors and receive pages
+> with **no `<title>`, canonical, or description**
+> ([#95406](https://github.com/vercel/next.js/issues/95406)). Until fixed, always
+> verify production HTML with bot User-Agents:
+>
+> ```bash
+> curl -sA "Googlebot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"|name="description"'
+> curl -sA "GPTBot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"'
+> ```
 
 ## Best Practices
 

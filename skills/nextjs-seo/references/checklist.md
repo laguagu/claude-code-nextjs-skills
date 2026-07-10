@@ -9,8 +9,8 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 ### Technical Foundation
 
 - [ ] `metadataBase` set in root layout
-- [ ] Unique `<title>` on every page (50-60 chars)
-- [ ] Unique `meta description` on every page (150-160 chars)
+- [ ] Unique `<title>` on every page (~50-60 chars is a guideline, not a Google limit — titles are truncated by device width, not character count)
+- [ ] Unique `meta description` on every page (~150-160 chars is a guideline — Google has no hard limit and truncates per device/query)
 - [ ] `robots.txt` exists and allows crawling
 - [ ] `sitemap.xml` exists and is valid
 - [ ] Sitemap submitted to Google Search Console
@@ -18,13 +18,13 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 - [ ] Canonical URLs set for all pages
 - [ ] `viewport` exported separately from `metadata`
 - [ ] `favicon.ico` (or `app/icon`) present — appears in Google SERPs and browser tabs
-- [ ] `app/manifest.ts` present (name, short_name, theme_color, icons) — PWA completeness
 
 ### Rendering
 
 - [ ] SEO pages use SSG, SSR, or `"use cache"` Cache Components (not CSR)
 - [ ] Content visible without JavaScript (test with JS disabled)
 - [ ] No client-side only content for SEO-critical text
+- [ ] Metadata verified in production with a bot User-Agent (e.g. `curl -A "Googlebot" | grep '<title>'`) — Next.js 16.2.x has known PPR + streaming-metadata bugs that can drop `<title>`/canonical/description for some bots (vercel/next.js #93401, #95406)
 
 ### Core Web Vitals
 
@@ -65,10 +65,14 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 
 - [ ] All images have `alt` text
 - [ ] Images use `next/image` component
-- [ ] Images in sitemap
+- [ ] Images in sitemap (only if image-search traffic matters — e.g. products, recipes, photography)
 - [ ] Appropriate image sizes (no oversized images)
 
 ## Nice to Have (Optimization)
+
+### PWA
+
+- [ ] `app/manifest.ts` present (name, short_name, theme_color, icons) — PWA completeness, not an SEO requirement
 
 ### Performance
 

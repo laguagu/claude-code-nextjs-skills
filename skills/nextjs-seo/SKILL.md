@@ -44,8 +44,9 @@ export const metadata: Metadata = {
     default: 'Site Title - Main Keyword',
     template: '%s | Site Name',
   },
-  description: 'Compelling description with keywords (150-160 chars; Google typically displays this range)',
-  keywords: ['keyword1', 'keyword2', 'keyword3'],
+  // ~150-160 chars is a guideline, not a limit — Google truncates per device/query
+  description: 'Compelling description with target keywords',
+  // No `keywords` field: Google ignores the keywords meta tag entirely
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -112,7 +113,8 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: ['/api/', '/admin/'],
         // Do NOT disallow /_next/ — crawlers need render-critical CSS/JS
-        // Do NOT add bot-specific rules (Googlebot, Bingbot) unless overriding wildcard
+        // Do NOT add bot-specific rules (Googlebot, Bingbot) unless overriding wildcard —
+        // and if you do, repeat all disallows: named groups don't inherit `*` rules (RFC 9309)
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
@@ -144,7 +146,7 @@ export default function manifest(): MetadataRoute.Manifest {
 }
 ```
 
-Same `MetadataRoute` family as sitemap/robots; place at the root of `app/`. Minor for ranking, but expected for PWA completeness. (A static `app/manifest.json` works too.)
+Same `MetadataRoute` family as sitemap/robots; place at the root of `app/`. **Not an SEO requirement** — a PWA-completeness nicety with no ranking effect; skip it unless the site is (or may become) a PWA. (A static `app/manifest.json` works too.)
 
 ### OG / Twitter Images
 
@@ -253,6 +255,9 @@ Metadata + CWV alone don't drive rankings. Keep these in mind (out of scope for 
 7. **Mixing metadata object and generateMetadata** - Use one or the other in the same route segment
 8. **Duplicating icons in metadata + file conventions** - Prefer `favicon.ico`/`icon.*`/`opengraph-image.*` file conventions; they auto-emit tags and override the metadata object
 9. **Blanket-blocking AI crawlers** - `GPTBot disallow: /` blocks training but leaves you in AI search; don't accidentally block citation bots (OAI-SearchBot, PerplexityBot). See [references/ai-search.md](references/ai-search.md)
+10. **Adding the `keywords` meta tag for Google** - Google ignores it entirely (no indexing or ranking effect); it's noise, not a signal
+11. **Assuming named robots.txt groups inherit `*` rules** - Per RFC 9309, a crawler obeys only its most specific matching group. A `{ userAgent: 'OAI-SearchBot', allow: '/' }` group drops the wildcard's `/api/`/`/admin/` disallows — repeat them in every named group
+12. **Trusting browser view for bot metadata** - On Next.js 16.2.x, PPR + streaming metadata can serve bots a page with no `<title>`/canonical (vercel/next.js #93401, #95406). Verify production HTML with a bot User-Agent: `curl -A "Googlebot" https://your-site.com | grep -E '<title>|canonical'`
 
 ## Quick Fixes
 

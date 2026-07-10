@@ -80,16 +80,20 @@ import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = 'https://your-site.com';
+  // RFC 9309: a crawler obeys ONLY its most specific matching group — named
+  // groups do NOT inherit the `*` rules. Repeat the disallows in every named
+  // allow-group, or those bots will crawl /api/ and /admin/ too.
+  const disallow = ['/api/', '/admin/'];
   return {
     rules: [
-      { userAgent: '*', allow: '/', disallow: ['/api/', '/admin/'] },
+      { userAgent: '*', allow: '/', disallow },
 
       // Stay in AI search/answers (recommended):
-      { userAgent: 'OAI-SearchBot', allow: '/' },
-      { userAgent: 'ChatGPT-User', allow: '/' },
-      { userAgent: 'Claude-SearchBot', allow: '/' },
-      { userAgent: 'Claude-User', allow: '/' },
-      { userAgent: 'PerplexityBot', allow: '/' },
+      { userAgent: 'OAI-SearchBot', allow: '/', disallow },
+      { userAgent: 'ChatGPT-User', allow: '/', disallow },
+      { userAgent: 'Claude-SearchBot', allow: '/', disallow },
+      { userAgent: 'Claude-User', allow: '/', disallow },
+      { userAgent: 'PerplexityBot', allow: '/', disallow },
 
       // Optional: opt out of model TRAINING (policy decision; no traffic cost):
       { userAgent: 'GPTBot', disallow: '/' },

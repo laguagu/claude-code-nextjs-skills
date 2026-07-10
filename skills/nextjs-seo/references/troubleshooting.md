@@ -196,8 +196,11 @@ See [ai-search.md](ai-search.md) for AI crawler rules and GEO guidance.
 
 ## Timeline Expectations
 
-| Scenario | Expected Time |
-|----------|---------------|
+Rough heuristics only — Google guarantees no indexing or ranking timelines, and
+actual times vary widely with site authority, crawl budget, and content quality.
+
+| Scenario | Typical range (indicative) |
+|----------|---------------------------|
 | New site indexed | 4 days - 4 weeks |
 | New page indexed | 1 day - 2 weeks |
 | Ranking improvement | 2-6 months |
