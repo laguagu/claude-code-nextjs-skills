@@ -456,7 +456,7 @@ Some providers offer built-in tools:
 import { openai } from "@ai-sdk/openai";
 
 const agent = new ToolLoopAgent({
-  model: openai("gpt-5.4"),
+  model: openai("gpt-5.6"),
   tools: {
     web_search: openai.tools.webSearch({
       searchContextSize: "low", // "low" | "medium" | "high"

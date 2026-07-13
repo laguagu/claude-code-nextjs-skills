@@ -319,12 +319,12 @@ import {
       </ModelSelectorGroup>
       <ModelSelectorSeparator />
       <ModelSelectorGroup heading="OpenAI">
-        <ModelSelectorItem onSelect={() => setModel('gpt-5.4')}>
+        <ModelSelectorItem onSelect={() => setModel('gpt-5.6')}>
           <ModelSelectorLogoGroup>
             <ModelSelectorLogo provider="openai" />
             <ModelSelectorLogo provider="azure" />
           </ModelSelectorLogoGroup>
-          <ModelSelectorName>GPT-5.4</ModelSelectorName>
+          <ModelSelectorName>GPT-5.6</ModelSelectorName>
         </ModelSelectorItem>
       </ModelSelectorGroup>
     </ModelSelectorList>

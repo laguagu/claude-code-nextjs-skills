@@ -32,8 +32,8 @@ const suggestions: { key: string; value: string }[] = [
 ];
 
 const models = [
-  { id: "gpt-5.4", name: "GPT-5.4" },
-  { id: "gpt-5.4-mini", name: "GPT-5.4 Mini" },
+  { id: "gpt-5.6", name: "GPT-5.6" },
+  { id: "gpt-5.6-luna", name: "GPT-5.6 Luna" },
   { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
   { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
   { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },

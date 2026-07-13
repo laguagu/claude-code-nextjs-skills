@@ -21,15 +21,15 @@ const models = [
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "gpt-5.4",
-    name: "GPT-5.4",
+    id: "gpt-5.6",
+    name: "GPT-5.6",
     providers: ["openai", "azure"],
   },
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "gpt-5.4-mini",
-    name: "GPT-5.4 Mini",
+    id: "gpt-5.6-luna",
+    name: "GPT-5.6 Luna",
     providers: ["openai", "azure"],
   },
   {
@@ -305,7 +305,7 @@ ModelItem.displayName = "ModelItem";
 
 const Example = () => {
   const [open, setOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<string>("gpt-5.4");
+  const [selectedModel, setSelectedModel] = useState<string>("gpt-5.6");
 
   const handleModelSelect = useCallback((id: string) => {
     setSelectedModel(id);

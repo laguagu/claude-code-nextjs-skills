@@ -158,7 +158,7 @@ export async function POST(req: Request) {
   const { prompt } = await req.json();
 
   const result = streamObject({
-    model: "openai/gpt-5.4",
+    model: "openai/gpt-5.6",
     schema: citationSchema,
     prompt: `Generate a well-researched paragraph about ${prompt} with proper citations. 
     

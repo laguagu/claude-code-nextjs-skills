@@ -385,7 +385,7 @@ import { ToolLoopAgent, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
 export const searchAgent = new ToolLoopAgent({
-  model: openai('gpt-5.4'),
+  model: openai('gpt-5.6'),
   instructions: 'Search the web and provide accurate information with sources.',
   tools: {
     web_search: openai.tools.webSearch({
@@ -457,7 +457,7 @@ export async function POST(req: Request) {
     await req.json();
 
   const { output } = await generateText({
-    model: openai('gpt-5.4-mini'),
+    model: openai('gpt-5.6-luna'),
     output: Output.array({
       schema: z.string().describe('A follow-up question'),
     }),

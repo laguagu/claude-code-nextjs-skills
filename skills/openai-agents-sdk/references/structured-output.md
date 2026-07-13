@@ -70,7 +70,7 @@ from openai.types.shared.reasoning import Reasoning
 agent = Agent(
     name="Assistant",
     instructions="Be helpful.",
-    model="gpt-5.4",
+    model="gpt-5.6",
     model_settings=ModelSettings(
         max_tokens=32000,
         temperature=0.7,

@@ -71,11 +71,11 @@ export interface Model {
 }
 
 export const models: Model[] = [
-  { id: "gpt-5.4-mini", label: "GPT 5.4 mini", description: "Fast, lightweight tasks" },
-  { id: "gpt-5.4", label: "GPT 5.4", description: "Complex, multi-step tasks" },
+  { id: "gpt-5.6-luna", label: "GPT 5.6 Luna", description: "Fast, lightweight tasks" },
+  { id: "gpt-5.6", label: "GPT 5.6", description: "Complex, multi-step tasks" },
 ]
 
-export const DEFAULT_MODEL_NAME = "gpt-5.4-mini"
+export const DEFAULT_MODEL_NAME = "gpt-5.6-luna"
 ```
 
 **Cookie-based model storage:**

@@ -66,15 +66,15 @@ const models = [
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "gpt-5.4",
-    name: "GPT-5.4",
+    id: "gpt-5.6",
+    name: "GPT-5.6",
     providers: ["openai", "azure"],
   },
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "gpt-5.4-mini",
-    name: "GPT-5.4 Mini",
+    id: "gpt-5.6-luna",
+    name: "GPT-5.6 Luna",
     providers: ["openai", "azure"],
   },
   {
