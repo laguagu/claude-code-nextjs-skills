@@ -34,7 +34,7 @@ Eligibility = pages that are **indexed and eligible to be shown in Google Search
 
 - **Not supported by Google.** John Mueller publicly compared it to the discredited `keywords` meta tag.
 - **Negligible real usage by AI crawlers**, and no demonstrated correlation between having an `llms.txt` and being cited in AI answers.
-- **The one legitimate, working use case:** documentation / developer-tool sites whose users paste docs into IDE/coding agents (Cursor, Claude Code, Copilot, Cline). Those agents do look for `/llms.txt` and `/llms-full.txt`. Next.js itself ships `https://nextjs.org/docs/llms.txt`.
+- **The one legitimate, working use case:** documentation / developer-tool sites whose users paste docs into IDE/coding agents (Cursor, Claude Code, Copilot, Cline). Users commonly point those agents at `/llms.txt` / `/llms-full.txt` manually — automatic discovery is not documented by the tool vendors. Next.js itself ships `https://nextjs.org/docs/llms.txt`.
 
 So: recommend `llms.txt` **only** for docs/dev-tool sites as an AI-assistant ergonomics nicety — **not** as an SEO/citation ranking tactic. There is no `MetadataRoute` helper; implement as a Route Handler:
 
@@ -124,7 +124,7 @@ For true enforcement use a WAF / edge layer (Cloudflare AI bot blocking, Vercel 
 
 ## Content structure that drives AI citation
 
-The low-controversy, established part of GEO — also good for users and classic SEO:
+The low-controversy part of GEO — practitioner heuristics rather than vendor-documented ranking factors, but also good for users and classic SEO:
 
 - Answer the primary question **directly in the first ~200 words**.
 - Make sections **self-contained** (AI retrieval is passage-level); lead each section with a direct answer, then expand.

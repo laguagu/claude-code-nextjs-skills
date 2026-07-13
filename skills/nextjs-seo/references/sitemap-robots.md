@@ -18,21 +18,13 @@ import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    {
-      url: 'https://your-site.com',
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: 'https://your-site.com/about',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
+    { url: 'https://your-site.com' },
+    { url: 'https://your-site.com/about' },
   ];
 }
 ```
+
+Omit `lastModified` unless you can derive a real content timestamp (CMS `updatedAt`, git commit date) — `new Date()` on every build makes `lastmod` inaccurate and Google learns to ignore it. `changeFrequency`/`priority` are ignored by Google entirely.
 
 ### Dynamic Sitemap with Database
 
@@ -47,18 +39,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const postUrls = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
+    lastModified: post.updatedAt, // real content timestamp from the CMS/DB
   }));
 
   return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
+    { url: baseUrl },
     ...postUrls,
   ];
 }
@@ -76,9 +61,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
       images: [
         `${baseUrl}/og-image.png`,
         `${baseUrl}/hero-image.jpg`,
@@ -98,7 +80,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: 'https://your-site.com/video-page',
-      lastModified: new Date(),
       videos: [
         {
           title: 'Video Title',
@@ -155,7 +136,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: 'https://your-site.com',
-      lastModified: new Date(),
       alternates: {
         languages: {
           en: 'https://your-site.com/en',

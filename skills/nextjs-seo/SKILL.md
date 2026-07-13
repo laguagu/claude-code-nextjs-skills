@@ -77,26 +77,25 @@ export const metadata: Metadata = {
 ```typescript
 import type { MetadataRoute } from 'next';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://your-site.com';
+  const posts = await getPosts(); // your CMS/DB
 
   return [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
       images: [`${baseUrl}/og-image.png`], // Image Sitemap entry
     },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
+    { url: `${baseUrl}/about` },
+    ...posts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt, // real content timestamp
+    })),
   ];
 }
 ```
+
+`lastModified` must reflect the content's actual last change (CMS `updatedAt`, file mtime, git commit date) — Google uses `lastmod` only when it's consistently accurate, and `new Date()` on every build marks everything "just changed", which teaches Google to ignore it. Skip `changeFrequency` and `priority`: Google ignores both.
 
 ### app/robots.ts - Robots Configuration
 
@@ -247,7 +246,7 @@ Metadata + CWV alone don't drive rankings. Keep these in mind (out of scope for 
 ## Common Mistakes to Avoid
 
 1. **Mixing next-seo with Metadata API** - Use only Metadata API in App Router
-2. **Missing canonical URLs** - Always set `alternates.canonical`
+2. **Missing canonical URLs** - Set a self-referencing `alternates.canonical` when duplicate/parameterized URLs are a risk; it's a hint, not a requirement — Google may pick its own canonical
 3. **Using CSR for SEO pages** - Use SSG/SSR for indexable content
 4. **Blocking `/_next/` in robots.txt** - Crawlers need render-critical CSS/JS; never disallow `/_next/`
 5. **Missing metadataBase** - Required for relative URLs in metadata
