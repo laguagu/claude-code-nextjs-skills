@@ -29,7 +29,7 @@ Add both to `.claude/settings.json` mcpServers.
 ```ts
 export function createAgent(opts?: { model?: LanguageModel }) {
   return new ToolLoopAgent({
-    model: opts?.model ?? openai("gpt-5.4"),
+    model: opts?.model ?? openai("gpt-5.6"), // current flagship as of 2026-07 — verify from the live model catalog
     instructions,
     providerOptions: { openai: { reasoningEffort: "none" } },
     tools,
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
 ### Azure OpenAI model routing
 
-Non-reasoning models (gpt-4o) must use Chat Completions API (`azure.chat()`) — Responses API causes `fc_` ID errors on multi-turn tool calls. Reasoning models (gpt-5.x, o-series) use Responses API (default):
+Azure's Responses API does support non-reasoning models (gpt-4o), but multi-turn tool calls hit an intermittent 400 `Item with id 'fc_...' not found` error ([Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/5559582/azure-openai-intermittent-400-error-item-with-id-n)). Workaround: route non-reasoning models to Chat Completions (`azure.chat()`); reasoning models (gpt-5.x, o-series) use Responses API (default):
 
 ```ts
 const isReasoning = /^(o[1-9]|gpt-5)/.test(deployment);

@@ -273,7 +273,9 @@ Test the application works correctly.
 
 ## Package Manager
 
-**Always use bun**, never npm:
+**Always use bun** in new projects, never npm:
 - `bun add` (not npm install)
 - `bunx --bun` (not npx)
 - `bun dev` (not npm run dev)
+
+In an existing repo, respect the project's `packageManager` field and lockfile instead of switching to bun.

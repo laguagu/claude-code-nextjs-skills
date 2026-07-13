@@ -250,8 +250,10 @@ Use these instead of asking the user to copy-paste error messages. Reference:
 
 ## Package Manager
 
-**Always use bun**, never npm or npx:
+**Always use bun** in new projects, never npm or npx:
 
 - `bun install` (not npm install)
 - `bun add` (not npm install package)
 - `bunx --bun` (not npx)
+
+In an existing repo, respect the project's `packageManager` field and lockfile instead of switching to bun.
