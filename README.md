@@ -72,7 +72,6 @@ Example agents for common workflows. Copy to `.claude/agents/` to use.
 | Agent | Description |
 |-------|-------------|
 | [code-simplifier](agents/code-simplifier.md) | Refines code for clarity (DRY/KISS/YAGNI) |
-| [nextjs-reviewer](agents/nextjs-reviewer.md) | Review reports for Next.js projects |
 | [e2e-tester](agents/e2e-tester.md) | E2E testing via DevTools MCP, Playwright, or Claude in Chrome |
 
 ## 📦 Based On
