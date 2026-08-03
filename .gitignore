@@ -25,3 +25,9 @@ skills/plan-interview/
 skills/redesign-existing-projects/
 skills/imagegen-frontend-web/
 skills/imagegen-frontend-mobile/
+
+# Vercel-platform and Haaga-Helia specific skills (not for public repo)
+skills/vercel-deploy-audit/
+skills/vercel-optimize/
+skills/vercel-react-view-transitions/
+skills/fair-poc/

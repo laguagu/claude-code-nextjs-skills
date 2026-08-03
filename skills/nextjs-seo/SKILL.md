@@ -201,7 +201,7 @@ export async function HeroSection() {
 - `"use cache"` must be the first statement in the function body (or at the top of the file for file-level caching)
 - No `cookies()`/`headers()`/`searchParams` inside a plain `"use cache"` scope — good for SEO, since indexable content should be request-agnostic. (`"use cache: private"` *does* allow them, but is never prerendered, so it never lands in the static SEO shell.)
 - Invalidate with `updateTag("hero")` inside a Server Action (read-your-writes), or `revalidateTag("hero")` from a Route Handler / webhook — prefer these over `export const revalidate`
-- Short-lived caches (`seconds`, or revalidate < 5 min) are excluded from the prerender and become dynamic holes that need a `<Suspense>` boundary — keep SEO-critical content on a longer profile so it stays in the static shell
+- Short-lived caches are excluded from the prerender and become dynamic holes that need a `<Suspense>` boundary. The trigger is **`revalidate: 0` or `expire` under 5 minutes** — *not* a short `revalidate`. This matters: `minutes` (revalidate 1 min, expire 1 h) and a custom `{ revalidate: 60, expire: 300 }` both still prerender. Keep SEO-critical content on a profile whose **`expire`** is ≥ 5 min so it stays in the static shell
 - Sitemaps and metadata are static by default — only add `"use cache"` (+ `cacheTag`) if they fetch CMS/dynamic data you want to invalidate on publish
 
 ### Rendering Strategy for SEO
@@ -257,6 +257,7 @@ Metadata + CWV alone don't drive rankings. Keep these in mind (out of scope for 
 10. **Adding the `keywords` meta tag for Google** - Google ignores it entirely (no indexing or ranking effect); it's noise, not a signal
 11. **Assuming named robots.txt groups inherit `*` rules** - Per RFC 9309, a crawler obeys only its most specific matching group. A `{ userAgent: 'OAI-SearchBot', allow: '/' }` group drops the wildcard's `/api/`/`/admin/` disallows — repeat them in every named group
 12. **Trusting browser view for bot metadata** - On Next.js 16.2.x, PPR + streaming metadata can serve bots a page with no `<title>`/canonical (vercel/next.js #93401, #95406). Verify production HTML with a bot User-Agent: `curl -A "Googlebot" https://your-site.com | grep -E '<title>|canonical'`
+13. **Assuming a route that indexes well also *works*** - On Next.js 16.2.10 a PPR route (`◐` in the build output) can serve perfect SEO HTML — title, canonical, description, full body content — while **none of its `<Suspense>` boundaries ever hydrate in the production build**. Maps, forms and every other client component inside them stay dead. Reproduced with `next build` + `next start`: the same client component hydrates fine on a static (`○`) route, and client-side navigation to the PPR route also works — only the direct URL load is broken. In one app the trigger correlated perfectly with reading `searchParams`, which is what makes a route PPR; `cacheComponents` refuses to let you await `searchParams` outside `<Suspense>`, so the pattern cannot simply be avoided. **An SEO audit passing does not mean the page is usable — always load the route directly in a browser and interact with it.**
 
 ## Quick Fixes
 
