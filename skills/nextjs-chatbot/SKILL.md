@@ -12,7 +12,9 @@ Opinionated blueprint for production **web** chatbots. Focuses on patterns **not
 - **Runtime:** bun
 - **Model:** the latest GPT-5.x non-reasoning model with `reasoningEffort: "none"`
 - **AI SDK:** `ai@6` — `ToolLoopAgent`, `createAgentUIStreamResponse`
-- **UI:** shadcn/ui + ai-elements (see `/ai-elements` for component docs)
+- **UI:** shadcn/ui (Base UI base) + ai-elements (see `/ai-elements` for component docs)
+- **Scroll:** `@shadcn/react` MessageScroller — don't hand-roll stick-to-bottom
+- **Markdown:** shadcn typeset (`typeset typeset-chat`), streaming-stable
 - **ORM:** Drizzle + PostgreSQL
 - **State:** Zustand for client-side chat state (consent, session, suggestions)
 - **Attachments:** See `/ai-elements` Attachments component for file upload
@@ -231,7 +233,71 @@ Every assistant message renders an action toolbar below text: Copy, ThumbsUp, Th
 
 Feedback saves to `chat_messages.feedback` column (1=up, -1=down) via `POST /api/feedback`.
 
-## Markdown rendering gotcha: empty bullets under nested lists
+## Scroll behavior: MessageScroller
+
+Don't hand-roll stick-to-bottom. `@shadcn/react` ships a headless primitive that owns scroll anchoring, following streamed output, preserving the reader's place when history prepends, and visibility tracking — with ARIA live regions built in.
+
+```bash
+bun add @shadcn/react
+```
+
+```tsx
+import { MessageScroller } from "@shadcn/react/message-scroller";
+
+<MessageScroller.Provider autoScroll>
+  <MessageScroller.Root className="relative flex flex-1 flex-col overflow-hidden">
+    <MessageScroller.Viewport className="flex flex-1 flex-col overflow-y-auto">
+      <MessageScroller.Content className="flex flex-col gap-4 p-6">
+        {messages.map((message, i) => (
+          <MessageScroller.Item
+            key={message.id}
+            messageId={message.id}
+            scrollAnchor={message.role === "user"}   // anchor at turn boundaries
+          >
+            <ChatMessage message={message} isLast={i === messages.length - 1} />
+          </MessageScroller.Item>
+        ))}
+      </MessageScroller.Content>
+    </MessageScroller.Viewport>
+    <MessageScroller.Button className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border bg-background px-3 py-1 text-sm inert:opacity-0">
+      Jump to latest
+    </MessageScroller.Button>
+  </MessageScroller.Root>
+</MessageScroller.Provider>
+```
+
+Key detail: `scrollAnchor` on the **user** message, not the assistant one. The user's turn pins to the top of the viewport and the assistant's reply streams below it — this is what makes long streamed answers readable instead of jittering the viewport.
+
+`Provider` props: `autoScroll` (default `false`), `defaultScrollPosition` (`"start" | "end" | "last-anchor"`), `scrollEdgeThreshold`, `scrollMargin`, `scrollPreviousItemPeek`. `Viewport` has `preserveScrollOnPrepend` (default `true`) — that's the one that keeps the reader's place when loading older messages.
+
+Hooks for building on top: `useMessageScroller()` (`scrollToMessage`, `scrollToEnd`, `scrollToStart`), `useMessageScrollerScrollable()` (`{ start, end }` edges), `useMessageScrollerVisibility()` (`{ currentAnchorId, visibleMessageIds }` — use for a conversation outline or "jump to source" UI).
+
+Pair `MessageScroller.Viewport` with `scroll-fade` for soft edges (see `/nextjs-shadcn`).
+
+## Markdown rendering: use typeset
+
+Style rendered markdown with shadcn's **typeset** rather than per-element CSS. It's one CSS file you own, driven by three variables, and it's **streaming-stable** — appending a block doesn't restyle blocks already rendered above it, which is exactly the failure mode ad-hoc markdown CSS hits in a streaming chat.
+
+```css
+/* app/globals.css — typeset.css generated at ui.shadcn.com/typeset */
+@import "tailwindcss";
+@import "./typeset.css";
+
+.typeset-chat {
+  --typeset-leading: 1.6;
+  --typeset-flow: 1em;    /* tighter than docs — chat answers are short */
+}
+```
+
+```tsx
+<div className="typeset typeset-chat">
+  <MessageResponse>{text}</MessageResponse>
+</div>
+```
+
+Define a separate preset per context if the app also renders docs or long-form output. See `/nextjs-shadcn` → `references/shadcn-platform.md`.
+
+### Gotcha: empty bullets under nested lists
 
 Streamdown renders lists with `list-style-position: inside`. When the LLM emits a bullet whose first child is a block element (`<p>`, a nested `<ul>`, a blank-line-then-content), the disc marker lands on its own line above empty space — visually: "empty bullet, gap, content".
 
@@ -248,7 +314,7 @@ Fix in two places:
    [data-streamdown="list-item"] > :is(ul, ol) { display: block; margin-top: 0.25rem; }
    ```
 
-The prompt rule also produces denser, more scannable output. CSS alone lets nested lists leak through and looks cramped.
+The prompt rule also produces denser, more scannable output. CSS alone lets nested lists leak through and looks cramped. Keep the prompt rule even on typeset — it's a model-output problem, not only a styling one.
 
 ## Scope enforcement (system prompt)
 
@@ -287,6 +353,46 @@ Allowed: summarizing, paraphrasing, ordering, recommending from tool results.
 ```
 
 Same rule applies to the suggestions nano prompt — see [suggestions.md](suggestions.md#grounding).
+
+## Building chat UI without a model
+
+`@shadcn/helpers/ai-sdk` runs a scripted conversation through the **real `useChat` lifecycle** — no model, API route, network request, or API key. Every part type streams the way it would in production.
+
+```bash
+bun add @shadcn/helpers
+```
+
+```tsx
+import { useChat } from "@ai-sdk/react";
+import { createChat } from "@shadcn/helpers/ai-sdk";
+
+const chat = createChat()
+  .user("Which components parse PDFs?")
+  .assistant((w) => {
+    w.reasoning("Catalog question — search first.");
+    w.tool("searchComponents", { input: { tags: ["pdf"] }, output: fixtures.pdf });
+    w.text("Two options: …");
+  });
+
+export function ChatDemo() {
+  const { messages, sendMessage } = useChat({
+    messages: chat.get(0),
+    transport: chat.transport(),
+  });
+  const next = chat.next(messages);
+  return <button onClick={() => next && sendMessage(next)}>Next</button>;
+}
+```
+
+Writers inside `.assistant()`: `text()`, `reasoning()`, `tool()`, `data()`, `file()`, `sourceUrl()`, `sourceDocument()`, `stepStart()`, `custom()`.
+
+Use it for:
+
+- **Tool-render states** — drive a tool part through `input-streaming` → `input-available` → `output-available` → `error` deterministically instead of waiting for a live model to reproduce each one. Same for the 5-state HITL machine (see [hitl.md](hitl.md)).
+- **Streaming-flicker regressions** — the multi-tool `isGenerating` bug above reproduces reliably here.
+- **Docs, demos, screenshots** — a fixed conversation that never drifts or costs tokens.
+
+This complements the benchmarks below; it does **not** replace them. `createChat` tests the UI given a response; benchmarks test whether the model produces that response.
 
 ## Evals / Benchmarks
 

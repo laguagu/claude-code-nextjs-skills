@@ -2,11 +2,50 @@
 
 shadcn/ui sidebar with nested layouts for dashboard applications.
 
+## Start from a block, not from scratch
+
+Before hand-writing an `AppSidebar`, check whether a block already matches the
+shape you need. A block installs a complete, working sidebar you then edit —
+faster and less error-prone than assembling sub-components by hand.
+
+```bash
+bunx --bun shadcn@latest add sidebar-07
+```
+
+| Block | Shape |
+|-------|-------|
+| `sidebar-01` | Navigation grouped by section (simplest) |
+| `sidebar-02` | Collapsible sections |
+| `sidebar-03` | Submenus |
+| `sidebar-04` | Floating sidebar with submenus |
+| `sidebar-05` | Collapsible submenus |
+| `sidebar-06` | Submenus as dropdowns |
+| `sidebar-07` | Collapses to icons — the common dashboard default |
+| `sidebar-08` | Inset sidebar with secondary navigation |
+| `sidebar-09` | Collapsible nested sidebars |
+| `sidebar-10` | Sidebar in a popover |
+| `sidebar-11` | Collapsible file tree |
+| `sidebar-12` | Sidebar with a calendar |
+| `sidebar-13` | Sidebar in a dialog |
+| `sidebar-14` | Sidebar on the right |
+| `sidebar-15` | Left and right sidebar |
+| `sidebar-16` | Sticky site header |
+
+Preview them at [ui.shadcn.com/blocks/sidebar](https://ui.shadcn.com/blocks/sidebar).
+Use `shadcn view sidebar-07` to read the source before installing.
+
+The patterns below are for when no block fits, or when adapting one.
+
 ## Installation
 
 ```bash
 bunx --bun shadcn@latest add sidebar
 ```
+
+The sidebar API differs between Base UI, Radix and React Aria. Check the
+project's base (`shadcn info --json`) and read
+`shadcn docs sidebar` rather than assuming — the examples below target Base UI,
+the current default.
 
 ## Layout Pattern
 
@@ -206,6 +245,25 @@ export const FOOTER_NAV_ITEMS: NavItem[] = [
 | `icon` | Collapses to icon-only rail |
 | `offcanvas` | Slides completely off-screen |
 | `none` | Not collapsible |
+
+## RTL
+
+`Sidebar` takes a `dir` prop and positions via `data-side` attributes, so
+right-to-left layouts work without JS conditionals — `SidebarTrigger` flips its
+icon automatically. Opt in project-wide at `init` with `--rtl`, or retrofit with
+`shadcn migrate rtl`. In any project that might need RTL, use logical utilities
+(`ms-`/`me-`, `ps-`/`pe-`) instead of `ml-`/`mr-` in sidebar markup.
+
+## Persisting open state
+
+`SidebarProvider` takes `defaultOpen` (uncontrolled) or `open` / `onOpenChange`
+(controlled); width comes from the `--sidebar-width` CSS variable. To keep the
+sidebar's state across reloads without a hydration mismatch, read a cookie in the
+layout Server Component and pass it to `defaultOpen` — don't read it client-side
+in an effect.
+
+For custom triggers, `useSidebar()` exposes `toggleSidebar`, `isMobile`, and the
+mobile-specific `openMobile` / `setOpenMobile`.
 
 ## File Structure
 

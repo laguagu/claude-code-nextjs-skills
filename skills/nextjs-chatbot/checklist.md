@@ -1,11 +1,13 @@
 # Building a New Chatbot — Checklist
 
-- [ ] Scaffold with `/ai-app` or `bun x shadcn@latest init`
+- [ ] Scaffold with `/ai-app` or `bun x shadcn@latest init --template next --base base`
 - [ ] Install: `bun add ai @ai-sdk/react @ai-sdk/openai zod drizzle-orm postgres`
+- [ ] Install chat infra: `bun add @shadcn/react @shadcn/helpers` (MessageScroller + scripted-chat helper)
 - [ ] Install ai-elements: `bun x ai-elements@latest add conversation message prompt-input loader` (run once per component, or list multiple)
+- [ ] Add typeset: generate `typeset.css` at [ui.shadcn.com/typeset](https://ui.shadcn.com/typeset), import after Tailwind, define a `.typeset-chat` preset
 - [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent — export both factory and `export type AgentUIMessage = InferAgentUIMessage<typeof agent>`
 - [ ] Create route: `app/api/chat/route.ts` with createAgentUIStreamResponse
-- [ ] Create chat UI: use ai-elements Conversation/Message/MessageResponse
+- [ ] Create chat UI: ai-elements Conversation/Message/MessageResponse inside `MessageScroller` (`scrollAnchor` on user messages), markdown wrapped in `typeset typeset-chat`
 - [ ] Wire typed useChat: `useChat<AgentUIMessage>()` — enables type-safe tool part access without `as` casts (see `/ai-sdk` type-safe-agents reference)
 - [ ] Choose layout: popup widget (see [popup-widget.md](popup-widget.md)) or full-page
 - [ ] Add tools: one tool at a time, with UI renderer per tool
@@ -22,6 +24,7 @@
 - [ ] Enable `experimental_throttle: 50` on `useChat` to smooth client-side UI updates during rapid tool-loop transitions
 - [ ] Add "Answer" label with BookOpen icon above assistant text
 - [ ] Add scope enforcement: refuse off-topic, block prompt injection
+- [ ] Script tool-render states with `createChat()` from `@shadcn/helpers/ai-sdk` — drives every tool/HITL state through the real `useChat` lifecycle with no model or API key
 - [ ] Create eval benchmarks: tool accuracy + injection defense tests
 - [ ] Add admin panel (if needed): /admin with better-auth JWT, metrics dashboard
 - [ ] Add data editor (if needed): /admin/data for managing tool knowledge base

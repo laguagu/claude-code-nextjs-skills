@@ -18,14 +18,30 @@ Build distinctive, production-grade interfaces that avoid generic "AI slop" aest
 ## Quick Start
 
 ```bash
-bunx --bun shadcn@latest init -t next
+bunx --bun shadcn@latest init --template next --base base
 ```
+
+`--base` selects the primitive library: `base` (Base UI, the default), `radix`
+(legacy projects), or `aria` (React Aria). **The same component has different
+props per base**, and the docs are base-scoped
+(`/docs/components/base/sidebar` vs `/docs/components/radix/sidebar`).
 
 For a custom design system, generate a preset code in `shadcn/create` and apply it:
 
 ```bash
 bunx --bun shadcn@latest init --preset <CODE> --template next
 ```
+
+### Before touching an existing project
+
+```bash
+bunx --bun shadcn@latest info --json      # base, framework, aliases, installed components
+bunx --bun shadcn@latest docs <component> # API reference resolved to THIS project's base
+```
+
+Run these instead of writing component code from memory. See
+[references/shadcn-platform.md](references/shadcn-platform.md) for the full CLI
+surface, typeset, and the shimmer/scroll-fade utilities.
 
 ## Component Rules
 
@@ -63,7 +79,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
 ### Import Aliases
 
-Always use `@/` alias (e.g., `@/lib/utils`) instead of relative paths (`../../lib/utils`).
+Never use relative paths (`../../lib/utils`). Default to the `@/` alias
+(`@/lib/utils`) in new projects. In an existing project, read `components.json`
+and follow the alias style already configured — shadcn also supports Node
+package imports (`#components/ui/button`). Never mix both styles.
 
 ### Style Merging
 
@@ -240,13 +259,31 @@ Tools it provides (when dev server is running):
 Use these instead of asking the user to copy-paste error messages. Reference:
 [nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp).
 
+## Rendered markdown and loading states
+
+Don't hand-roll CSS for these — shadcn ships them:
+
+- **Rendered markdown / LLM output** → typeset. One owned CSS file, three
+  variables (`--typeset-size`, `--typeset-leading`, `--typeset-flow`), one
+  preset per context. Streaming-stable: new blocks don't restyle earlier ones.
+  ```tsx
+  <div className="typeset typeset-chat">{markdown}</div>
+  ```
+- **Indeterminate text state** ("Thinking…") → `className="shimmer"`. Use
+  `Skeleton` only for placeholders with a known shape; don't stack both.
+- **Soft scroll container edges** → `className="scroll-fade overflow-y-auto"`.
+
+Details and the full class tables: [references/shadcn-platform.md](references/shadcn-platform.md).
+
 ## References
 
 - **Architecture**: [references/architecture.md](references/architecture.md) - Components, routing, Suspense, data patterns, AI directory structure
 - **Styling**: [references/styling.md](references/styling.md) - Themes, fonts, radius, animations, CSS variables
-- **Sidebar**: [references/sidebar.md](references/sidebar.md) - shadcn sidebar with nested layouts
+- **shadcn Platform**: [references/shadcn-platform.md](references/shadcn-platform.md) - Base UI vs Radix vs React Aria, CLI verbs, typeset, shimmer, scroll-fade, RTL, package imports
+- **Sidebar**: [references/sidebar.md](references/sidebar.md) - shadcn sidebar with nested layouts, blocks, RTL
 - **Project Setup**: [references/project-setup.md](references/project-setup.md) - bun commands, presets
-- **shadcn/ui**: [llms.txt](https://ui.shadcn.com/llms.txt) - Official AI-optimized reference
+- **Official shadcn skill**: `bunx --bun skills add shadcn/ui` - live project config + CLI/registry reference. Install alongside this skill; it covers CLI mechanics, this one covers conventions.
+- **shadcn/ui**: [llms.txt](https://ui.shadcn.com/llms.txt) - fallback when the CLI isn't available; prefer `shadcn docs <component>`
 
 ## Package Manager
 

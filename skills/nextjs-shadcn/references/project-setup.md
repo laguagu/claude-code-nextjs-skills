@@ -7,8 +7,13 @@
 Use the CLI to scaffold a Next.js project directly:
 
 ```bash
-bunx --bun shadcn@latest init -t next
+bunx --bun shadcn@latest init --template next --base base
 ```
+
+`--base` picks the primitive library: `base` (Base UI, default), `radix`, or
+`aria` (React Aria). Component APIs differ per base — see
+[shadcn-platform.md](shadcn-platform.md). Add `--rtl` if the app needs
+right-to-left support.
 
 ### With Preset Code
 
@@ -106,5 +111,7 @@ project/
 | Build | `bun --bun next build` |
 | Start prod | `bun --bun next start` |
 | Add shadcn component | `bunx --bun shadcn@latest add component` |
-| Create project | `bunx --bun shadcn@latest init -t next` |
+| Create project | `bunx --bun shadcn@latest init --template next --base base` |
+| Read project config | `bunx --bun shadcn@latest info --json` |
+| Component API docs | `bunx --bun shadcn@latest docs component` |
 
