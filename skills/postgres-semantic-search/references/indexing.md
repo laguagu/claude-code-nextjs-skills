@@ -93,7 +93,11 @@ AS $$ ... $$;
 - Unfiltered semantic search across all rows
 - Filters that match > 80 % of rows (HNSW finds enough naturally)
 
-Same pattern for IVFFlat: `SET ivfflat.iterative_scan = on`.
+Same pattern for IVFFlat, except it has no `strict_order`:
+`SET ivfflat.iterative_scan = relaxed_order`.
+
+Iterative scan is **off by default** — nothing happens unless you set it. Scans
+stop at `hnsw.max_scan_tuples` (20,000 by default) or `ivfflat.max_probes`.
 
 ### halfvec Operator Classes
 

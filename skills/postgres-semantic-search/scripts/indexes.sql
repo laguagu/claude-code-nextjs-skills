@@ -24,7 +24,7 @@ WITH (m = 16, ef_construction = 200);
 -- 2. HNSW FOR HALFVEC (3072 dimensions)
 -- ===========================================
 
--- Optimized for text-embedding-3-large
+-- Optimized for 3072-dim embeddings (halfvec keeps them under HNSW's limit)
 -- Use when storage is important (50% memory savings)
 
 /*

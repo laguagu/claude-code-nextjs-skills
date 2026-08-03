@@ -63,38 +63,37 @@ CREATE INDEX ON documents USING hnsw (embedding bit_hamming_ops);
 - Max dimensions: 64,000
 - Use for extreme compression
 
-## Embedding Model Dimensions
+## Picking the column type from dimensions
 
-| Model | Dimensions | Recommended Type |
-|-------|-----------|------------------|
-| text-embedding-3-small | 1536 | `vector(1536)` |
-| text-embedding-3-large | 3072 | `halfvec(3072)` |
+Choose by dimension count, not by vendor — look up your model's dimensions in
+the provider's docs, then:
 
-> **Note:** For other embedding models (Cohere, Voyage AI, Mistral, etc.), consult the model provider's documentation for dimension specifications. Use `vector(dimensions)` for models with ≤ 2000 dimensions, or `halfvec(dimensions)` for larger models requiring memory optimization.
+| Dimensions N | Column type | Why |
+|---|---|---|
+| N ≤ 2000 | `vector(N)` | Within HNSW/IVFFlat's native limit |
+| 2000 < N ≤ 4000 | `halfvec(N)` (or `vector(N)` cast to halfvec at index time) | halfvec extends the index limit to 4000 |
+| N > 4000 | `vector(N)` unindexed, or binary quantization (`bit`, up to 64,000) | No half-precision path |
+
+1536 and 3072 are the dimensions you will meet most often, but several providers
+ship 768, 1024, and configurable sizes.
 
 ## Dimension Truncation
 
-OpenAI text-embedding-3 models support native dimension reduction:
-
-```python
-# Python - truncate at API level
-response = openai.embeddings.create(
-    model="text-embedding-3-large",
-    input=text,
-    dimensions=1536  # Truncate from 3072 to 1536
-)
-```
+Several providers (OpenAI's text-embedding-3 family, Cohere, Voyage among them)
+support Matryoshka-style truncation: request fewer dimensions at the API level
+and get a shorter vector that keeps most of the quality. Check whether yours
+does before truncating — a naive `subvector()` on a model *not* trained for it
+degrades recall badly.
 
 ```sql
--- SQL - truncate stored embedding
-SELECT subvector(embedding, 1, 1536) AS truncated
-FROM documents;
+-- SQL-side truncation. Only valid for Matryoshka-trained models; re-normalize
+-- afterwards if you use cosine distance.
+SELECT subvector(embedding, 1, 1536)::vector(1536) FROM documents;
 ```
 
-**Trade-offs:**
-- 3072 dims: Best quality, most memory
-- 1536 dims: Good balance
-- 768 dims: Fast, lower recall
+**Trade-off:** fewer dimensions means less memory and faster distance
+computation at some recall cost. The cost is model-specific — measure it on
+your own eval set ([evaluation.md](evaluation.md)) rather than assuming it.
 
 ## Choosing Vector Type
 

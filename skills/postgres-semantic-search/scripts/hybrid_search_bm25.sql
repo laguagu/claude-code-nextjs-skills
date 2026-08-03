@@ -1,10 +1,11 @@
 -- Hybrid Search with pg_search BM25 + RRF
 -- Requires: CREATE EXTENSION pg_search;
 
--- NOTE (pg_search API versions): since pg_search 0.20.0 the v2 operator API
--- is the default (`|||`, `&&&`, `###`, `===`, `pdb.score()`, `pdb.snippet()`).
--- The legacy `@@@` + `paradedb.*` functions used in the functions below still
--- work but are slated for removal — prefer the v2 syntax in new code.
+-- API VERSION: these functions use the v2 operator API, the default since
+-- pg_search 0.20.0: `|||` (any term), `&&&` (all terms), `###` (phrase),
+-- `===` (exact), `pdb.score()`, `pdb.snippet()`. The legacy `@@@` +
+-- `paradedb.*` builder functions still parse but should not be used in new
+-- code. Requires pgvector installed first (pg_search 0.25.0+ depends on it).
 
 -- ===========================================
 -- 1. SETUP BM25 INDEX
@@ -66,18 +67,18 @@ BEGIN
         LIMIT match_count * 3
     ),
     bm25_search AS (
-        -- pg_search BM25 search using @@@ operator
+        -- pg_search BM25 search, v2 operator API (||| = match any term)
         SELECT
             d.id,
             d.title,
             d.content,
             d.metadata,
-            paradedb.score(d.id)::FLOAT AS bm25_score,
-            ROW_NUMBER() OVER (ORDER BY paradedb.score(d.id) DESC)::INTEGER AS rank
+            pdb.score(d.id)::FLOAT AS bm25_score,
+            ROW_NUMBER() OVER (ORDER BY pdb.score(d.id) DESC)::INTEGER AS rank
         FROM documents d
         WHERE v_has_text
-          AND d.id @@@ paradedb.match('content', query_text)
-        ORDER BY paradedb.score(d.id) DESC
+          AND d.content ||| query_text
+        ORDER BY pdb.score(d.id) DESC
         LIMIT match_count * 3
     ),
     rrf_scores AS (
@@ -163,16 +164,12 @@ BEGIN
             d.title,
             d.content,
             d.metadata,
-            ROW_NUMBER() OVER (ORDER BY paradedb.score(d.id) DESC)::INTEGER AS rank,
-            paradedb.snippet(
-                d.content,
-                start_tag => '<mark>',
-                end_tag => '</mark>'
-            ) AS snippet
+            ROW_NUMBER() OVER (ORDER BY pdb.score(d.id) DESC)::INTEGER AS rank,
+            pdb.snippet(d.content, start_tag => '<mark>', end_tag => '</mark>') AS snippet
         FROM documents d
         WHERE v_has_text
-          AND d.id @@@ paradedb.match('content', query_text)
-        ORDER BY paradedb.score(d.id) DESC
+          AND d.content ||| query_text
+        ORDER BY pdb.score(d.id) DESC
         LIMIT match_count * 3
     ),
     combined AS (
@@ -261,14 +258,14 @@ BEGIN
             c.document_id,
             d.title AS document_title,
             c.content AS chunk_content,
-            paradedb.snippet(c.content, start_tag => '<mark>', end_tag => '</mark>') AS snippet,
-            ROW_NUMBER() OVER (ORDER BY paradedb.score(c.id) DESC)::INTEGER AS rank,
-            ROW_NUMBER() OVER (PARTITION BY c.document_id ORDER BY paradedb.score(c.id) DESC) AS doc_rank
+            pdb.snippet(c.content, start_tag => '<mark>', end_tag => '</mark>') AS snippet,
+            ROW_NUMBER() OVER (ORDER BY pdb.score(c.id) DESC)::INTEGER AS rank,
+            ROW_NUMBER() OVER (PARTITION BY c.document_id ORDER BY pdb.score(c.id) DESC) AS doc_rank
         FROM chunks c
         JOIN documents d ON d.id = c.document_id
         WHERE v_has_text
-          AND c.id @@@ paradedb.match('content', query_text)
-        ORDER BY paradedb.score(c.id) DESC
+          AND c.content ||| query_text
+        ORDER BY pdb.score(c.id) DESC
         LIMIT match_count * 5
     ),
     -- Keep only best chunk per document

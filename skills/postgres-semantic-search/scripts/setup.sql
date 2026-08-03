@@ -56,10 +56,10 @@ CREATE TABLE IF NOT EXISTS documents (
     metadata JSONB DEFAULT '{}'::JSONB,
 
     -- Vector embedding (choose one based on your model)
-    -- text-embedding-3-small: 1536 dimensions
+    -- Set N to your model's dimension count (1536 is common; check provider docs)
     embedding vector(1536),
 
-    -- For text-embedding-3-large with halfvec optimization:
+    -- For 2000 < N <= 4000 dims, use halfvec so HNSW can index it:
     -- embedding halfvec(3072),
 
     created_at TIMESTAMPTZ DEFAULT NOW(),

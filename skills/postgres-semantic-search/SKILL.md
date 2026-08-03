@@ -8,13 +8,15 @@ description: |
   query translation, and domain evals.
 
   Triggers: pgvector, vector search, semantic search, hybrid search,
-  embedding search, PostgreSQL RAG, BM25, RRF, HNSW index, similarity
-  search, ParadeDB, pg_search, reranking, Cohere rerank, Voyage rerank,
-  graceful fallback, iterative_scan, filtered HNSW, websearch_to_tsquery,
-  unaccent, multilingual FTS, pg_trgm, trigram, fuzzy search, LIKE, ILIKE,
-  autocomplete, typo tolerance, fuzzystrmatch, evaluation, benchmarking,
-  Hit@K, MRR, halfvec cast, cross-lingual retrieval, non-English corpus,
-  per-language indexing, query translation, RRF fusion across languages
+  embedding search, PostgreSQL RAG, BM25, RRF, HNSW, IVFFlat, ParadeDB,
+  pg_search, reranking, iterative_scan, filtered HNSW, halfvec,
+  websearch_to_tsquery, unaccent, multilingual FTS, pg_trgm, trigram,
+  fuzzy search, ILIKE, autocomplete, typo tolerance, fuzzystrmatch,
+  Hit@K, MRR, retrieval evals, cross-lingual retrieval, non-English
+  corpus, per-language indexing, query translation
+
+  For general Postgres schema, index, RLS or query tuning unrelated to
+  retrieval, use supabase-postgres-best-practices instead.
 argument-hint: "[question or use case]"
 ---
 
@@ -59,7 +61,7 @@ docker run -d --name pgvector-db \
   -p 5432:5432 \
   pgvector/pgvector:pg17
 
-# Or PostgreSQL 18 (latest)
+# Or PostgreSQL 18
 docker run -d --name pgvector-db \
   -e POSTGRES_PASSWORD=postgres \
   -p 5432:5432 \
@@ -93,8 +95,14 @@ SELECT * FROM docs ORDER BY embedding <=> $1 LIMIT 10;
 -- With similarity score
 SELECT *, 1 - (embedding <=> $1) AS similarity FROM docs ORDER BY embedding <=> $1 LIMIT 10;
 
--- With threshold (parenthesize the distance — keeps it clear and precedence-safe)
-SELECT * FROM docs WHERE (embedding <=> $1) < 0.3 ORDER BY embedding <=> $1 LIMIT 10;
+-- With a distance threshold — put the filter OUTSIDE a materialized CTE.
+-- Filtering inline (WHERE (embedding <=> $1) < 0.3 ORDER BY ... LIMIT 10) makes
+-- the executor apply the filter before the index returns LIMIT rows, so you get
+-- fewer results than expected. pgvector documents this CTE form as the fix.
+WITH nearest AS MATERIALIZED (
+  SELECT id, content, embedding <=> $1 AS distance FROM docs
+  ORDER BY distance LIMIT 10
+) SELECT * FROM nearest WHERE distance < 0.3 ORDER BY distance;
 
 -- Preload index (run on startup)
 SELECT 1 FROM docs ORDER BY embedding <=> $1 LIMIT 1;
@@ -113,9 +121,9 @@ WITH (m = 24, ef_construction = 200);
 -- Query-time recall
 SET hnsw.ef_search = 100;
 
--- Iterative scan for filtered queries (pgvector 0.8+)
-SET hnsw.iterative_scan = relaxed_order;
-SET ivfflat.iterative_scan = on;
+-- Iterative scan for filtered queries (pgvector 0.8+; OFF by default)
+SET hnsw.iterative_scan = relaxed_order;    -- or strict_order
+SET ivfflat.iterative_scan = relaxed_order; -- IVFFlat has no strict_order
 ```
 
 ## Decision Trees
@@ -241,18 +249,7 @@ When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 
 - **FTS language config**: pass the matching language to `to_tsvector(language, text)` to apply the built-in snowball stemmer (e.g., `'finnish'` handles `opiskelija → opiskelij`). For mixed-language corpora, use `'simple'` and rely on prefix/trigram fallbacks instead.
 - **Combine stemmer + unaccent** for accent-insensitive matching ("café" matches "cafe"). See [hybrid-search.md → Custom FTS configuration](references/hybrid-search.md#custom-fts-configuration-eg-language--unaccent) for the 3-step DDL pattern.
-- **Prefix tsquery** for languages with rich inflection (no full morphology engine required):
-
-  ```sql
-  CREATE OR REPLACE FUNCTION prefix_tsquery(p text)
-  RETURNS tsquery LANGUAGE sql IMMUTABLE AS $$
-    SELECT to_tsquery('simple',
-      string_agg(word || ':*', ' & '))
-    FROM regexp_split_to_table(lower(regexp_replace(p, '[^\w\s-]', ' ', 'g')), '\s+') AS word
-    WHERE length(word) >= 2
-  $$;
-  ```
-  Matches `kartta`, `karttaa`, `karttoja` from a single `kartta:*` token.
+- **Prefix tsquery** for languages with rich inflection (no full morphology engine required): build the tsquery manually with `:*` on each token, so `kartta:*` matches `kartta`, `karttaa`, `karttoja`. `websearch_to_tsquery` cannot emit `:*`. Use the hardened `prefix_tsquery(regconfig, text)` in [fuzzy-search.md → Prefix Matching for Agglutinative Languages](references/fuzzy-search.md#prefix-matching-for-agglutinative-languages) — it sanitizes tsquery metacharacters from user input and falls back to `websearch_to_tsquery` for quoted phrases. Do not hand-roll a version without that sanitizing; raw input containing `&`, `|`, `!`, `(` or `:` raises a syntax error.
 
 - **Compound-word fallback**: pair semantic search with `pg_trgm` similarity to catch compound-word misses (e.g., a query for `"ammattikorkea"` should still find `"ammattikorkeakoulu"`).
 - **BM25 stemmer in ParadeDB**: tokenize with `{ "type": "default", "stemmer": "<language>" }` — a `raw` tokenizer only matches full fields.
@@ -353,9 +350,9 @@ const results = await db.execute(sql`
 
 ## Compatibility
 
-- **pgvector**: 0.8.2+ recommended as the safe floor — 0.7.0 added halfvec/bit/sparsevec, 0.8.0 added iterative scans, but 0.6.0–0.8.1 all carry a parallel-HNSW-build buffer overflow (CVE-2026-3172, CVSS 8.1: leaks data or crashes the server); fixed in 0.8.2. Check [pgvector releases](https://github.com/pgvector/pgvector/releases).
-- **pg_search**: Check [ParadeDB releases](https://github.com/paradedb/paradedb/releases) for latest.
-- **PostgreSQL**: 17+ recommended. pgvector supports 13-18.
+- **pgvector**: 0.8.6+ recommended as the safe floor. Feature history: 0.7.0 added halfvec/bit/sparsevec, 0.8.0 added iterative scans. Correctness history: 0.6.0–0.8.1 carry a parallel-HNSW-build buffer overflow (CVE-2026-3172 — leaks data from other relations or crashes the server), 0.8.2 fixed it, 0.8.3 fixed possible HNSW index corruption during vacuum, 0.8.4 fixed further HNSW vacuum errors, 0.8.6 fixed an IVFFlat build overflow on 32-bit. Verify current state in the [CHANGELOG](https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md) — the GitHub Releases tab is empty, releases ship as tags.
+- **pg_search**: Since 0.25.0 pg_search depends on pgvector's `vector` type — install pgvector first. Check [ParadeDB releases](https://github.com/paradedb/paradedb/releases) for latest.
+- **PostgreSQL**: pgvector supports 13+; pg_search ships prebuilt binaries for 15+. Prefer the newest major your host offers.
 
 ## Related Skills
 

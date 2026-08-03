@@ -106,8 +106,11 @@ shared_buffers = 4GB
 # Query planner estimate (75% of RAM)
 effective_cache_size = 12GB
 
-# Per-query work memory
-work_mem = 256MB
+# Per-sort/hash memory. This is per operation, not per connection — a single
+# query can use several multiples of it. 256MB is only safe on a low-concurrency
+# analytics box; start at 16–64MB for an app server and raise per session where
+# a specific query needs it.
+work_mem = 64MB
 
 # Maintenance operations (index builds)
 maintenance_work_mem = 2GB
@@ -155,18 +158,37 @@ LIMIT 10;
 
 ### pgvector 0.8.0+ Iterative Scans
 
-pgvector 0.8.0+ has iterative index scans that automatically handle filtering better:
+Iterative index scans handle selective filters properly — but they are **off by
+default**. The planner will not turn them on for you; you must set the GUC.
 
 ```sql
--- Just write the query naturally
+SET hnsw.iterative_scan = relaxed_order;  -- session, or SET on the function
+
 SELECT * FROM documents
-WHERE embedding IS NOT NULL
-  AND metadata->>'category' = 'news'
+WHERE metadata->>'category' = 'news'
 ORDER BY embedding <=> query_vec
 LIMIT 10;
 ```
 
-The planner will choose the best strategy.
+Without this, the filter is applied *after* the index returns its top
+`hnsw.ef_search` candidates, so a selective filter silently yields fewer than
+`LIMIT` rows. See [indexing.md](indexing.md) for when to enable it.
+
+### Distance thresholds need a materialized CTE
+
+Filtering on distance inline (`WHERE embedding <=> $1 < 0.3 ORDER BY ... LIMIT
+10`) makes the executor apply the filter before the index has produced `LIMIT`
+rows. pgvector's documented form puts the filter outside a materialized CTE:
+
+```sql
+WITH nearest AS MATERIALIZED (
+    SELECT id, embedding <=> $1 AS distance FROM documents
+    ORDER BY distance LIMIT 10
+) SELECT * FROM nearest WHERE distance < 0.3 ORDER BY distance;
+```
+
+Keep every other filter *inside* the CTE. On Postgres 17+ an outer
+`ORDER BY distance + 0` is needed if you re-sort a relaxed-order result.
 
 ### Partial Indexes for Filtered Queries
 
@@ -274,7 +296,7 @@ SELECT
 
 ### Horizontal Scaling (Advanced)
 - **Read replicas** - Distribute read queries
-- **Citus** - Distributed PostgreSQL (pg_search 0.20+ compatible)
+- **Citus** - Distributed PostgreSQL (verify pg_search compatibility against the current ParadeDB docs before committing)
 - **Partitioning** - Split by date/category
 
 ### When to Scale

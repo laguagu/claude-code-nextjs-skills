@@ -1,5 +1,14 @@
 -- Semantic Search Functions
 -- Pure vector similarity search using pgvector
+--
+-- PATTERN NOTE: every function here retrieves LIMIT rows through the index
+-- inside a MATERIALIZED CTE and applies the similarity threshold OUTSIDE it.
+-- Filtering on distance in the same query block as ORDER BY/LIMIT makes the
+-- executor apply the filter before the index has produced LIMIT rows, which
+-- silently returns too few results. This is pgvector's documented form.
+--
+-- If you add a metadata/tenant filter, put it INSIDE the CTE and set
+-- hnsw.iterative_scan (see references/indexing.md) — it is off by default.
 
 -- ===========================================
 -- 1. BASIC SEMANTIC SEARCH
@@ -23,17 +32,22 @@ STABLE
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT
-        d.id,
-        d.title,
-        d.content,
-        d.metadata,
-        (1 - (d.embedding <=> query_embedding))::FLOAT AS similarity
-    FROM documents d
-    WHERE d.embedding IS NOT NULL
-      AND (1 - (d.embedding <=> query_embedding)) > match_threshold
-    ORDER BY d.embedding <=> query_embedding
-    LIMIT match_count;
+    WITH nearest AS MATERIALIZED (
+        SELECT
+            d.id,
+            d.title,
+            d.content,
+            d.metadata,
+            d.embedding <=> query_embedding AS distance
+        FROM documents d
+        WHERE d.embedding IS NOT NULL
+        ORDER BY distance
+        LIMIT match_count
+    )
+    SELECT n.id, n.title, n.content, n.metadata, (1 - n.distance)::FLOAT
+    FROM nearest n
+    WHERE (1 - n.distance) > match_threshold
+    ORDER BY n.distance;
 END;
 $$;
 
@@ -57,21 +71,29 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 STABLE
+-- Metadata filter is selective, so iterative scan must be on for the index to
+-- keep fetching candidates until match_count rows survive the filter.
+SET hnsw.iterative_scan = 'relaxed_order'
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT
-        d.id,
-        d.title,
-        d.content,
-        d.metadata,
-        (1 - (d.embedding <=> query_embedding))::FLOAT AS similarity
-    FROM documents d
-    WHERE d.embedding IS NOT NULL
-      AND (1 - (d.embedding <=> query_embedding)) > match_threshold
-      AND (filter_metadata IS NULL OR d.metadata @> filter_metadata)
-    ORDER BY d.embedding <=> query_embedding
-    LIMIT match_count;
+    WITH nearest AS MATERIALIZED (
+        SELECT
+            d.id,
+            d.title,
+            d.content,
+            d.metadata,
+            d.embedding <=> query_embedding AS distance
+        FROM documents d
+        WHERE d.embedding IS NOT NULL
+          AND (filter_metadata IS NULL OR d.metadata @> filter_metadata)
+        ORDER BY distance
+        LIMIT match_count
+    )
+    SELECT n.id, n.title, n.content, n.metadata, (1 - n.distance)::FLOAT
+    FROM nearest n
+    WHERE (1 - n.distance) > match_threshold
+    ORDER BY n.distance;
 END;
 $$;
 
@@ -97,16 +119,15 @@ STABLE
 AS $$
 BEGIN
     RETURN QUERY EXECUTE FORMAT(
-        'SELECT
-            id,
-            content,
-            metadata,
-            (1 - (embedding <=> $1))::FLOAT AS similarity
-         FROM %I
-         WHERE embedding IS NOT NULL
-           AND (1 - (embedding <=> $1)) > $2
-         ORDER BY embedding <=> $1
-         LIMIT $3',
+        'WITH nearest AS MATERIALIZED (
+            SELECT id, content, metadata, embedding <=> $1 AS distance
+            FROM %I
+            WHERE embedding IS NOT NULL
+            ORDER BY distance
+            LIMIT $3
+         )
+         SELECT id, content, metadata, (1 - distance)::FLOAT
+         FROM nearest WHERE (1 - distance) > $2 ORDER BY distance',
         table_name
     )
     USING query_embedding, match_threshold, match_count;
@@ -136,19 +157,22 @@ STABLE
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT
-        c.id AS chunk_id,
-        c.document_id,
-        d.title AS document_title,
-        c.content AS chunk_content,
-        c.chunk_index,
-        (1 - (c.embedding <=> query_embedding))::FLOAT AS similarity
-    FROM chunks c
-    JOIN documents d ON d.id = c.document_id
-    WHERE c.embedding IS NOT NULL
-      AND (1 - (c.embedding <=> query_embedding)) > match_threshold
-    ORDER BY c.embedding <=> query_embedding
-    LIMIT match_count;
+    -- Rank chunks by the index first, join to documents afterwards: joining
+    -- inside the ordered scan can push the planner off the HNSW index.
+    WITH nearest AS MATERIALIZED (
+        SELECT c.id, c.document_id, c.content, c.chunk_index,
+               c.embedding <=> query_embedding AS distance
+        FROM chunks c
+        WHERE c.embedding IS NOT NULL
+        ORDER BY distance
+        LIMIT match_count
+    )
+    SELECT n.id, n.document_id, d.title, n.content, n.chunk_index,
+           (1 - n.distance)::FLOAT
+    FROM nearest n
+    JOIN documents d ON d.id = n.document_id
+    WHERE (1 - n.distance) > match_threshold
+    ORDER BY n.distance;
 END;
 $$;
 
@@ -156,7 +180,7 @@ $$;
 -- 5. HALFVEC VERSION (3072 dimensions)
 -- ===========================================
 
--- For text-embedding-3-large with memory optimization
+-- For 3072-dim embeddings stored as halfvec (50% less memory, HNSW-indexable)
 -- Uncomment and modify table to use halfvec(3072)
 
 /*

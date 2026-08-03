@@ -98,7 +98,7 @@ ties:
 
 ```sql
 WITH ws_q AS (SELECT websearch_to_tsquery('finnish_unaccent', $1) AS q),
-     px_q AS (SELECT prefix_tsquery($1) AS q)
+     px_q AS (SELECT prefix_tsquery('simple', $1) AS q)
 SELECT id,
        GREATEST(
          COALESCE(ts_rank_cd(tsv, (SELECT q FROM ws_q)), 0),
@@ -110,7 +110,8 @@ ORDER BY fts_score DESC LIMIT 30;
 ```
 
 This boosts recall without over-ranking fuzzy prefix matches against exact
-phrase hits. See `prefix_tsquery` definition in the main SKILL.md.
+phrase hits. `prefix_tsquery(regconfig, text)` is defined in
+[fuzzy-search.md](fuzzy-search.md#prefix-matching-for-agglutinative-languages).
 
 ### Option 2: pg_search BM25
 
@@ -249,13 +250,14 @@ chunk's location in the parent document:
 embed_input = `${document_title}, §${section_number} ${section_title}\n\n${chunk_text}`
 ```
 
-Generate the prefix once per chunk with a cheap LLM at ingest time
-(GPT-4o-mini, Claude Haiku). Anthropic reports up to −49% retrieval errors
+Generate the prefix once per chunk at ingest time with the cheapest model in
+your provider's current lineup. Anthropic reports up to −49% retrieval errors
 with this pattern; similar gains are observed on domain-specific corpora.
 
 Caveats:
 
-- One-time cost, typically ~$1–5 per 5k chunks with a mini model.
+- One-time cost, low single-digit dollars per few thousand chunks on a small
+  model — price it against the provider's current rates, not this line.
 - Re-generate the prefix if chunking strategy changes.
 - Do **not** include the prefix in the FTS `tsv` column — it inflates false
   positives on common document-title keywords. Embed with context, index

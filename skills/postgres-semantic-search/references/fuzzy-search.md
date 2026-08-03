@@ -164,30 +164,40 @@ LANGUAGE sql STABLE AS $$
     (
         SELECT id, title, 1.0 AS score
         FROM documents
-        WHERE title ILIKE search_prefix || '%'
+        WHERE lower(title) LIKE lower(search_prefix) || '%'
         ORDER BY title
         LIMIT max_results
     )
     UNION ALL
     (
-        SELECT id, title, similarity(title, search_prefix) AS score
+        SELECT id, title, word_similarity(search_prefix, title) AS score
         FROM documents
-        WHERE title % search_prefix
-          AND title NOT ILIKE search_prefix || '%'
-        ORDER BY similarity(title, search_prefix) DESC
+        WHERE search_prefix <% title
+          AND lower(title) NOT LIKE lower(search_prefix) || '%'
+        ORDER BY word_similarity(search_prefix, title) DESC
         LIMIT max_results
     )
     LIMIT max_results;
 $$;
 ```
 
+Two details that break naive versions of this:
+
+- **`ILIKE` cannot use a `text_pattern_ops` B-tree.** Match on
+  `lower(title) LIKE lower(prefix) || '%'` and index the same expression, or the
+  prefix branch falls back to a sequential scan.
+- **`%` (`similarity`) is the wrong operator for a prefix.** A 3-character
+  prefix shares few trigrams with a long title, so `title % 'pos'` scores near
+  zero. `<%` (`word_similarity`) compares the prefix against the best-matching
+  word instead.
+
 ### Indexes for Autocomplete
 
 ```sql
--- B-tree for prefix matches
-CREATE INDEX ON documents (title text_pattern_ops);
+-- B-tree on the same expression the query uses, for the prefix branch
+CREATE INDEX ON documents (lower(title) text_pattern_ops);
 
--- GIN trigram for fuzzy fallback
+-- GIN trigram for the fuzzy fallback (also serves <% and ILIKE '%x%')
 CREATE INDEX ON documents USING gin (title gin_trgm_ops);
 ```
 

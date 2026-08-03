@@ -11,7 +11,8 @@ Fastest way to get 200–500 questions without manual labeling:
 
 1. Sample N chunks from the current corpus. Filter to chunks with ≥ ~200
    characters of meaningful text, and restrict to documents still in use.
-2. For each chunk, prompt a cheap model (GPT-4o-mini, Claude Haiku):
+2. For each chunk, prompt the cheapest/fastest model in your provider's current
+   lineup (check their docs — model names rotate every few months):
    *"Generate a natural \[language\] question that this text answers."*
 3. Store as CSV: `question, expected_doc_id, expected_chunk_id`.
 

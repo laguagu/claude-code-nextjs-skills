@@ -32,8 +32,6 @@ If `llms-full.txt` cannot be fetched due to DNS/network/access errors:
 
 ---
 
-ParadeDB is a YC S23 company; ParadeDB Community has hundreds of thousands of deployments (check [paradedb.com](https://www.paradedb.com) for the current count — this grows quickly). Used in production by Alibaba Cloud, Bilt Rewards, and others.
-
 ## Why ParadeDB?
 
 | Feature | Postgres FTS | Elasticsearch | ParadeDB |
@@ -54,7 +52,11 @@ ParadeDB is a YC S23 company; ParadeDB Community has hundreds of thousands of de
 
 ## Installation
 
-### Docker (includes Postgres 18 + pgvector + pg_search)
+### Docker (bundles Postgres + pgvector + pg_search)
+
+Tags follow `paradedb/paradedb:pg15|pg16|pg17|pg18` and `<version>-pg<N>`;
+`latest` tracks the newest Postgres. Pin a `<version>-pg<N>` tag for anything
+reproducible.
 
 ```bash
 docker run -d --name paradedb \
@@ -79,8 +81,12 @@ CREATE EXTENSION pg_search;
 
 ### Self-hosted Postgres
 
+Prebuilt binaries cover Postgres 15+; other versions build from source.
+Since pg_search 0.25.0 the extension depends on pgvector's `vector` type, so
+install pgvector first.
+
 ```sql
--- Install pg_search extension
+CREATE EXTENSION vector;
 CREATE EXTENSION pg_search;
 ```
 
@@ -182,6 +188,15 @@ SELECT * FROM documents
 WHERE metadata->>'category' === 'technology';
 ```
 
+### Phrase (`###`)
+
+```sql
+-- Tokens in order, adjacent
+SELECT * FROM documents
+WHERE content ### 'vector database'
+ORDER BY pdb.score(id) DESC;
+```
+
 ## BM25 Scoring
 
 ```sql
@@ -228,18 +243,24 @@ LIMIT 10;
 
 ## Boolean Queries
 
-> **Legacy v1 API note:** since pg_search 0.20.0 the v2 operator API is the default (`|||`, `&&&`, `###`, `===`, `pdb.score()`, `pdb.snippet()`). The legacy `@@@` + `paradedb.*` functions shown below still work but are slated for removal — prefer the v2 syntax in new code.
+Compose the v2 operators with ordinary SQL `AND` / `OR` / `NOT` — there is no
+separate boolean builder to learn.
 
 ```sql
--- Complex boolean logic
+-- must: postgresql; should: vector; must_not: deprecated
 SELECT * FROM documents
-WHERE id @@@ paradedb.boolean(
-    must => ARRAY[paradedb.match('content', 'postgresql')],
-    should => ARRAY[paradedb.match('content', 'vector')],
-    must_not => ARRAY[paradedb.match('content', 'deprecated')]
-)
+WHERE content &&& 'postgresql'
+  AND NOT (content ||| 'deprecated')
 ORDER BY pdb.score(id) DESC;
 ```
+
+> **Legacy v1 API:** the `@@@` operator with `paradedb.boolean()`,
+> `paradedb.match()`, `paradedb.phrase()`, `paradedb.score()` and
+> `paradedb.snippet()` predates pg_search 0.20.0, where the v2 operator API
+> (`|||`, `&&&`, `###`, `===`, `pdb.*`) became the default. `@@@` still parses,
+> but write new code in v2. When you need a v1 construct that has no obvious v2
+> form, fetch the live docs rather than guessing — the mapping has changed
+> across releases.
 
 ## Fuzzy Search
 
@@ -248,15 +269,6 @@ ORDER BY pdb.score(id) DESC;
 -- Works with the |||, &&&, and === operators
 SELECT * FROM documents
 WHERE content ||| 'postgre'::pdb.fuzzy(2)
-ORDER BY pdb.score(id) DESC;
-```
-
-## Phrase Search
-
-```sql
--- Exact phrase matching
-SELECT * FROM documents
-WHERE id @@@ paradedb.phrase('content', ARRAY['vector', 'database'])
 ORDER BY pdb.score(id) DESC;
 ```
 
@@ -321,23 +333,15 @@ ORDER BY combined_score DESC;
 
 ### Community vs Enterprise
 
-| Feature | Community | Enterprise |
-|---------|-----------|------------|
-| Core search | Yes | Yes |
-| ACID | Yes | Yes |
-| WAL durability | No | Yes |
-| Physical replication | No | Yes |
-| High availability | No | Yes |
+pg_search stores its Tantivy index inside Postgres pages (block storage), so the
+index participates in WAL, the buffer cache, and physical replication in the
+open-source Community build — durability is not the dividing line it once was.
+ParadeDB positions Enterprise as the "production-hardened" edition (support,
+hardening, operational tooling) rather than a fixed feature gate.
 
-**Community** is suitable for:
-- Development and testing
-- Non-critical workloads
-- Logical replica setups
-
-**Enterprise** is required for:
-- Production with durability requirements
-- High availability setups
-- Physical replication
+**Do not quote a feature split from memory.** The boundary moves between
+releases. Fetch `https://docs.paradedb.com/llms-full.txt` or ask ParadeDB
+before telling a user a capability is Enterprise-only.
 
 ### Limitations
 
