@@ -35,7 +35,7 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 
 const { output } = await generateText({
-  model: anthropic("claude-sonnet-4-6"),
+  model: anthropic("claude-sonnet-5"),
   output: Output.object({
     schema: z.object({
       sentiment: z.enum(["positive", "neutral", "negative"]),
@@ -56,7 +56,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 
 const myAgent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-6"),
+  model: anthropic("claude-sonnet-5"),
   instructions: "You are a helpful assistant.",
   tools: {
     getData: tool({

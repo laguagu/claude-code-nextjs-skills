@@ -311,7 +311,7 @@ import {
     <ModelSelectorList>
       <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
       <ModelSelectorGroup heading="Anthropic">
-        <ModelSelectorItem onSelect={() => setModel('claude-3-5-sonnet')}>
+        <ModelSelectorItem onSelect={() => setModel('claude-sonnet-5')}>
           <ModelSelectorLogo provider="anthropic" />
           <ModelSelectorName>Claude 3.5 Sonnet</ModelSelectorName>
           <ModelSelectorShortcut>⌘1</ModelSelectorShortcut>

@@ -208,7 +208,7 @@ import {
 <Context
   usedTokens={15000}
   maxTokens={128000}
-  modelId="claude-3-5-sonnet-20241022"
+  modelId="claude-sonnet-5"
   usage={{
     inputTokens: 10000,
     outputTokens: 5000,

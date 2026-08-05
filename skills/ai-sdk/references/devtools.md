@@ -27,7 +27,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { devToolsMiddleware } from '@ai-sdk/devtools';
 
 const model = wrapLanguageModel({
-  model: anthropic('claude-sonnet-4-5'),
+  model: anthropic('claude-sonnet-5'),
   middleware: devToolsMiddleware(),
 });
 ```

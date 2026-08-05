@@ -31,3 +31,11 @@ skills/vercel-deploy-audit/
 skills/vercel-optimize/
 skills/vercel-react-view-transitions/
 skills/fair-poc/
+
+# Machine- and environment-specific tooling. These audit *this* setup (Windows
+# junction layout, local package managers, the gaik/fair Rahti namespaces), so
+# they are not useful to anyone cloning this repo.
+skills/agent-setup-audit/
+skills/dev-toolchain/
+skills/rahti-audit/
+skills/ui-signature/

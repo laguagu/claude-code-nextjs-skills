@@ -49,15 +49,15 @@ const models = [
   {
     chef: "Anthropic",
     chefSlug: "anthropic",
-    id: "claude-opus-4-6",
-    name: "Claude Opus 4.6",
+    id: "claude-opus-5",
+    name: "Claude Opus 5",
     providers: ["anthropic", "azure", "google-vertex", "amazon-bedrock"],
   },
   {
     chef: "Anthropic",
     chefSlug: "anthropic",
-    id: "claude-sonnet-4-6",
-    name: "Claude Sonnet 4.6",
+    id: "claude-sonnet-5",
+    name: "Claude Sonnet 5",
     providers: ["anthropic", "azure", "google-vertex", "amazon-bedrock"],
   },
   {

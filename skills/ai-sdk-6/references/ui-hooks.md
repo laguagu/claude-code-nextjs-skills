@@ -166,7 +166,7 @@ For direct agent communication without HTTP:
 import { DirectChatTransport, ToolLoopAgent } from "ai";
 
 const agent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-4-6"),
+  model: anthropic("claude-sonnet-5"),
   instructions: "You are a helpful assistant.",
 });
 
@@ -406,7 +406,7 @@ export async function POST(req: Request) {
     await req.json();
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-6"),
+    model: anthropic("claude-sonnet-5"),
     messages: await convertToModelMessages(messages),
   });
 
@@ -452,7 +452,7 @@ export async function POST(req: Request) {
 
         // Stream LLM response
         const result = streamText({
-          model: anthropic("claude-sonnet-4-6"),
+          model: anthropic("claude-sonnet-5"),
           messages: await convertToModelMessages(messages),
         });
 
@@ -502,7 +502,7 @@ export async function POST(req: Request) {
   const messages = [...previousMessages, message];
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-6"),
+    model: anthropic("claude-sonnet-5"),
     messages: await convertToModelMessages(messages),
   });
 
@@ -530,7 +530,7 @@ export async function POST(req: Request) {
     });
 
     const result = streamText({
-      model: anthropic("claude-sonnet-4-6"),
+      model: anthropic("claude-sonnet-5"),
       messages: await convertToModelMessages(validatedMessages),
     });
 

@@ -56,7 +56,7 @@ export default function Page() {
     <Agent>
       <AgentHeader
         name="Sentiment Analyzer"
-        model="anthropic/claude-sonnet-4-6"
+        model="anthropic/claude-sonnet-5"
       />
       <AgentContent>
         <AgentInstructions>

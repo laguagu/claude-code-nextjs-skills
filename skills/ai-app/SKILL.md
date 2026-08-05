@@ -25,9 +25,15 @@ cd my-ai-app
 ### 2. Install Dependencies
 
 ```bash
-bun add ai @ai-sdk/react @ai-sdk/anthropic zod
+bun add ai@6 @ai-sdk/react @ai-sdk/anthropic zod
 bunx --bun ai-elements@latest
 ```
+
+> **Version:** the patterns below target **AI SDK 6** (`ToolLoopAgent`,
+> `createAgentUIStreamResponse`, `toUIMessageStreamResponse`), which is why the
+> install is pinned to `ai@6` — an unpinned `bun add ai` resolves to v7 and the
+> examples here will not match. For a v7 build, scaffold with these steps and
+> then follow `/ai-sdk-7` for the API surface.
 
 ### 3. Configure Environment
 
@@ -116,7 +122,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const result = streamText({
-    model: anthropic('claude-sonnet-4-6'),
+    model: anthropic('claude-sonnet-5'),
     messages: await convertToModelMessages(messages),
     system: 'You are a helpful assistant.',
   });

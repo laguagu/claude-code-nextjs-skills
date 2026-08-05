@@ -7,21 +7,22 @@ description: Reference for common AI SDK errors and how to resolve them.
 
 Start by checking the installed `ai` major version. AI SDK 6 and 7 share many
 symbols, but some migration fixes differ. For v7-specific migration work, prefer
-`ai-sdk-7/references/migration-v6-to-v7.md`.
+the `ai-sdk-7` skill's
+[migration-v6-to-v7.md](../../ai-sdk-7/references/migration-v6-to-v7.md).
 
 ## `maxTokens` → `maxOutputTokens`
 
 ```typescript
 // ❌ Incorrect
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   maxTokens: 512, // deprecated: use `maxOutputTokens` instead
   prompt: 'Write a short story',
 });
 
 // ✅ Correct
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   maxOutputTokens: 512,
   prompt: 'Write a short story',
 });
@@ -32,7 +33,7 @@ const result = await generateText({
 ```typescript
 // ❌ Incorrect
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   tools: { weather },
   maxSteps: 5, // deprecated: use `stopWhen` instead
   prompt: 'What is the weather in NYC?',
@@ -42,7 +43,7 @@ const result = await generateText({
 import { generateText, isStepCount } from 'ai';
 
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   tools: { weather },
   stopWhen: isStepCount(5),
   prompt: 'What is the weather in NYC?',
@@ -84,7 +85,7 @@ import { generateObject } from 'ai'; // deprecated: use `generateText` with `out
 
 const result = await generateObject({
   // deprecated function
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   schema: z.object({
     // deprecated: use `Output.object({ schema })` instead
     recipe: z.object({
@@ -99,7 +100,7 @@ const result = await generateObject({
 import { generateText, Output } from 'ai';
 
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   output: Output.object({
     schema: z.object({
       recipe: z.object({
@@ -119,7 +120,7 @@ console.log(result.output); // typed object
 ```typescript
 // ❌ Incorrect
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   prompt: `Extract the user info as JSON: { "name": string, "age": number }
 
   Input: John is 25 years old`,
@@ -130,7 +131,7 @@ const parsed = JSON.parse(result.text);
 import { generateText, Output } from 'ai';
 
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   output: Output.object({
     schema: z.object({
       name: z.string(),
@@ -148,7 +149,7 @@ console.log(result.output); // { name: 'John', age: 25 }
 ```typescript
 // Output.array - for generating arrays of items
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   output: Output.array({
     element: z.object({
       city: z.string(),
@@ -160,7 +161,7 @@ const result = await generateText({
 
 // Output.choice - for selecting from predefined options
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   output: Output.choice({
     options: ['positive', 'negative', 'neutral'] as const,
   }),
@@ -169,7 +170,7 @@ const result = await generateText({
 
 // Output.json - for untyped JSON output
 const result = await generateText({
-  model: 'anthropic/claude-opus-4-6',
+  model: 'anthropic/claude-opus-5',
   output: Output.json(),
   prompt: 'Return some JSON data',
 });
