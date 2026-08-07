@@ -11,7 +11,7 @@
 - [ ] Wire typed useChat: `useChat<AgentUIMessage>()` — enables type-safe tool part access without `as` casts (see `/ai-sdk` type-safe-agents reference)
 - [ ] Choose layout: popup widget (see [popup-widget.md](popup-widget.md)) or full-page
 - [ ] Add tools: one tool at a time, with UI renderer per tool
-- [ ] Add persistence: DB schema → session upsert → onFinish save → history load
+- [ ] Add persistence: DB schema → session upsert → onEnd save → history load
 - [ ] **Or skip DB**: for lightweight chatbots, use `localStorage` — no DB, auth, or consent steps needed
 - [ ] Add consent gating (if needed): privacy wall → consent check in route
 - [ ] Add feedback (if needed): thumbs up/down → 202 retry pattern
