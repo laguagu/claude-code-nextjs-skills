@@ -28,6 +28,7 @@
 | Skill | Description |
 |-------|-------------|
 | [shadcn](skills/shadcn/) | shadcn/ui component management |
+| [icons](skills/icons/) | Sourcing icons, flags, file-type badges and brand logos (Iconify, svgl) |
 | [frontend-design](skills/frontend-design/) | Production-grade frontend interfaces |
 | [web-design-guidelines](skills/web-design-guidelines/) | UI/UX review against Web Interface Guidelines |
 | [chrome-devtools](skills/chrome-devtools/) | Live browser inspection via Chrome DevTools MCP (DOM, console, network, performance) |
