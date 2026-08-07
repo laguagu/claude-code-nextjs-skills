@@ -164,7 +164,8 @@ Better fallbacks before giving up on Iconify: search a synonym (`document` for `
 `invoice` for `receipt`), search unprefixed to see every set, or browse the nearest
 category at icon-sets.iconify.design. 200k icons is usually enough.
 
-**Local organisations, universities and public bodies are in no icon set at all** — CSC,
-Haaga-Helia and their kind return nothing from svgl or Iconify, and that is the expected
-answer, not a failed search. Ask the user for the official asset, or use a lettermark in a
-circle. Never invent a logo for a real organisation.
+**Local organisations, universities and public bodies are in no icon set at all** — a
+regional university, a national research centre or a municipality returns nothing from svgl
+or Iconify, and that is the expected answer, not a failed search. Ask the user for the
+official asset, or use a lettermark in a circle. Never invent a logo for a real
+organisation.
