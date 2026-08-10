@@ -2,6 +2,10 @@
 
 > Skills for building AI applications, especially Next.js + bun runtime.
 
+Packaged as an [Agent Plugin](https://agent-plugins.org/) (v1.0.0), so the same skills load in
+Claude Code, ChatGPT, Codex, Cursor, GitHub Copilot, VS Code and Kiro. See
+[Installation](#-installation).
+
 ## ⚡ Quick Start
 
 ```bash
@@ -49,6 +53,7 @@
 |-------|-------------|
 | [ai-sdk](skills/ai-sdk/) | Vercel AI SDK general guide (official) |
 | [ai-sdk-6](skills/ai-sdk-6/) | AI SDK v6 (agents, streaming, tools) |
+| [ai-sdk-7](skills/ai-sdk-7/) | AI SDK v7 (WorkflowAgent, harnesses, v6→v7 migration) |
 | [ai-elements](skills/ai-elements/) | AI Elements UI components |
 | [openai-agents-sdk](skills/openai-agents-sdk/) | OpenAI Agents SDK (Python) |
 
@@ -65,6 +70,7 @@
 |-------|-------------|
 | [skill-creator](skills/skill-creator/) | Create, test, and optimize custom skills (extended) |
 | [handoff](skills/handoff/) | Write a HANDOFF.md so a fresh agent can continue your work |
+| [hetzner-cloud](skills/hetzner-cloud/) | Hetzner Cloud infrastructure via the `hcloud` CLI |
 
 ## 🤖 Custom Agents
 
@@ -99,7 +105,25 @@ renamed from upstream.
 
 ## 📥 Installation
 
-Copy or symlink skills to:
+### As an Agent Plugin
+
+This repo is an [Agent Plugins v1.0.0](https://agent-plugins.org/) package: [`plugin.json`](plugin.json)
+at the root, skills as immediate children of `skills/`, and MCP servers in [`mcp.json`](mcp.json).
+Clone it and point a plugin-capable client at the folder:
+
+```bash
+git clone https://github.com/laguagu/claude-code-nextjs-skills.git
+```
+
+Loading a plugin is client-specific — installation, enablement and updates are deliberately
+[outside the spec](https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md),
+so check your client's docs (ChatGPT, Codex, Cursor, GitHub Copilot, VS Code and Kiro all
+support the format). What the spec does guarantee is that every one of them reads the same
+`skills/` and `mcp.json` — no per-client rearranging.
+
+### Individual skills
+
+Copy or symlink single skill folders to:
 
 - **Claude Code**: `~/.claude/skills/` (global) or `.claude/skills/` (project)
 - **Other agents** (Codex, Windsurf, Cursor): `~/.agents/skills/` or `.agents/skills/`
@@ -127,7 +151,10 @@ Recommended MCP servers that pair with these skills:
 }
 ```
 
-This repo's own [`.mcp.json`](.mcp.json) already wires up `next-devtools` and `ai-elements`; `chrome-devtools` is optional and shown here for reference.
+Two files carry this, on purpose: [`mcp.json`](mcp.json) is the portable Agent Plugins copy that any
+plugin-capable client reads, and [`.mcp.json`](.mcp.json) is the Claude Code project file. Both wire up
+`next-devtools` and `ai-elements` and must be kept in step. `chrome-devtools` is optional and shown
+here for reference only.
 
 - [Next.js DevTools MCP](https://nextjs.org/docs/app/guides/mcp) — pairs with `next-best-practices`, `e2e-tester`
 - [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) — pairs with `chrome-devtools`, `go`, `e2e-tester`. Install via CLI: `claude mcp add chrome-devtools --scope user npx chrome-devtools-mcp@latest`

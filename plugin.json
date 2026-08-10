@@ -1,0 +1,22 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "claude-code-nextjs-skills",
+  "version": "1.0.0",
+  "description": "Agent skills for building Next.js + AI SDK applications: app scaffolding, shadcn/ui, RSC and caching, pgvector search, SEO, and browser verification.",
+  "author": {
+    "name": "laguagu",
+    "url": "https://github.com/laguagu"
+  },
+  "homepage": "https://github.com/laguagu/claude-code-nextjs-skills#readme",
+  "repository": "https://github.com/laguagu/claude-code-nextjs-skills",
+  "license": "MIT",
+  "keywords": [
+    "nextjs",
+    "react",
+    "ai-sdk",
+    "shadcn",
+    "postgres",
+    "pgvector",
+    "agent-skills"
+  ]
+}
