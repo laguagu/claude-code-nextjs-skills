@@ -74,7 +74,8 @@ Claude Code, ChatGPT, Codex, Cursor, GitHub Copilot, VS Code and Kiro. See
 
 ## 🤖 Custom Agents
 
-Example agents for common workflows. Copy to `.claude/agents/` to use.
+Example agents for common workflows. Installed automatically with the plugin; otherwise copy to
+`.claude/agents/`.
 
 | Agent | Description |
 |-------|-------------|
@@ -105,21 +106,37 @@ renamed from upstream.
 
 ## 📥 Installation
 
-### As an Agent Plugin
+### Claude Code (plugin)
 
-This repo is an [Agent Plugins v1.0.0](https://agent-plugins.org/) package: [`plugin.json`](plugin.json)
-at the root, skills as immediate children of `skills/`, and MCP servers in [`mcp.json`](mcp.json).
-Clone it and point a plugin-capable client at the folder:
+The repo doubles as its own marketplace, so no clone is needed:
+
+```
+/plugin marketplace add laguagu/claude-code-nextjs-skills
+/plugin install claude-code-nextjs-skills@laguagu
+```
+
+That installs all 23 skills, both [agents](#-custom-agents), and the two MCP servers from
+[`.mcp.json`](.mcp.json). Plugin skills are namespaced, so they invoke as
+`/claude-code-nextjs-skills:go` rather than `/go`, and model-invoked skills trigger as usual.
+Update later with `/plugin marketplace update laguagu`.
+
+To try it without installing, clone the repo and run `claude --plugin-dir ./claude-code-nextjs-skills`.
+
+### Other agents (Agent Plugin)
+
+This repo is also an [Agent Plugins v1.0.0](https://agent-plugins.org/) package:
+[`plugin.json`](plugin.json) at the root, skills as immediate children of `skills/`, and MCP
+servers in [`mcp.json`](mcp.json). Clone it and point a plugin-capable client at the folder:
 
 ```bash
 git clone https://github.com/laguagu/claude-code-nextjs-skills.git
 ```
 
-Loading a plugin is client-specific — installation, enablement and updates are deliberately
+ChatGPT, Codex, Cursor, GitHub Copilot, VS Code and Kiro read this format, but the loading step
+itself is client-specific — installation, enablement and updates are deliberately
 [outside the spec](https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md),
-so check your client's docs (ChatGPT, Codex, Cursor, GitHub Copilot, VS Code and Kiro all
-support the format). What the spec does guarantee is that every one of them reads the same
-`skills/` and `mcp.json` — no per-client rearranging.
+so check your client's docs. What the spec does guarantee is that all of them read the same
+`skills/` and `mcp.json`, with no per-client rearranging.
 
 ### Individual skills
 
