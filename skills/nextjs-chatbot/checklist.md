@@ -15,7 +15,7 @@
 - [ ] **Or skip DB**: for lightweight chatbots, use `localStorage` — no DB, auth, or consent steps needed
 - [ ] Add consent gating (if needed): privacy wall → consent check in route
 - [ ] Add feedback (if needed): thumbs up/down → 202 retry pattern
-- [ ] Add HITL approval (if needed): needsApproval tool → approval UI
+- [ ] Add HITL approval (if needed): agent-level `toolApproval` → approval UI (NOT `needsApproval` on the tool — that is v6 and silently does nothing in v7)
 - [ ] Add suggestions (if needed): POST /api/suggestions → display after response
 - [ ] Add embed support (if needed): /embed page + widget.js + CORS headers
 - [ ] Add web search (if needed): provider-native or custom fetch tool → [web-search.md](web-search.md)

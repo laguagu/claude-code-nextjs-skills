@@ -103,6 +103,7 @@ a typo. Check `package.json` and translate back:
 | `onEnd` (on the stream) | `onFinish` — the client `useChat` `onFinish` is a different, live callback and keeps its name in both |
 | `telemetry` | `experimental_telemetry` |
 | `reasoning: "low"` | `providerOptions: { openai: { reasoningEffort: "low" } }` |
+| agent-level `toolApproval: { myTool: "user-approval" }` | `needsApproval: true` on the `tool()` — one of the quiet ones: left on a v7 tool it is simply ignored and the tool executes without asking |
 
 Use `/ai-sdk-6` for the rest; `/ai-sdk` if you don't know the version yet.
 
@@ -415,7 +416,7 @@ Same rule applies to the suggestions nano prompt — see [suggestions.md](sugges
 
 `@shadcn/helpers/ai-sdk`'s `createChat` runs a scripted conversation through the
 **real `useChat` lifecycle** — no model, route, network or API key — so tool-render
-states and the 5-state HITL machine can be driven deterministically. Benchmarks
+states and the 6-state HITL machine can be driven deterministically. Benchmarks
 run the real model and assert tool choice, grounding and **stability** (same
 prompt, same result set across N runs).
 
@@ -436,7 +437,7 @@ After each milestone, verify:
 ## Key patterns (reference files)
 
 - **Popup widget** — floating FAB + popup panel + iframe embed + widget.js → [popup-widget.md](popup-widget.md)
-- **HITL approval** — tool with `needsApproval: true`, 5-state render machine → [hitl.md](hitl.md)
+- **HITL approval** — agent-level `toolApproval`, 6-state render machine → [hitl.md](hitl.md)
 - **Session persistence + feedback retry** — stable IDs, `onEnd`, the race
   window, and **what to strip from stored messages before replaying them** →
   [persistence.md](persistence.md)

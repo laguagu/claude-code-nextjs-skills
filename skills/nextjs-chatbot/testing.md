@@ -44,7 +44,7 @@ Writers inside `.assistant()`: `text()`, `reasoning()`, `tool()`, `data()`, `fil
 
 Use it for:
 
-- **Tool-render states** — drive a tool part through `input-streaming` → `input-available` → `output-available` → `error` deterministically instead of waiting for a live model to reproduce each one. Same for the 5-state HITL machine (see [hitl.md](hitl.md)).
+- **Tool-render states** — drive a tool part through `input-streaming` → `input-available` → `output-available` → `error` deterministically instead of waiting for a live model to reproduce each one. Same for the 6-state HITL machine (see [hitl.md](hitl.md)) — server-side evals are blind to a wedged approval UI, so this is the only cheap way to cover it.
 - **Streaming-flicker regressions** — the multi-tool `isGenerating` bug (SKILL.md, "Message streaming state") reproduces reliably here.
 - **Docs, demos, screenshots** — a fixed conversation that never drifts or costs tokens.
 

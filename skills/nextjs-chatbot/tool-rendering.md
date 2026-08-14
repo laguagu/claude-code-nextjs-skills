@@ -100,7 +100,7 @@ For tools that need special approval states (HITL), don't use this factory — h
 
 ## Tool part type naming
 
-AI SDK v6 names tool parts as `tool-{toolName}` where `toolName` matches the key in the agent's `tools` object:
+The AI SDK names tool parts `tool-{toolName}`, where `toolName` matches the key in the agent's `tools` object (unchanged between v6 and v7):
 
 ```ts
 // Agent

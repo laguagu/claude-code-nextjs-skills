@@ -210,7 +210,7 @@ export const embeddings = pgTable('embeddings', {
 
 Requires: `CREATE EXTENSION IF NOT EXISTS vector;`
 
-### Embedding utilities (AI SDK v6)
+### Embedding utilities
 
 ```ts
 // lib/ai/embedding.ts
