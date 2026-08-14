@@ -18,7 +18,7 @@ Build full-stack AI applications with Next.js, AI SDK, and ai-elements.
 ### 1. Scaffold Project
 
 ```bash
-bunx --bun shadcn@latest create --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&theme=neutral&iconLibrary=lucide&font=geist-sans&menuAccent=subtle&menuColor=default&radius=default" --template next my-ai-app
+bunx --bun shadcn@latest create --name my-ai-app --template next --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&theme=neutral&iconLibrary=lucide&font=geist-sans&menuAccent=subtle&menuColor=default&radius=default"
 cd my-ai-app
 ```
 

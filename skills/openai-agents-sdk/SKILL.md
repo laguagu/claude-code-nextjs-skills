@@ -13,7 +13,7 @@ Use this skill when developing AI agents using OpenAI Agents SDK (`openai-agents
 ### Installation
 
 ```bash
-pip install openai-agents
+uv add openai-agents        # or `pip install openai-agents` outside a uv project
 ```
 
 ### Environment Variables
@@ -32,7 +32,9 @@ from agents import Agent, Runner
 agent = Agent(
     name="Assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.6",  # or "gpt-5.6-terra" / "gpt-5.6-luna" (cheaper tiers); verify current IDs from the model catalog
+    model="gpt-5.6-sol",  # or "gpt-5.6-terra" / "gpt-5.6-luna" (cheaper tiers). There is no
+                          # bare "gpt-5.6" — every GPT-5.6 call names a variant. Verify
+                          # current IDs from the model catalog.
 )
 
 # Synchronous

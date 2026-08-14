@@ -31,7 +31,7 @@ Use Chrome DevTools MCP to give your agent eyes into the browser. This bridges t
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["chrome-devtools-mcp@latest", "--isolated", "--no-usage-statistics", "--no-performance-crux"],
+      "args": ["-y", "chrome-devtools-mcp@latest", "--isolated", "--no-usage-statistics", "--no-performance-crux"],
       "env": { "CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS": "1" }
     }
   }
@@ -42,16 +42,24 @@ Use Chrome DevTools MCP to give your agent eyes into the browser. This bridges t
 
 Chrome DevTools MCP provides these capabilities:
 
+These are the actual tool names — call them as written, prefixed with the server
+namespace your client uses (e.g. `mcp__chrome-devtools__take_snapshot`):
+
 | Tool | What It Does | When to Use |
 |------|-------------|-------------|
-| **Screenshot** | Captures the current page state | Visual verification, before/after comparisons |
-| **DOM Inspection** | Reads the live DOM tree | Verify component rendering, check structure |
-| **Console Logs** | Retrieves console output (log, warn, error) | Diagnose errors, verify logging |
-| **Network Monitor** | Captures network requests and responses | Verify API calls, check payloads |
-| **Performance Trace** | Records performance timing data | Profile load time, identify bottlenecks |
-| **Element Styles** | Reads computed styles for elements | Debug CSS issues, verify styling |
-| **Accessibility Tree** | Reads the accessibility tree | Verify screen reader experience |
-| **JavaScript Execution** | Runs JavaScript in the page context | Read-only state inspection and debugging (see Security Boundaries) |
+| `take_screenshot` | Captures the current page state | Visual verification, before/after comparisons |
+| `take_snapshot` | Reads the live DOM as an accessibility-annotated tree | Verify rendering and structure, get element `uid`s for interaction |
+| `list_console_messages` / `get_console_message` | Retrieves console output (log, warn, error) | Diagnose errors, verify logging |
+| `list_network_requests` / `get_network_request` | Captures network requests and responses | Verify API calls, check payloads |
+| `performance_start_trace` / `performance_stop_trace` / `performance_analyze_insight` | Records and analyses performance timing | Profile load time, identify bottlenecks |
+| `evaluate_script` | Runs JavaScript in the page context | Computed styles, read-only state inspection (see Security Boundaries) |
+| `navigate_page` / `new_page` / `select_page` / `list_pages` | Tab and navigation control | Open the app, switch between pages |
+| `click` / `fill` / `fill_form` / `hover` / `press_key` | Drives the page | Reproduce a bug, exercise a flow |
+| `wait_for` | Blocks until text appears | Avoid racing an async render |
+| `emulate` / `resize_page` | Viewport, network and CPU throttling | Responsive checks, slow-network repro |
+
+`take_snapshot` is the DOM/accessibility view — there is no separate accessibility-tree
+tool. Computed styles come from `evaluate_script` (`getComputedStyle`), not a dedicated tool.
 
 ## Security Boundaries
 

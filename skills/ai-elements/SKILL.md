@@ -8,25 +8,13 @@ argument-hint: "[component-name]"
 
 [AI Elements](https://www.npmjs.com/package/ai-elements) is a component library and custom registry built on top of [shadcn/ui](https://ui.shadcn.com/) to help you build AI-native applications faster. It provides pre-built components like conversations, messages and more.
 
-Installing AI Elements is straightforward and can be done in a couple of ways. You can use the dedicated CLI command for the fastest setup, or integrate via the standard shadcn/ui CLI if you've already adopted shadcn's workflow.
-
-
-
-## Quick Start
-
-Here are some basic examples of what you can achieve using components from AI Elements.
-
-
+Components are copied into the project as source, so they are owned and editable — not a black-box dependency.
 
 ## Prerequisites
 
-Before installing AI Elements, make sure your environment meets the following requirements:
-
-- [Node.js](https://nodejs.org/en/download/), version 18 or later
-- A [Next.js](https://nextjs.org/) project with the [AI SDK](https://ai-sdk.dev/) installed.
-- [shadcn/ui](https://ui.shadcn.com/) installed in your project. If you don't have it installed, running any install command will automatically install it for you.
-
-
+- [Node.js](https://nodejs.org/en/download/) 18 or later
+- A [Next.js](https://nextjs.org/) project with the [AI SDK](https://ai-sdk.dev/) installed
+- [shadcn/ui](https://ui.shadcn.com/) in the project — running any install command sets it up if missing
 
 ## Installing Components
 
@@ -60,13 +48,9 @@ bun x shadcn@latest add @ai-elements/message
 
 The CLI downloads the component's code and integrates it into the project's directory. By default, AI Elements components are added to `@/components/ai-elements/` (or whatever folder is configured in `components.json`). After running the command, the terminal confirms which files were added — proceed to import and use the component in code.
 
-## Usage
-
-Once an AI Elements component is installed, you can import it and use it in your application like any other React component. The components are added as part of your codebase (not hidden in a library), so the usage feels very natural.
-
 ## Example
 
-After installing AI Elements components, you can use them in your application like any other React component. For example:
+Import and compose them like any other local React component:
 
 ```tsx title="conversation.tsx"
 "use client";
@@ -114,11 +98,7 @@ All AI Elements components take as many primitive attributes as possible. For ex
 
 ## Customization
 
-
-
-After installation, no additional setup is needed. The component’s styles (Tailwind CSS classes) and scripts are already integrated. You can start interacting with the component in your app immediately.
-
-For example, if you'd like to remove the rounding on `Message`, you can go to `components/ai-elements/message.tsx` and remove `rounded-lg` as follows:
+No post-install setup is needed — the Tailwind classes and scripts ship with the component. Edit the file directly to change it. For example, to remove the rounding on `Message`, drop `rounded-lg` from `components/ai-elements/message.tsx`:
 
 ```tsx title="components/ai-elements/message.tsx" highlight="8"
 export const MessageContent = ({
@@ -141,33 +121,26 @@ export const MessageContent = ({
 
 ## Troubleshooting
 
-## Why are my components not styled?
+### Components render unstyled
 
-Make sure your project is configured correctly for shadcn/ui in Tailwind 4 - this means having a `globals.css` file that imports Tailwind and includes the shadcn/ui base styles.
+The project is missing the shadcn/ui base layer. Tailwind 4 is CSS-first — there is no
+`tailwind.config.js`; `globals.css` must `@import "tailwindcss"` and define the shadcn
+theme tokens in an `@theme inline` block.
 
-## I ran the AI Elements CLI but nothing was added to my project
+### The CLI ran but nothing was added
 
-Double-check that:
+Run it from the directory holding `package.json`, and pass both `@latest` and a component
+name — a bare `ai-elements@latest` with no subcommand does not add a single component.
 
-- Your current working directory is the root of your project (where `package.json` lives).
-- Your components.json file (if using shadcn-style config) is set up correctly.
-- You're using the latest version of the AI Elements CLI by passing `@latest` and a component name:
+### Theme switching stays in light mode
 
-```bash title="Terminal"
-bun x ai-elements@latest add message
-# or:
-npx ai-elements@latest add message
-```
+shadcn/ui toggles `class="dark"` (or a `data-theme` attribute) on `<html>`. In Tailwind 4
+the matching selector is declared in CSS with `@custom-variant dark`, not in a config file.
+Confirm the toggle actually mutates `<html>` before suspecting the components.
 
-If all else fails, feel free to open an [issue on GitHub](https://github.com/vercel/ai-elements/issues).
+### Imports fail with "module not found"
 
-## Theme switching doesn’t work — my app stays in light mode
-
-Ensure your app is using the same data-theme system that shadcn/ui and AI Elements expect. The default implementation toggles a data-theme attribute on the `<html>` element. Make sure your tailwind.config.js is using class or data- selectors accordingly:
-
-## The component imports fail with “module not found”
-
-Check the file exists. If it does, make sure your `tsconfig.json` has a proper paths alias for `@/` i.e.
+Check the file exists, then check the `@/` path alias in `tsconfig.json`:
 
 ```json title="tsconfig.json"
 {
@@ -180,16 +153,9 @@ Check the file exists. If it does, make sure your `tsconfig.json` has a proper p
 }
 ```
 
-## My AI coding assistant can't access AI Elements components
+Match the alias to whatever `components.json` declares — it is not always `@/`.
 
-1. Verify your config file syntax is valid JSON.
-2. Check that the file path is correct for your AI tool.
-3. Restart your coding assistant after making changes.
-4. Ensure you have a stable internet connection.
-
-## Still stuck?
-
-If none of these answers help, open an [issue on GitHub](https://github.com/vercel/ai-elements/issues) and someone will be happy to assist.
+Anything else: [open an issue](https://github.com/vercel/ai-elements/issues).
 
 ## Available Components
 
