@@ -18,7 +18,6 @@ skills/media-gen/
 # Vercel-platform and Haaga-Helia specific skills (not for public repo)
 skills/vercel-deploy-audit/
 skills/vercel-optimize/
-skills/vercel-react-view-transitions/
 
 # Machine- and environment-specific tooling. These audit or drive *this* setup
 # (Windows junction layout, local package managers, the gaik/fair Rahti
