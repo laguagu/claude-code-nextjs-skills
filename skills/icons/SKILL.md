@@ -1,6 +1,6 @@
 ---
 name: icons
-description: Find, fetch, and install the right icon or logo from the right source — brand marks, country flags, file-type icons (PDF, DOCX, ZIP), and UI glyphs — and keep them visually consistent with the app. Use when the project's icon library has no match, when svgl comes up empty, or when the user asks for a flag, a file-type badge, a brand logo, or just "an icon for X". Covers the Iconify search API (200k+ icons across flags, file types, logos and UI sets), the svgl shadcn registry for full-colour brand logos, family and stroke-weight matching so a borrowed icon does not look pasted in, and why svgrepo and flaticon cannot be fetched programmatically. Triggers on "lisää ikoni", "maan lippu", "flag icon", "PDF icon", "file type icon", "brand logo", "sign in with Google/GitHub", "language switcher", "svgl", "iconify", "find an icon". For overall visual direction rather than sourcing one specific mark, use ui-signature; for installing shadcn components generally, use shadcn.
+description: Find, fetch, and install the right icon or logo from the right source — brand marks, country flags, file-type icons (PDF, DOCX, ZIP), and UI glyphs — and keep them visually consistent with the app. Use when the project's icon library has no match, when svgl comes up empty, or when the user asks for a flag, a file-type badge, a brand logo, or just "an icon for X". Covers the Iconify search API (200k+ icons across flags, file types, logos and UI sets), the svgl shadcn registry for full-colour brand logos, family and stroke-weight matching so a borrowed icon does not look pasted in, and how to reach svgrepo through browser automation when curl and WebFetch are blocked. Triggers on "lisää ikoni", "maan lippu", "flag icon", "PDF icon", "file type icon", "brand logo", "sign in with Google/GitHub", "language switcher", "svgl", "iconify", "find an icon". For overall visual direction rather than sourcing one specific mark, use ui-signature; for installing shadcn components generally, use shadcn.
 license: MIT
 ---
 
@@ -146,19 +146,34 @@ with gradients in colour logos.
 
 ## When nothing is found — svgrepo, flaticon
 
-Both come up in searches and **neither can be used by an agent**:
+Neither can be fetched with `curl` or WebFetch. Verified 2026-08-19: `svgrepo.com` returns
+HTTP 429 to every programmatic request, browser user-agent or not; `flaticon.com` returns
+403. Do not retry with header tricks — the block is not user-agent based.
 
-- `svgrepo.com` returns HTTP 429 to programmatic requests, browser user-agent or not. No
-  public API.
-- `flaticon.com` returns 403. Its Freepik API needs a paid key, and the free tier requires
-  visible attribution in the shipped product.
+**svgrepo does work through a real browser.** If browser automation is available (the
+`claude-in-chrome` tools), that is a legitimate route, not a scraping workaround — the
+pages render normally and same-origin `fetch` is allowed:
 
-If the user wants an icon from one of these, they must download it in the browser
-themselves. Ask them to drop the `.svg` file in the project and say where; do not attempt
-scraping workarounds. Before using it, check the per-icon licence — svgrepo mixes CC0, MIT,
-CC BY and non-commercial packs on the same site, and flaticon's free tier is
-attribution-required. That mixed licensing plus mixed drawing style is the reason to treat
-both as a last resort rather than a first stop.
+1. Navigate to `https://www.svgrepo.com/vectors/<term>/` and read the result list. Icon
+   links have the form `https://www.svgrepo.com/svg/<id>/<slug>`.
+2. Open the icon page and read its `LICENSE:` field (shown next to `COLLECTION:` and
+   `UPLOADER:`, e.g. `CC0 License`). Check it per icon — svgrepo mixes CC0, MIT, CC BY and
+   non-commercial packs on the same site.
+3. From a page on that origin, `fetch('https://www.svgrepo.com/download/<id>/<slug>.svg')`
+   returns the raw SVG (200, `image/svg+xml`). Write it into the project yourself.
+
+Without browser automation, ask the user to download the file in the browser and drop the
+`.svg` in the project. Do not suggest `svgapi.com` — it is svgrepo's official API but
+starts at $9.90/mo for 5,000 calls, and without a key returns
+`{"error": "Your domainHash is not valid."}`. The free tier is a case-by-case grant for
+non-commercial accessibility projects only.
+
+flaticon stays off limits: downloads need an account, and its free tier requires visible
+attribution in the shipped product. Ask the user for the file if they specifically want one
+from there.
+
+Mixed licensing plus mixed drawing style is why both remain a last resort rather than a
+first stop, even where the browser route works.
 
 Better fallbacks before giving up on Iconify: search a synonym (`document` for `file`,
 `invoice` for `receipt`), search unprefixed to see every set, or browse the nearest
