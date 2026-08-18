@@ -21,10 +21,12 @@ Build distinctive, production-grade interfaces that avoid generic "AI slop" aest
 bunx --bun shadcn@latest init --template next --base base
 ```
 
-`--base` selects the primitive library: `base` (Base UI, the default), `radix`
-(legacy projects), or `aria` (React Aria). **The same component has different
-props per base**, and the docs are base-scoped
-(`/docs/components/base/sidebar` vs `/docs/components/radix/sidebar`).
+`--base` selects the primitive library: `base` (Base UI, the default since July
+2026), `radix` (projects already on Radix — still fully supported, not
+deprecated), or `aria` (React Aria). **The same component has different props per
+base** — Base UI composes with `render={<Link href="/" />}` where Radix uses
+`asChild` — and the docs are base-scoped (`/docs/components/base/sidebar` vs
+`/docs/components/radix/sidebar`).
 
 For a custom design system, generate a preset code in `shadcn/create` and apply it:
 
@@ -255,6 +257,11 @@ Tools it provides (when dev server is running):
 - `get_page_metadata` — route, components, rendering details for a specific page
 - `get_project_metadata` — project structure + dev server URL
 - `get_server_action_by_id` — locate Server Action source from its hashed ID
+- `get_compilation_issues` / `compile_route` — bundler warnings for the project,
+  or compile one route on demand without requesting it (Turbopack only)
+
+It also acts as a docs gateway: it points at the version-accurate docs shipped
+inside `node_modules/next/dist/docs/`, which beat any remembered API shape.
 
 Use these instead of asking the user to copy-paste error messages. Reference:
 [nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp).

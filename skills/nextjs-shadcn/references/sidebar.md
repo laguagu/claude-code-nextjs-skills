@@ -45,7 +45,9 @@ bunx --bun shadcn@latest add sidebar
 The sidebar API differs between Base UI, Radix and React Aria. Check the
 project's base (`shadcn info --json`) and read
 `shadcn docs sidebar` rather than assuming — the examples below target Base UI,
-the current default.
+the current default. The difference that shows up in every example: Base UI
+composes through a `render` prop (`<SidebarMenuButton render={<Link href="/" />}>`
+with the icon and label as children), where Radix wraps the children in `asChild`.
 
 ## Layout Pattern
 
@@ -133,11 +135,12 @@ export function AppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild size="lg">
-              <Link href="/" className="flex items-center gap-3">
-                <Logo className="size-8" />
-                <span className="text-base font-semibold">App Name</span>
-              </Link>
+            <SidebarMenuButton
+              size="lg"
+              render={<Link href="/" className="flex items-center gap-3" />}
+            >
+              <Logo className="size-8" />
+              <span className="text-base font-semibold">App Name</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -152,11 +155,9 @@ export function AppSidebar() {
                 <SidebarMenu>
                   {group.items.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <Link href={item.href}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
+                      <SidebarMenuButton render={<Link href={item.href} />}>
+                        <item.icon />
+                        <span>{item.title}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -173,11 +174,9 @@ export function AppSidebar() {
         <SidebarMenu>
           {FOOTER_NAV_ITEMS.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
+              <SidebarMenuButton render={<Link href={item.href} />}>
+                <item.icon />
+                <span>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

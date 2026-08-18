@@ -18,7 +18,7 @@ bunx --bun shadcn@latest init --template next --base aria   # React Aria
 
 | Base | Pick it when |
 |------|-------------|
-| `base` | New projects. Default, most actively developed, gets new components first (e.g. Toast). |
+| `base` | New projects. Default since July 2026, most actively developed, gets new components first. |
 | `radix` | Existing codebase already on Radix, or a dependency expects Radix primitives. |
 | `aria` | Accessibility/interaction requirements beyond the defaults — React Aria's behavior hooks. |
 
@@ -27,12 +27,39 @@ props and sub-components per base. Docs are base-scoped too —
 `ui.shadcn.com/docs/components/base/sidebar` vs `.../radix/sidebar`. Never write
 component code from memory without knowing the project's base.
 
+The difference that bites most often: **Base UI composes through a `render`
+prop, Radix through `asChild`.**
+
+```tsx
+// Base UI (default) — element goes in render, children stay as children
+<SidebarMenuButton render={<Link href="/inbox" />}>
+  <Inbox />
+  <span>Inbox</span>
+</SidebarMenuButton>
+
+// Radix — element wraps the children
+<SidebarMenuButton asChild>
+  <Link href="/inbox">
+    <Inbox />
+    <span>Inbox</span>
+  </Link>
+</SidebarMenuButton>
+```
+
 Read the base from `components.json` (or `shadcn info --json`) before editing an
-existing project. To move an existing project off Radix:
+existing project.
+
+`migrate radix` does **not** switch a project from Radix to Base UI — it rewrites
+`@radix-ui/react-*` imports to the single `radix-ui` package. Radix → Base UI is
+a component-at-a-time migration driven by the official shadcn skill:
 
 ```bash
-bunx --bun shadcn@latest migrate radix
+bunx --bun skills add shadcn/ui
+# then ask the agent: "migrate accordion to base-ui"
 ```
+
+Both libraries stay installed while you work, each component lands in its own
+commit, and every run writes a report to `.migration/<component>.md`.
 
 ## CLI verbs beyond `add`
 
@@ -51,8 +78,12 @@ shadcn search @shadcn -q chart  # search a registry namespace
 `llms.txt`** — it resolves against the project's actual base and version. Use
 `shadcn view` before `add` when you are unsure what a registry item pulls in.
 
-Other verbs: `diff` (upstream changes to installed components), `build`
-(generate registry JSON), `migrate` (`icons`, `rtl`, `radix`).
+Other verbs: `add <component> --diff` (upstream changes to an installed
+component — the standalone `diff` command is deprecated), `apply <preset>`
+(apply a preset to an existing project; `--only theme,font` for just those
+parts), `preset decode|resolve|url|open` (inspect a preset code), `build`
+(generate registry JSON), `migrate` (`icons`, `rtl`, `radix`), `eject` (inline
+`shadcn/tailwind.css` and drop the `shadcn` dependency).
 
 ### `migrate icons`
 
@@ -76,8 +107,9 @@ and registry authoring — **this skill covers project conventions, architecture
 and Next.js integration instead.** Install both; don't duplicate CLI reference
 material here.
 
-There is also an MCP server (`shadcn mcp`) for registry search and install from
-within the editor.
+There is also an MCP server for registry search and install from within the
+editor — wire it into Claude Code with
+`bunx --bun shadcn@latest mcp init --client claude`.
 
 ## Typeset — styling rendered markdown
 

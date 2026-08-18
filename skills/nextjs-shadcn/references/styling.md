@@ -95,11 +95,12 @@ Available styles at ui.shadcn.com/create:
 
 ### Fonts
 
-Available fonts via `shadcn create` preset URL:
+Body/mono fonts the preset builder offers (these ids are what the preset code
+encodes — `shadcn preset decode <code>` prints them back):
 
 | Font | Type | Character |
 |------|------|-----------|
-| geist-sans | Sans | Vercel's modern geometric sans |
+| geist | Sans | Vercel's modern geometric sans |
 | inter | Sans | Clean, versatile (classic default) |
 | figtree | Sans | Friendly, geometric |
 | dm-sans | Sans | Compact geometric with character |
@@ -110,16 +111,23 @@ Available fonts via `shadcn create` preset URL:
 | raleway | Sans | Elegant, thin-weight display |
 | public-sans | Sans | US government standard, neutral |
 | jetbrains-mono | Mono | Developer-focused monospace |
+| geist-mono | Mono | Vercel's monospace |
+
+Heading fonts (`fontHeading`) are a separate, longer list — lora, merriweather,
+playfair-display, noto-serif, roboto-slab, oxanium, manrope, space-grotesk,
+montserrat, ibm-plex-sans, source-sans-3, instrument-sans, eb-garamond,
+instrument-serif. It defaults to `inherit` (same face as the body).
 
 ## Icon Libraries
 
-Priority order (use first available):
+Priority order (use first available). The names below are the CLI's library ids —
+pass them verbatim to `shadcn migrate icons --from <id> --to <id>`:
 
 1. **lucide** (default) - `bun add lucide-react`
 2. **tabler** - `bun add @tabler/icons-react`
 3. **hugeicons** - `bun add @hugeicons/react @hugeicons/core-free-icons` (the old `hugeicons-react` package is deprecated)
 4. **phosphor** - `bun add @phosphor-icons/react`
-5. **remix** - `bun add @remixicon/react`
+5. **remixicon** - `bun add @remixicon/react`
 
 ```tsx
 // lucide example
@@ -166,22 +174,13 @@ export default function Template({ children }: { children: React.ReactNode }) {
 
 ### View Transitions API
 
-Enable in `next.config.ts`:
+No config needed. View transitions work in the App Router out of the box — it
+runs React canary releases, which ship `ViewTransition`. The old
+`experimental.viewTransition` flag is gone from Next.js 16's config type; adding
+it now is a type error, not a no-op.
 
-```ts
-import type { NextConfig } from "next"
-
-const config: NextConfig = {
-  experimental: { viewTransition: true },
-}
-
-export default config
-```
-
-With the flag on, `<Link>` navigations get a default browser cross-fade. For
-*meaningful* transitions, use React's `<ViewTransition>` component — no extra
-install, the App Router runs React canary. Without browser support it degrades
-gracefully: no animation, app still works.
+Wrap what should animate in React's `<ViewTransition>` — no extra install.
+Without browser support it degrades gracefully: no animation, app still works.
 
 ```tsx
 import { ViewTransition } from "react"
@@ -535,7 +534,16 @@ components/
 
 ### Scrollbar Hide
 
-Hide scrollbar while preserving scroll functionality:
+`shadcn/tailwind.css` already ships a `no-scrollbar` utility, so a shadcn project
+needs no extra package:
+
+```tsx
+<div className="overflow-y-auto no-scrollbar">
+  {/* Scrollable content without visible scrollbar */}
+</div>
+```
+
+Only reach for a package in a project that doesn't import `shadcn/tailwind.css`:
 
 ```bash
 bun add tailwind-scrollbar-hide
@@ -544,10 +552,4 @@ bun add tailwind-scrollbar-hide
 ```css
 /* globals.css (Tailwind v4 — no config file needed) */
 @import "tailwind-scrollbar-hide/v4";
-```
-
-```tsx
-<div className="overflow-y-auto scrollbar-hide">
-  {/* Scrollable content without visible scrollbar */}
-</div>
 ```

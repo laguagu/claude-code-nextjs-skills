@@ -21,10 +21,20 @@ right-to-left support.
 bunx --bun shadcn@latest init --preset <CODE> --template next
 ```
 
-Preset codes are short opaque strings from [ui.shadcn.com/create](https://ui.shadcn.com/create). Pass them directly — don't decode them. Prefer this when you want a specific visual system without hardcoding individual style, font, or icon choices into the skill:
+Preset codes are short opaque strings from [ui.shadcn.com/create](https://ui.shadcn.com/create) — pass them through verbatim rather than expanding them into individual flags. Prefer this when you want a specific visual system without hardcoding individual style, font, or icon choices into the skill:
 
 ```bash
 bunx --bun shadcn@latest init --preset b4h07r5A1 --template next
+```
+
+`shadcn preset decode <code>` prints what a code contains (style, base color,
+theme, font, icon library, radius) if you need to read it before applying.
+
+For a project that already exists, apply a preset instead of re-running `init`:
+
+```bash
+bunx --bun shadcn@latest apply <CODE>              # theme, fonts, components
+bunx --bun shadcn@latest apply <CODE> --only theme # just the theme
 ```
 
 ### Monorepo
