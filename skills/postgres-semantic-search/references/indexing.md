@@ -155,6 +155,38 @@ ALTER TABLE documents ADD COLUMN tsv tsvector GENERATED ALWAYS AS (
 CREATE INDEX ON documents USING GIN (tsv);
 ```
 
+> [!WARNING]
+> **Verify in the deployed database that the column really is generated.**
+> A generated tsvector that has silently become a plain column is the worst
+> failure mode in this skill: no error, no exception, every row simply holds
+> `NULL` and the keyword half of hybrid search matches nothing, forever. In
+> one production system this ran for roughly six months — "hybrid" search
+> was pure vector search and nobody noticed, because it still returned
+> results.
+>
+> ORM migration generators are the usual cause: a regenerated schema can
+> emit the column without its `GENERATED ALWAYS AS` expression, and nothing
+> in the repo looks wrong.
+>
+> ```sql
+> -- attgenerated must be 's' (stored). Empty means a plain column.
+> SELECT attrelid::regclass AS tbl, attname, attgenerated
+> FROM pg_attribute
+> WHERE attname = 'tsv' AND NOT attisdropped;
+>
+> -- And the values have to actually be there.
+> SELECT count(*) AS rows, count(tsv) AS populated FROM documents;
+> ```
+>
+> Postgres has no `ALTER COLUMN ... SET GENERATED` for stored generated
+> columns, so repairing one means `DROP COLUMN` + `ADD COLUMN ... GENERATED`,
+> which also drops its indexes. Cheap, but it has to be a deliberate
+> migration.
+>
+> The check that needs no database access at all: run the same literal term
+> through hybrid search and through pure vector search. Identical result
+> lists mean the keyword arm is dead.
+
 ### JSONB Metadata
 
 ```sql

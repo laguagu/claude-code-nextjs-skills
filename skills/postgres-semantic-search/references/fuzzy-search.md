@@ -205,46 +205,171 @@ CREATE INDEX ON documents USING gin (title gin_trgm_ops);
 
 ### Prefix Matching for Agglutinative Languages
 
-For Finnish, Turkish, Hungarian, Estonian and other agglutinative languages where `'simple'` config
-doesn't stem, use prefix matching (`:*` operator) so "xylitol" matches "xylitolin", "xylitolia", etc.
+For Finnish, Turkish, Hungarian, Estonian and other agglutinative languages
+where `'simple'` does no stemming, prefix matching (`:*`) lets "xylitol" match
+"xylitolin", "xylitolia". `websearch_to_tsquery` cannot emit `:*`, so the
+tsquery has to be built by hand.
 
-`websearch_to_tsquery` doesn't support `:*`, so build the tsquery manually:
+Two things about that construction are counter-intuitive, and both silently
+return **zero rows** rather than erroring. Measured on a 2 000-segment Finnish
+corpus:
+
+**1. Do not AND the terms together.** Prefix matching does not survive
+inflection, and requiring every term multiplies each term's miss chance until
+the whole query matches nothing:
+
+```
+'sote':*         & 'uudistus':*   → 0 rows      ('sote':* | 'uudistus':*   → 8)
+'karieksen':*    & 'ehkäisy':*    → 0 rows      (OR → 3)
+'juurikanavan':* & 'täyttö':*     → 0 rows      (OR → 62)
+```
+
+`uudistus:*` does not match `uudistuksesta` — consonant gradation changes the
+stem at the 7th character. OR-join instead and let `ts_rank_cd` order the pool:
+cover density ranks a document matching four terms far above one matching a
+filler word, and when this feeds RRF only the top slice survives anyway, so the
+extra recall does not turn into precision loss downstream.
+
+**2. A hyphenated token becomes a phrase query.** Postgres' parser splits it and
+`to_tsquery` joins the parts with `<->`:
 
 ```sql
--- Convert 'fluoridi ksylitoli' → 'fluoridi:* & ksylitoli:*'
-CREATE OR REPLACE FUNCTION prefix_tsquery(p_config regconfig, p_text TEXT)
+SELECT to_tsquery('simple', 'sote-uudistus:*');
+-- 'sote-uudistus':* <-> 'sote':* <-> 'uudistus':*
+```
+
+which does not match `"puhutaan sote-uudistuksesta"`. Quoting the term does not
+help — the parser splits it regardless. Expand hyphenated tokens into an
+explicit OR of the whole form and each part.
+
+```sql
+-- 'sote-uudistus hoitojonot'
+--   → ('sote-uudistus':* | 'sote':* | 'uudistus':*) | 'hoitojonot':*
+CREATE OR REPLACE FUNCTION prefix_tsquery(
+    p_config regconfig,
+    p_text   TEXT,
+    p_join   TEXT              -- 'auto' | 'or' | 'and'; 'and' is for ablations
+)
 RETURNS tsquery
 LANGUAGE plpgsql IMMUTABLE STRICT PARALLEL SAFE
 AS $$
 DECLARE
-    v_words TEXT[];
-    v_parts TEXT[];
-    v_word TEXT;
+    -- Shorter tokens are function words ("ja", "on", "ei") that match nearly
+    -- every document. Dropped from OR queries — but only when a longer one
+    -- survives, so "TMD" and "sote" still work as queries on their own.
+    MIN_OR_TERM_LENGTH CONSTANT INT := 3;
+    v_token   TEXT;
+    v_cleaned TEXT;
+    v_parts   TEXT[];
+    v_arms    TEXT[];
+    v_terms   TEXT[] := ARRAY[]::TEXT[];
+    v_weights INT[]  := ARRAY[]::INT[];
+    v_kept    TEXT[];
+    v_join    TEXT;
 BEGIN
-    -- Quoted phrases → fall back to websearch_to_tsquery (no prefix benefit)
+    -- An explicit phrase is what websearch_to_tsquery is for.
     IF p_text LIKE '%"%' THEN
         RETURN websearch_to_tsquery(p_config, p_text);
     END IF;
 
-    -- Split words, strip tsquery-special chars, add :* prefix operator
-    v_words := string_to_array(trim(regexp_replace(p_text, '\s+', ' ', 'g')), ' ');
-    v_parts := ARRAY[]::TEXT[];
+    FOREACH v_token IN ARRAY regexp_split_to_array(trim(p_text), '\s+') LOOP
+        -- Strip tsquery operators, then leading/trailing punctuation. Without
+        -- this, input containing & | ! ( ) : raises a syntax error.
+        v_cleaned := regexp_replace(v_token, '[''"()!&|<>:?\\*]', '', 'g');
+        v_cleaned := regexp_replace(
+            v_cleaned, '^[^[:alnum:]]+|[^[:alnum:]]+$', '', 'g');
+        CONTINUE WHEN v_cleaned = '';
 
-    FOREACH v_word IN ARRAY v_words LOOP
-        v_word := regexp_replace(v_word, '[()!&|<>:?\\''"]', '', 'g');
-        IF length(v_word) > 0 THEN
-            v_parts := array_append(v_parts, v_word || ':*');
+        v_parts := ARRAY(
+            SELECT p
+            FROM regexp_split_to_table(v_cleaned, '[^[:alnum:]]+') AS p
+            WHERE p <> ''
+        );
+        CONTINUE WHEN array_length(v_parts, 1) IS NULL;
+
+        IF array_length(v_parts, 1) = 1 THEN
+            v_arms := v_parts;
+        ELSE
+            -- Compound first (most specific), then each part, first-seen order.
+            v_arms := ARRAY(
+                SELECT a
+                FROM (
+                    SELECT u.a, min(u.ord) AS ord
+                    FROM unnest(ARRAY[v_cleaned] || v_parts)
+                         WITH ORDINALITY AS u(a, ord)
+                    GROUP BY u.a
+                ) s
+                ORDER BY s.ord
+            );
         END IF;
+
+        IF array_length(v_arms, 1) = 1 THEN
+            v_terms := v_terms || (quote_literal(v_arms[1]) || ':*');
+        ELSE
+            v_terms := v_terms || (
+                '(' || array_to_string(
+                    ARRAY(SELECT quote_literal(a) || ':*' FROM unnest(v_arms) AS a),
+                    ' | ') || ')'
+            );
+        END IF;
+
+        v_weights := v_weights || (
+            SELECT max(length(a))::INT FROM unnest(v_arms) AS a
+        );
     END LOOP;
 
-    IF array_length(v_parts, 1) IS NULL THEN
+    IF array_length(v_terms, 1) IS NULL THEN
         RETURN NULL;
     END IF;
 
-    RETURN to_tsquery(p_config, array_to_string(v_parts, ' & '));
+    -- A single term is unambiguous; the join mode never applies to it.
+    IF array_length(v_terms, 1) = 1 THEN
+        v_join := 'and';
+    ELSIF p_join = 'auto' THEN
+        v_join := 'or';
+    ELSE
+        v_join := p_join;
+    END IF;
+
+    IF v_join = 'or' THEN
+        v_kept := ARRAY(
+            SELECT u.t FROM unnest(v_terms, v_weights) AS u(t, w)
+            WHERE u.w >= MIN_OR_TERM_LENGTH
+        );
+        IF array_length(v_kept, 1) IS NULL THEN
+            v_kept := v_terms;   -- an all-short query still has to work
+        END IF;
+    ELSE
+        v_kept := v_terms;
+    END IF;
+
+    RETURN to_tsquery(
+        p_config,
+        array_to_string(v_kept, CASE WHEN v_join = 'or' THEN ' | ' ELSE ' & ' END)
+    );
 END;
 $$;
 ```
+
+Add a two-argument wrapper so existing call sites keep working:
+
+```sql
+CREATE OR REPLACE FUNCTION prefix_tsquery(p_config regconfig, p_text TEXT)
+RETURNS tsquery LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+AS $$ SELECT prefix_tsquery(p_config, p_text, 'auto') $$;
+```
+
+> [!IMPORTANT]
+> Use a wrapper, **not** `DEFAULT 'auto'` on the third parameter. With a default,
+> a database that already has the two-argument version gets two candidates for
+> `prefix_tsquery('simple', $1)` and every existing call fails with
+> `function prefix_tsquery(unknown, unknown) is not unique`. That is the exact
+> situation when upgrading, which is when it hurts most. (Verified by running
+> this function against a database carrying both.)
+
+Keep the join mode as an argument. Which of OR and AND wins is corpus-dependent,
+and having it as a parameter turns that question into a one-line ablation
+instead of a migration.
 
 Use with `'simple'` config (no stemming, works with any language):
 
