@@ -2,6 +2,17 @@
 
 PostgreSQL native fuzzy search without external extensions (except built-in ones).
 
+## Contents
+
+- [pg_trgm (Trigram Similarity)](#pg_trgm-trigram-similarity)
+- [LIKE / ILIKE Optimization](#like--ilike-optimization)
+- [fuzzystrmatch Extension](#fuzzystrmatch-extension)
+- [unaccent Extension](#unaccent-extension)
+- [Autocomplete Patterns](#autocomplete-patterns)
+- [Advanced FTS Patterns](#advanced-fts-patterns)
+- [Decision Tree: Choose Text Search Method](#decision-tree-choose-text-search-method)
+- [Combining Fuzzy with Semantic Search](#combining-fuzzy-with-semantic-search)
+
 ## pg_trgm (Trigram Similarity)
 
 The most important extension for fuzzy/typo-tolerant search. Built into PostgreSQL.
@@ -206,45 +217,61 @@ CREATE INDEX ON documents USING gin (title gin_trgm_ops);
 ### Prefix Matching for Agglutinative Languages
 
 For Finnish, Turkish, Hungarian, Estonian and other agglutinative languages
-where `'simple'` does no stemming, prefix matching (`:*`) lets "xylitol" match
-"xylitolin", "xylitolia". `websearch_to_tsquery` cannot emit `:*`, so the
-tsquery has to be built by hand.
+where `'simple'` does no stemming, prefix matching (`:*`) lets one query form
+match inflected ones. `websearch_to_tsquery` cannot emit `:*`, so the tsquery
+has to be built by hand.
 
-Two things about that construction are counter-intuitive, and both silently
-return **zero rows** rather than erroring. Measured on a 2 000-segment Finnish
-corpus:
+Prefix matching only carries you so far, and the two places it breaks both
+return **zero rows** rather than erroring. Every claim below is a statement
+Postgres will confirm — paste them into `psql`.
 
-**1. Do not AND the terms together.** Prefix matching does not survive
-inflection, and requiring every term multiplies each term's miss chance until
-the whole query matches nothing:
+**Prefix matching survives plain suffixation:**
 
-```
-'sote':*         & 'uudistus':*   → 0 rows      ('sote':* | 'uudistus':*   → 8)
-'karieksen':*    & 'ehkäisy':*    → 0 rows      (OR → 3)
-'juurikanavan':* & 'täyttö':*     → 0 rows      (OR → 62)
+```sql
+SELECT to_tsvector('simple','kirjastossa') @@ to_tsquery('simple','kirjasto:*');  -- true
+SELECT to_tsvector('simple','kirjastoon')  @@ to_tsquery('simple','kirjasto:*');  -- true
 ```
 
-`uudistus:*` does not match `uudistuksesta` — consonant gradation changes the
-stem at the 7th character. OR-join instead and let `ts_rank_cd` order the pool:
-cover density ranks a document matching four terms far above one matching a
-filler word, and when this feeds RRF only the top slice survives anyway, so the
-extra recall does not turn into precision loss downstream.
+**It does not survive stem changes.** Finnish consonant gradation rewrites the
+stem, so the prefix stops being a prefix:
+
+```sql
+SELECT to_tsvector('simple','hakemuksesta') @@ to_tsquery('simple','hakemus:*'); -- false
+SELECT to_tsvector('simple','asiakkaan')    @@ to_tsquery('simple','asiakas:*'); -- false
+```
+
+**1. Do not AND the terms together.** Because any single term can miss like
+that, requiring all of them multiplies the risk until a realistic multi-word
+query matches nothing at all. On a ~2,000-document Finnish corpus, AND-joining
+returned zero rows for every multi-word query tried, while OR-joining returned
+usable candidate pools for the same queries.
+
+OR-join and let `ts_rank_cd` order the pool: cover density ranks a document
+matching four query terms far above one matching a single filler word. When
+this feeds RRF, only the top slice survives anyway, so the extra recall does not
+become precision loss downstream.
 
 **2. A hyphenated token becomes a phrase query.** Postgres' parser splits it and
 `to_tsquery` joins the parts with `<->`:
 
 ```sql
-SELECT to_tsquery('simple', 'sote-uudistus:*');
--- 'sote-uudistus':* <-> 'sote':* <-> 'uudistus':*
+SELECT to_tsquery('simple','verkko-opetus:*');
+-- 'verkko-opetus':* <-> 'verkko':* <-> 'opetus':*
+
+SELECT to_tsvector('simple','verkko-opetuksesta')
+       @@ to_tsquery('simple','verkko-opetus:*');                    -- false
+
+-- An explicit OR of the compound and its parts does match:
+SELECT to_tsvector('simple','verkko-opetuksesta')
+       @@ to_tsquery('simple','''verkko-opetus'':* | ''verkko'':* | ''opetus'':*');  -- true
 ```
 
-which does not match `"puhutaan sote-uudistuksesta"`. Quoting the term does not
-help — the parser splits it regardless. Expand hyphenated tokens into an
-explicit OR of the whole form and each part.
+Quoting the token does not help; the parser splits it regardless. Expand
+hyphenated tokens into that OR group instead.
 
 ```sql
--- 'sote-uudistus hoitojonot'
---   → ('sote-uudistus':* | 'sote':* | 'uudistus':*) | 'hoitojonot':*
+-- 'verkko-opetus kirjasto'
+--   → ('verkko-opetus':* | 'verkko':* | 'opetus':*) | 'kirjasto':*
 CREATE OR REPLACE FUNCTION prefix_tsquery(
     p_config regconfig,
     p_text   TEXT,
@@ -254,9 +281,9 @@ RETURNS tsquery
 LANGUAGE plpgsql IMMUTABLE STRICT PARALLEL SAFE
 AS $$
 DECLARE
-    -- Shorter tokens are function words ("ja", "on", "ei") that match nearly
-    -- every document. Dropped from OR queries — but only when a longer one
-    -- survives, so "TMD" and "sote" still work as queries on their own.
+    -- Tokens this short are function words that match nearly every document.
+    -- Dropped from OR queries — but only when a longer one survives, so a
+    -- genuinely short query ("EU", "ISO") still works on its own.
     MIN_OR_TERM_LENGTH CONSTANT INT := 3;
     v_token   TEXT;
     v_cleaned TEXT;
@@ -364,8 +391,7 @@ AS $$ SELECT prefix_tsquery(p_config, p_text, 'auto') $$;
 > a database that already has the two-argument version gets two candidates for
 > `prefix_tsquery('simple', $1)` and every existing call fails with
 > `function prefix_tsquery(unknown, unknown) is not unique`. That is the exact
-> situation when upgrading, which is when it hurts most. (Verified by running
-> this function against a database carrying both.)
+> situation when upgrading, which is when it hurts most.
 
 Keep the join mode as an argument. Which of OR and AND wins is corpus-dependent,
 and having it as a parameter turns that question into a one-line ablation
@@ -379,8 +405,8 @@ v_tsquery := prefix_tsquery('simple', p_query_text);
 
 -- Direct usage
 SELECT * FROM documents
-WHERE text_search @@ prefix_tsquery('simple', 'ksylitoli fluori')
-ORDER BY ts_rank_cd(text_search, prefix_tsquery('simple', 'ksylitoli fluori')) DESC;
+WHERE text_search @@ prefix_tsquery('simple', 'kirjasto opetus')
+ORDER BY ts_rank_cd(text_search, prefix_tsquery('simple', 'kirjasto opetus')) DESC;
 ```
 
 **Key points:**
