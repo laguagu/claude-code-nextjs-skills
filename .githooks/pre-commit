@@ -1,8 +1,0 @@
-#!/bin/sh
-# Enable with: git config core.hooksPath .githooks
-#
-# `skills/` is a junction to a larger local collection, so a private skill is
-# visible while writing and missing for anyone who clones. Referencing one
-# therefore cannot be caught by reading the file — only by comparing against
-# .gitignore, which is what this does.
-exec sh "$(git rev-parse --show-toplevel)/scripts/check-private-skill-refs.sh"

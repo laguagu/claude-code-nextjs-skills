@@ -28,3 +28,10 @@ skills/claude-usage-logger/
 skills/dev-toolchain/
 skills/rahti-audit/
 skills/ui-signature/
+
+# The private-skill reference check and its hook. They exist only because
+# `skills/` is a junction to a larger local collection on this machine — a
+# clone has no junction, no private skills, and so cannot make the mistake
+# they catch. Same rule as the tooling above.
+/scripts/
+/.githooks/
