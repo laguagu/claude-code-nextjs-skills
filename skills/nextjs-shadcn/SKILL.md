@@ -15,6 +15,15 @@ Build distinctive, production-grade interfaces that avoid generic "AI slop" aest
 3. **Context over decoration** - Every element serves a purpose
 4. **Theme consistency** - Use CSS variables from `globals.css`, never hardcode colors
 
+Those four are the summary, not the method. Load **`frontend-design`** before
+the first component of a new view, not after the result already looks generic:
+typography, palette and the one element the page spends its boldness on are
+create-time decisions, and retrofitting them costs more than making them.
+
+Then check the built view in a browser rather than from a screenshot — read tap
+target sizes, contrast and overflow out of the DOM, because a screenshot cannot
+tell you a computed style and may not even have rendered.
+
 ## Quick Start
 
 ```bash
