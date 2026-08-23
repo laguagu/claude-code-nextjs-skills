@@ -104,6 +104,23 @@ keep the local `SKILL.md` frontmatter, since `name`/`description` and cross-skil
 often customized. Skip a blind `npx skills update`: there is no lock file and some folders are
 renamed from upstream.
 
+## 🧪 Editing this repo
+
+`skills/` is a junction to a larger local collection, so some skills are visible
+while editing and absent from this repo by design (see `.gitignore`). A
+reference to one of those reads fine locally and reaches a cloner as a dead
+pointer. One check catches it:
+
+```bash
+sh scripts/check-private-skill-refs.sh
+```
+
+Wire it to commits once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## 📥 Installation
 
 ### Claude Code (plugin)

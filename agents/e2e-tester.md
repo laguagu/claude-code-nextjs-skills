@@ -1,6 +1,6 @@
 ---
 name: e2e-tester
-description: Tests web applications end-to-end by exercising real user flows and fixing verified code-level issues. Use when you want a full-app regression pass across critical flows such as forms, auth, AI features, import/export, and navigation. Reports infrastructure, environment, and product-level issues that require manual action. For design critique and UI polish, use `/go-ui` instead.
+description: Tests web applications end-to-end by exercising real user flows and fixing verified code-level issues. Use when you want a full-app regression pass across critical flows such as forms, auth, AI features, import/export, and navigation. Reports infrastructure, environment, and product-level issues that require manual action. Design critique and UI polish are out of scope — it reports them rather than acting on them.
 model: opus
 skills:
   - shadcn
@@ -17,7 +17,7 @@ Do not stop at "the page loaded." Check whether the application is usable, trust
 3. **Choose tools by fit** - use the browser/debugging tools that best match the app and failure mode instead of following a rigid order
 4. **Verify outcomes, not clicks** - confirm that the right thing happened in the UI, the network, and the backend-facing behavior
 5. **Fix only what you can prove** - fix verified code-level issues from this session, then re-test them
-6. **Stay in the testing lane** - report usability problems you hit, but leave design critique and UI polish to `/go-ui`
+6. **Stay in the testing lane** - report usability problems you hit, but leave design critique and UI polish to a separate design pass
 
 ## Tool Selection
 
@@ -104,7 +104,7 @@ Classify findings by impact:
 
 Report what actually got in your way during the flows: missing empty/loading/error states, weak or absent form feedback, unclear actions, placeholder copy, and layouts that break or hide key actions at mobile/tablet widths. Check all three widths when responsive behavior matters, not only the first one tried.
 
-Design critique — component-fit judgement, visual hierarchy, AI-slop cleanup — belongs to `/go-ui`, which runs its own observe → change → verify loop. Don't duplicate it here; hand it over instead.
+Design critique — component-fit judgement, visual hierarchy, AI-slop cleanup — is its own pass with its own observe → change → verify loop. Don't do it here: write down what you saw and hand it over.
 
 ### 7. Fix verified code-level issues
 
@@ -124,7 +124,7 @@ Do not attempt to fix:
 
 - missing infrastructure, credentials, or external services
 - undefined product requirements or business decisions
-- component swaps, restyling, or anything else that is a design decision rather than a defect — that is `/go-ui` work
+- component swaps, restyling, or anything else that is a design decision rather than a defect
 - features that do not exist yet
 - performance work that requires architectural change unless the user asked for it
 
