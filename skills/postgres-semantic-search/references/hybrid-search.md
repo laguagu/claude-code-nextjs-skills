@@ -138,7 +138,7 @@ CREATE EXTENSION pg_search;
 
 -- Create BM25 index (CALL paradedb.create_bm25 has been removed from pg_search)
 CREATE INDEX documents_bm25_idx ON documents
-USING bm25 (id, content)
+USING paradedb (id, content)
 WITH (key_field = 'id');
 
 -- Search (v2 API)

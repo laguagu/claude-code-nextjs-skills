@@ -5,7 +5,7 @@
 - [Documentation Fetch Policy](#documentation-fetch-policy) — **read first**
 - [Why ParadeDB?](#why-paradedb)
 - [Installation](#installation) — Docker, Neon, self-hosted
-- [BM25 Index](#bm25-index) — tokenizers, stemmers, JSON fields
+- [ParadeDB Index](#paradedb-index) — formerly the BM25 index; tokenizers, stemmers, JSON fields
 - [Search Operators](#search-operators)
 - [BM25 Scoring](#bm25-scoring)
 - [Highlighting (Snippets)](#highlighting-snippets)
@@ -108,19 +108,27 @@ CREATE EXTENSION vector;
 CREATE EXTENSION pg_search;
 ```
 
-## BM25 Index
+## ParadeDB Index
 
-BM25 index is a **covering index** - include all columns you'll search, filter, sort, or aggregate.
+The index is a **covering index** - include all columns you'll search, filter, sort, or aggregate.
+
+**The access method was renamed in 0.25.0.** `paradedb` is the primary name;
+`USING bm25` remains supported as a backwards-compatible alias, so existing
+DDL keeps working. Write `USING paradedb` in new code — every current doc
+example uses it, and error messages name it (`operator class "…" does not
+exist for access method "paradedb"`). The rename reflects that the index now
+also powers vector search, aggregates, top-K and filtering, not just BM25
+scoring.
 
 ```sql
 -- Basic index
 CREATE INDEX search_idx ON documents
-USING bm25 (id, content, title, category, metadata)
+USING paradedb (id, content, title, category, metadata)
 WITH (key_field='id');
 
 -- With tokenizer + stemmer
 CREATE INDEX search_idx ON documents
-USING bm25 (
+USING paradedb (
     id,
     (content::pdb.unicode_words('stemmer=english')),
     (title::pdb.ngram(3,3)),
@@ -136,13 +144,26 @@ WITH (key_field='id');
 
 ### Available Tokenizers
 
-| Tokenizer | Use Case |
-|-----------|----------|
-| `pdb.unicode` | General text (default) |
-| `pdb.unicode_words` | Word-level with stemmers |
-| `pdb.icu` | Multi-language |
+| Cast | Use Case |
+|------|----------|
+| `pdb.unicode_words` | General text — **the default** when no tokenizer is given |
+| `pdb.icu` | Mixed-language text |
 | `pdb.ngram(min, max)` | Partial matching, typo tolerance |
-| `pdb.simple` | Basic whitespace |
+| `pdb.simple` | Simpler splitting; takes the same token-filter options |
+| `pdb.literal` | Whole field as one untokenized token |
+
+Note the cast is `pdb.unicode_words` — there is no bare `pdb.unicode`, even
+though the docs page is titled "Unicode".
+
+**`pdb.literal` is not optional in one case**: a text or JSON field used in
+`GROUP BY` or `ORDER BY` must be literal-tokenized. It is a poor fit for
+`match`/`phrase` queries, so a field you both search and sort on needs two
+tokenizers (see *multiple tokenizers per field* in the live docs).
+
+The full list is longer than this table — `whitespace`, `regex`,
+`edge_ngrams`, `literal_normalized`, `source_code`, and the CJK tokenizers
+`jieba`, `lindera` and `chinese_compatible`. Fetch the docs for their exact
+cast names and options rather than guessing.
 
 ### Tokenizer Parameters
 
@@ -169,7 +190,7 @@ WITH (key_field='id');
 JSONB fields are automatically indexed with sub-fields. Target specific sub-fields with tokenizers:
 
 ```sql
-CREATE INDEX ON documents USING bm25 (
+CREATE INDEX ON documents USING paradedb (
     id,
     metadata,  -- Auto-indexes all sub-fields
     ((metadata->>'title')::pdb.unicode_words('stemmer=english')),

@@ -17,7 +17,7 @@
 /*
 -- Native BM25 index syntax (CALL paradedb.create_bm25 has been removed from pg_search)
 CREATE INDEX documents_bm25_idx ON documents
-USING bm25 (id, content, title)
+USING paradedb (id, content, title)
 WITH (key_field = 'id');
 */
 
@@ -313,7 +313,7 @@ $$;
 /*
 -- First, create BM25 index
 CREATE INDEX documents_bm25_idx ON documents
-USING bm25 (id, content)
+USING paradedb (id, content)
 WITH (key_field = 'id');
 
 -- Basic hybrid search
