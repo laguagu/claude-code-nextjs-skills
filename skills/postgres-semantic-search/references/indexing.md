@@ -1,5 +1,16 @@
 # Indexing Guide
 
+## Contents
+
+- [Index Selection](#index-selection)
+- [HNSW](#hnsw-hierarchical-navigable-small-world) — parameters, settings, **`ef_search` default**, operator classes, `iterative_scan`, halfvec
+- [IVFFlat](#ivfflat)
+- [GIN Indexes (Full-Text Search)](#gin-indexes-full-text-search) — FTS, weighted tsvector, JSONB, arrays
+- [Partial Indexes](#partial-indexes)
+- [Index Maintenance](#index-maintenance)
+- [Concurrent Index Creation](#concurrent-index-creation)
+- [Build Time Estimates](#build-time-estimates)
+
 ## Index Selection
 
 | Documents | Index Type | Notes |
@@ -43,6 +54,34 @@ WITH (m = 24, ef_construction = 200);
 
 SET hnsw.ef_search = 100;
 ```
+
+### The `ef_search` default costs recall silently
+
+Check this before anything else if you run your own pgvector search. The
+default of 40 looks like it works — no warning, no error, plausible results —
+and it quietly returns fewer correct rows than the same index would at 100.
+
+Measured on a ~54,000-vector corpus, 92 graded questions, HNSW:
+
+| `hnsw.ef_search` | Recall@15 | MRR | Median latency |
+| --- | ---: | ---: | ---: |
+| 10 | 72.8 % | 0.518 | 73 ms |
+| **40** *(pgvector default)* | 73.9 % | 0.546 | 70 ms |
+| **100** | **75.0 %** | **0.557** | **69 ms** |
+| 400 | 75.0 % | 0.557 | 76 ms |
+| *exact search, no index* | 75.0 % | 0.557 | 233 ms |
+
+Three things worth taking from that:
+
+- **The default costs ~1.1 pp of recall for no latency saving** at this scale.
+- **At 100 the index is free**: it returned exactly what exhaustive search
+  returned, 3.4× faster. "Approximate" does not have to mean "worse".
+- **Past 100 you buy nothing.** 400 found the same rows and was slower. Tune
+  up until recall stops moving, then stop.
+
+Set it per connection alongside `hnsw.iterative_scan` rather than per query,
+and re-check it whenever the corpus grows by an order of magnitude — the right
+value is a function of index size, not a constant.
 
 ### Operator Classes
 

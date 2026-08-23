@@ -1,5 +1,14 @@
 # Vector Types and Dimensions
 
+## Contents
+
+- [Vector Types in pgvector](#vector-types-in-pgvector) — `vector`, `halfvec`, `bit`
+- [Picking the column type from dimensions](#picking-the-column-type-from-dimensions)
+- [Dimension Truncation](#dimension-truncation)
+- [Choosing Vector Type](#choosing-vector-type)
+- [Conversion Examples](#conversion-examples)
+- [Storage Estimation](#storage-estimation)
+
 ## Vector Types in pgvector
 
 ### vector (float4)

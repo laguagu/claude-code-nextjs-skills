@@ -1,5 +1,17 @@
 # Re-ranking Guide
 
+## Contents
+
+- [Why Re-rank?](#why-re-rank)
+- [Reranker categories](#reranker-categories)
+- [Production rules (apply to ANY reranker)](#production-rules-apply-to-any-reranker)
+- [Calling a reranker](#calling-a-reranker)
+- [Self-hosting notes](#self-hosting-notes)
+- [Two-stage retrieval pattern](#two-stage-retrieval-pattern)
+- [When NOT to re-rank](#when-not-to-re-rank)
+- [Rerankers can regress — benchmark first](#rerankers-can-regress--benchmark-first)
+- [Provider docs](#provider-docs)
+
 Re-ranking is a two-stage retrieval pattern:
 
 1. **Stage 1:** Fast retrieval (vector/hybrid search) — get 50-100 candidates

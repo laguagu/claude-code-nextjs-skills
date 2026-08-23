@@ -1,5 +1,18 @@
 # Performance Optimization
 
+## Contents
+
+- [HNSW vs IVFFlat Performance](#hnsw-vs-ivfflat-performance)
+- [Cold-Start Optimization](#cold-start-optimization)
+- [Runtime Embedding Cache](#runtime-embedding-cache)
+- [Memory Configuration](#memory-configuration)
+- [Query Optimization](#query-optimization) — pre/post-filtering, iterative scans, distance thresholds
+- [Batch Operations](#batch-operations)
+- [Connection Pooling](#connection-pooling)
+- [Monitoring](#monitoring)
+- [Scaling Strategies](#scaling-strategies)
+- [Benchmarking](#benchmarking)
+
 ## HNSW vs IVFFlat Performance
 
 Directional only — no specific numbers here. Published benchmarks (Supabase,

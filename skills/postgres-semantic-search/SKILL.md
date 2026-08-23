@@ -118,7 +118,8 @@ CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops);
 CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops)
 WITH (m = 24, ef_construction = 200);
 
--- Query-time recall
+-- Query-time recall. Set this: pgvector's default of 40 costs recall silently
+-- (measured ~1.1 pp at 54k vectors, for no latency saving). See indexing.md.
 SET hnsw.ef_search = 100;
 
 -- Iterative scan for filtered queries (pgvector 0.8+; OFF by default)
@@ -142,6 +143,14 @@ Query type?
     ├─ Better ranking → BM25 + RRF (pg_search extension)
     └─ Full-featured → ParadeDB (Elasticsearch alternative)
 ```
+
+**Baseline hybrid against vector-only before shipping it.** Hybrid is the right
+default for mixed queries, not an automatic win: on one measured corpus pure
+vector beat a well-weighted hybrid on both recall and MRR and was 9× faster,
+while a badly weighted one lost 10 pp. The keyword arm still earns its keep for
+exact identifiers, which a needle-in-haystack eval set cannot see — so keep it,
+and judge it on queries that need it. Numbers in
+[hybrid-search.md](references/hybrid-search.md#hybrid-does-not-automatically-beat-pure-vector).
 
 ### Choose Index Type
 
@@ -189,15 +198,32 @@ column type directly.
 
 Every optimization in this skill (hybrid fusion, reranking, query expansion,
 embedding-model swaps) *can* regress on a specific corpus. Vendor and paper
-benchmarks are usually English, general-domain. Real counter-examples observed
-in production:
+benchmarks are usually English, general-domain, and their ordering does not
+reliably transfer. Real counter-examples, each measured rather than argued:
 
 - Query expansion (HyDE) regressing Hit@5 by tens of points on a domain corpus.
+  On another, it found +1.1 pp more and **ranked worse** (MRR 0.557 → 0.536) at
+  6× the hybrid latency — a reranking loss dressed as a recall win.
 - A widely recommended reranker regressing Hit@5 double-digits on multilingual text.
+- Translating an off-language query into a *keyword list* rather than a
+  sentence: it helped the arm it targeted and finished **14 pp below doing
+  nothing at all**.
+- Raising top-k from 15 to 30: recall +5.4 pp, and the share of generated claims
+  actually supported by a source fell 82.1 % → 78.8 %. Better retrieval, worse answer.
+- The cheapest open embedding model beating the paid one on the target corpus,
+  reversing the leaderboard order.
 
 **Rule**: build a domain eval set ([evaluation.md](references/evaluation.md)),
 then A/B each change. Adopt with ≥ +3 pp Hit@5 and p95 latency within budget;
 reject otherwise.
+
+Three traps that make an A/B lie, each covered in
+[evaluation.md](references/evaluation.md#four-ways-a-measurement-lies-to-you):
+measuring one retrieval arm instead of the pipeline; treating retrieval metrics
+as the goal when an LLM consumes the results; and reading an offline sweep's
+absolute numbers as a production forecast. Use **two** eval sets — generated
+sentences and 1–3 word domain terms — because a change that helps one has
+measured as hurting the other.
 
 ## Operators
 
@@ -209,23 +235,29 @@ reject otherwise.
 
 ## SQL Functions
 
-### Semantic Search
+**These are defined by this skill, not by pgvector.** Install them by running
+the matching file from [scripts/](#scripts) — `match_documents` does not exist
+in a database that has not had `semantic_search.sql` applied.
+
+### Semantic Search — `scripts/semantic_search.sql`
 - `match_documents(query_vec, threshold, limit)` - Basic search
 - `match_documents_filtered(query_vec, metadata_filter, threshold, limit)` - With JSONB filter
+- `match_documents_halfvec(query_vec, threshold, limit)` - halfvec column variant
+- `match_documents_dynamic(query_vec, filter, threshold, limit)` - Runtime-built filter
 - `match_chunks(query_vec, threshold, limit)` - Search document chunks
 
-### Fuzzy Search (pg_trgm)
+### Fuzzy Search (pg_trgm) — `scripts/fuzzy_search.sql`
 - `fuzzy_search_trigram(query_text, threshold, limit)` - Trigram similarity search
 - `autocomplete_search(prefix, limit)` - Prefix + fuzzy autocomplete
 - `hybrid_search_fuzzy_semantic(query_text, query_vec, limit, rrf_k)` - Fuzzy + vector RRF
 - `weighted_fts_search(query_text, language, limit)` - FTS with title/content weighting
 
-### Hybrid Search (FTS)
+### Hybrid Search (FTS) — `scripts/hybrid_search_fts.sql`
 - `hybrid_search_fts(query_vec, query_text, limit, rrf_k, language)` - FTS + RRF
 - `hybrid_search_weighted(query_vec, query_text, limit, sem_weight, kw_weight)` - Linear combination
 - `hybrid_search_fallback(query_vec, query_text, limit)` - Graceful degradation
 
-### Hybrid Search (BM25)
+### Hybrid Search (BM25) — `scripts/hybrid_search_bm25.sql`
 - `hybrid_search_bm25(query_vec, query_text, limit, rrf_k)` - BM25 + RRF
 - `hybrid_search_bm25_highlighted(...)` - With snippet highlighting
 - `hybrid_search_chunks_bm25(...)` - For RAG with chunks
@@ -252,6 +284,8 @@ When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 - **Prefix tsquery** for languages with rich inflection: build the tsquery by hand with `:*` on each token, since `websearch_to_tsquery` cannot emit it. Use the hardened `prefix_tsquery` in [fuzzy-search.md](references/fuzzy-search.md#prefix-matching-for-agglutinative-languages) rather than writing one — a naive version fails silently in three separate ways, each returning zero rows rather than an error.
 
 - **Compound-word fallback**: pair semantic search with `pg_trgm` similarity to catch compound-word misses (e.g., a query for `"ammattikorkea"` should still find `"ammattikorkeakoulu"`).
+- **Synonym expansion is how the keyword arm learns that two names mean one thing** — the embedding carries the relationship, the keyword arm cannot, because the two names share no prefix and no trigram. But a **multi-word** synonym is OR-joined into the tsquery, so its generic half becomes an independent match arm and can take over the ranking. Weigh a phrase's parts against each other, not against the query, and trim the keyword text only: [hybrid-search.md → Query expansion](references/hybrid-search.md#query-expansion-a-multi-word-synonym-is-not-one-term).
+- **Translate an off-language query into a sentence, not a keyword list** — the list form helps the keyword arm and costs more than it gains overall ([measured](references/hybrid-search.md#translate-to-a-sentence-not-to-a-keyword-list)).
 - **BM25 stemmer in ParadeDB**: tokenize with `{ "type": "default", "stemmer": "<language>" }` — a `raw` tokenizer only matches full fields.
 - **Multilingual embeddings**: prefer models explicitly trained on your target language(s). English-only embeddings often miss inflected forms and compound words. The gap can be large — several percentage points of Hit@5 on non-English retrieval is realistic. Benchmark your specific language + domain before committing.
 - **Cross-language RRF fusion for monolingual corpora**: when the corpus is

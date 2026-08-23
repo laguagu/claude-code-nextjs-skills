@@ -1,5 +1,23 @@
 # ParadeDB - Elasticsearch Alternative for PostgreSQL
 
+## Contents
+
+- [Documentation Fetch Policy](#documentation-fetch-policy) — **read first**
+- [Why ParadeDB?](#why-paradedb)
+- [Installation](#installation) — Docker, Neon, self-hosted
+- [BM25 Index](#bm25-index) — tokenizers, stemmers, JSON fields
+- [Search Operators](#search-operators)
+- [BM25 Scoring](#bm25-scoring)
+- [Highlighting (Snippets)](#highlighting-snippets)
+- [Faceted Queries (Aggregations)](#faceted-queries-aggregations)
+- [Boolean Queries](#boolean-queries)
+- [Fuzzy Search](#fuzzy-search)
+- [Hybrid Search (BM25 + pgvector)](#hybrid-search-bm25--pgvector)
+- [Filtering with Search](#filtering-with-search)
+- [JOINs](#joins)
+- [Important Considerations](#important-considerations) — licensing, limitations, rebuilds
+- [External Links](#external-links)
+
 ## Documentation Fetch Policy
 
 ParadeDB API evolves quickly — the content below is a practical guide but may lag behind. Use the live docs as the authoritative source.

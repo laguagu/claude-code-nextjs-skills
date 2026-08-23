@@ -1,5 +1,18 @@
 # Hybrid Search Guide
 
+## Contents
+
+- [Why Hybrid Search?](#why-hybrid-search) — and when it loses to pure vector
+- [Keyword Search Options](#keyword-search-options) — FTS, query parsers, custom configs, BM25
+- [Result Fusion Methods](#result-fusion-methods) — RRF, linear weighting
+- [Ready-to-Use Functions](#ready-to-use-functions)
+- [Chunk-Based Search (RAG)](#chunk-based-search-rag)
+- [Best Practices](#best-practices)
+- [Choosing Search Method](#choosing-search-method)
+- [ParadeDB (Full-Featured Alternative)](#paradedb-full-featured-alternative)
+- [Cross-language RRF fusion pattern](#cross-language-rrf-fusion-pattern)
+- [Query expansion: a multi-word synonym is not one term](#query-expansion-a-multi-word-synonym-is-not-one-term)
+
 Hybrid search combines semantic (vector) search with keyword search for better results.
 
 ## Why Hybrid Search?
@@ -271,6 +284,37 @@ Caveats:
 4. **Tune weights for your domain** - If RRF isn't optimal
 5. **Index both** - Vector index + GIN/BM25 index
 6. **Consider language** - Use appropriate FTS language config
+7. **Measure hybrid against pure vector** - it does not automatically win
+
+### Hybrid does not automatically beat pure vector
+
+Worth measuring rather than assuming. On a ~54,000-chunk single-language
+corpus with 92 graded questions, pure vector search matched or beat hybrid on
+every headline metric and was an order of magnitude faster:
+
+| Strategy | Recall@15 | MRR | Median latency |
+| --- | ---: | ---: | ---: |
+| Vector only | **75.0 %** | **0.557** | **76 ms** |
+| Hybrid (RRF, vector weight 3.0) | 73.9 % | 0.519 | 681 ms |
+| Hybrid (RRF, balanced weights) | 65.2 % | 0.357 | 702 ms |
+| Keyword only (FTS) | 33.7 % | 0.144 | 602 ms |
+
+Two things follow, and they pull in opposite directions:
+
+- **Do not add the keyword arm on faith.** A badly weighted hybrid was 10 pp
+  *worse* than vector alone here. If you fuse, weight the vector side and
+  verify against a vector-only baseline.
+- **Do not delete it on these numbers either.** A needle-in-haystack eval set
+  asks "is the expected chunk in the top K", and the keyword arm's job is
+  exact identifiers — part numbers, section references, proper nouns, SKUs —
+  which such a set rarely contains. That value is real and this metric cannot
+  see it. Keep the arm, and judge it on queries that actually need it.
+
+The keyword-only row is the other lesson: in a morphologically rich language
+FTS alone is not a viable search. A snowball stemmer reduces an inflected
+compound to a stem that a query for its first half no longer reaches, which
+is what [prefix matching](fuzzy-search.md#prefix-matching-for-agglutinative-languages)
+exists to repair.
 
 ## Choosing Search Method
 
@@ -320,3 +364,105 @@ two passes' score scales don't have to align.
 Cache the translation and both embeddings — keyed by normalized query +
 model + target language. Gate fusion behind a language-detection check so
 already-corpus-language queries take the single-pass path.
+
+### Translate to a sentence, not to a keyword list
+
+The tempting shortcut is to ask the model for *search terms* — a comma-
+separated list of the salient words — on the reasoning that FTS OR-joins
+lexemes anyway and the embedding does not care about grammar. Half of that is
+right, and acting on it costs more than it gains.
+
+Measured on the same 92-question set, off-language queries, hybrid, top-15:
+
+| Query handling | Recall@15 | MRR |
+| --- | ---: | ---: |
+| Native-language query (ceiling) | **73.9 %** | **0.519** |
+| Off-language, translated to a *sentence* | 66.3 % | 0.452 |
+| Off-language, no translation at all | 62.0 % | 0.408 |
+| Off-language, translated to a *keyword list* | 47.8 % | 0.305 |
+
+The keyword-list form did help the arm it was designed for — the keyword
+recall rose from 5.4 % to 20.7 % — and sank the pipeline anyway, because a
+list of twelve nouns embeds far worse than a sentence. It ended up **14 pp
+below doing nothing at all**. Translating to a well-formed question keeps the
+keyword gain and loses nothing on the vector side.
+
+Two more things that table says:
+
+- **An off-language query costs about 12 pp** even with a multilingual
+  embedding model. Budget for it rather than assuming the model erases the
+  difference.
+- **Hybrid silently degenerates to pure vector** on an off-language query: a
+  single-language FTS index scores near zero, so the fused result is the
+  vector ranking with extra latency. Here the off-language hybrid numbers were
+  identical to vector-only, to three decimals.
+
+## Query expansion: a multi-word synonym is not one term
+
+Adding the other name for a concept is the standard fix for the one thing a
+keyword arm cannot do on its own — two names for one idea share no prefix and
+no trigram, so only the embedding connects them. Expanding the keyword text is
+what lets a literal match happen at all.
+
+**The trap:** `prefix_tsquery` (and `to_tsquery`, and `websearch_to_tsquery`)
+OR-joins terms. A *multi-word* expansion therefore does not enter the query as
+one phrase — it enters as one independent match arm per word, and the most
+common of those words decides the ranking.
+
+Take a pair like `laptop` ↔ `portable computer`. The expansion hands the
+keyword arm `computer` alongside `portable`. In a corpus where `computer`
+appears in hundreds of documents and `portable` in one, `computer` *is* the
+cover density, and the top of the results fills with documents that are about
+computers generally and laptops not at all.
+
+Observed on a ~2,000-segment corpus: the generic half of one such pair matched
+47 segments against the specific half's 1, and a single off-topic long document
+took six of the top ten results for the query the pair was added to fix.
+
+### Why a corpus-frequency cut does not catch it
+
+If you already drop over-common words from short queries (the usual defence,
+an absolute corpus-share floor plus a ratio against the query's rarest term),
+note that it will not fire here, for two independent reasons:
+
+1. it runs *before* expansion, so it never sees the added word at all; and
+2. the added word is often not common enough in absolute terms — 2 % of a
+   corpus is under any sane flooding floor.
+
+That floor is correct for a word the user typed: in a query that genuinely
+*is* `portable computer`, `computer` is half of what was asked for. **Nobody
+typed the expansion.** A term the search adds on the user's behalf has no
+claim to be context, so it has to earn its place on selectivity alone.
+
+### The rule that works
+
+Weigh a phrase's parts **against each other**, not against the query, and drop
+any part an order of magnitude commoner than the rest of its own phrase:
+
+```text
+for each multi-word expansion phrase:
+    parts   = tokens with df > 0                 # unmeasured or absent → keep
+    if len(parts) < 2: keep the phrase unchanged
+    rarest  = min(df of parts)
+    generic = parts where df >= rarest * RATIO   # RATIO ~ 20
+    keep    = parts - generic
+    if keep is empty: keep the phrase unchanged  # never delete an expansion
+```
+
+Comparing against the *query's* rarest term instead looks equivalent and is
+not. Take a second pair, `sneakers` ↔ `running shoes`, where both halves of
+the phrase are moderately common (say df 21 and 11) but the typed term is
+unique (df 1). Against the query's rarest term, `running` is 21× commoner and
+gets dropped — taking with it the only literal match that reader could have
+got. Inside its own phrase, 21 against 11 is the same order of magnitude and
+both halves survive. Same rule, opposite and correct outcome, because the
+comparison is local to the phrase.
+
+**Trim the keyword text only.** The second embedding pass keeps the whole
+phrase — the head noun is what places it in the right region of vector space,
+which is exactly the job the keyword arm cannot use it for.
+
+One consequence worth planning for: this needs a document frequency per
+expansion token, which is one extra round trip unless you can fold it into a
+count you already fetch. Gate it on *having* a multi-word expansion (rare) and
+on the search mode having a keyword arm at all.
