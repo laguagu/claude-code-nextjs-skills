@@ -231,7 +231,7 @@ measured as hurting the other.
 |----------|----------|----------|
 | `<=>` | Cosine | Text embeddings (default) |
 | `<->` | L2/Euclidean | Image embeddings |
-| `<#>` | Inner product | Normalized vectors |
+| `<#>` | **Negative** inner product | Already-normalized vectors. Negative so that `ORDER BY` ascending still puts the closest first — negate it to read as a score |
 
 ## SQL Functions
 
@@ -376,7 +376,7 @@ const results = await db.execute(sql`
 | Poor recall | Low ef_search | `SET hnsw.ef_search = 100` or higher |
 | FTS returns nothing | Wrong language config | Use `'simple'` for mixed/unknown languages |
 | Memory error on index build | maintenance_work_mem too low | Increase to 2GB+ |
-| Cosine similarity > 1 | Vectors not normalized | Normalize before insert or use L2 |
+| "Cosine similarity" > 1 | `<#>` used in the cosine formula | `1 - (a <=> b)` is cosine similarity and is bounded in [-1, 1] whatever the magnitudes — `<=>` divides by them. `<#>` returns the **negative inner product**, unbounded: for `[3,4]` and `[6,8]` it is `-50`, so `1 - (a <#> b)` is `51`. Use `<=>` for cosine, or `(a <#> b) * -1` for inner product on already-normalized vectors |
 | Slow inserts | Index overhead | Batch inserts, consider IVFFlat |
 | Fuzzy search slow | Missing trigram index | `CREATE INDEX USING gin (col gin_trgm_ops)` |
 | ILIKE '%x%' slow | No pg_trgm GIN index | Enable pg_trgm + create GIN trigram index |
