@@ -4,7 +4,7 @@ __pycache__/
 skills/csc-lumi/
 skills/csc-rahti/
 skills/csc-roihu/
-skills/mcp-builder/
+skills/mcp-eval/
 skills/turborepo/
 
 # Meta-skills (personal tooling, not for public repo)
@@ -17,7 +17,7 @@ skills/design-taste-frontend/
 skills/media-gen/
 
 # Vercel-platform and Haaga-Helia specific skills (not for public repo)
-skills/vercel-deploy-audit/
+skills/vercel-error-triage/
 skills/vercel-optimize/
 
 # Machine- and environment-specific tooling. These audit or drive *this* setup
