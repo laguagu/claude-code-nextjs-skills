@@ -8,9 +8,10 @@ for a set of queries. Outputs results as JSON.
 import argparse
 import json
 import os
-import selectors
+import queue
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -65,7 +66,7 @@ def run_single_query(
             f"# {skill_name}\n\n"
             f"This skill handles: {skill_description}\n"
         )
-        command_file.write_text(command_content)
+        command_file.write_text(command_content, encoding="utf-8")
 
         cmd = [
             "claude",
@@ -97,22 +98,35 @@ def run_single_query(
         pending_tool_name = None
         accumulated_json = ""
 
-        try:
-            sel = selectors.DefaultSelector()
-            sel.register(process.stdout, selectors.EVENT_READ)
-            while time.time() - start_time < timeout:
-                if process.poll() is not None:
-                    remaining = process.stdout.read()
-                    if remaining:
-                        buffer += remaining.decode("utf-8", errors="replace")
-                    break
+        # Read stdout on a background thread. select()/selectors only accept
+        # sockets on Windows, so polling the pipe directly is not portable —
+        # a blocking readline() in a thread is.
+        chunks: queue.Queue = queue.Queue()
 
-                events = sel.select(timeout=1.0)
-                if not events:
+        def _pump(stream, out):
+            try:
+                for line in iter(stream.readline, b""):
+                    out.put(line)
+            except Exception:
+                pass  # process killed out from under us; EOF handled below
+            finally:
+                out.put(None)
+
+        reader = threading.Thread(
+            target=_pump, args=(process.stdout, chunks), daemon=True
+        )
+        reader.start()
+
+        try:
+            while time.time() - start_time < timeout:
+                try:
+                    chunk = chunks.get(timeout=1.0)
+                except queue.Empty:
+                    if process.poll() is not None:
+                        break
                     continue
 
-                chunk = os.read(process.stdout.fileno(), 8192)
-                if not chunk:
+                if chunk is None:
                     break
                 buffer += chunk.decode("utf-8", errors="replace")
 
@@ -172,7 +186,6 @@ def run_single_query(
                     elif event.get("type") == "result":
                         return triggered
         finally:
-            sel.close()
             # Clean up process on any exit path (return, exception, timeout)
             if process.poll() is None:
                 process.kill()
@@ -272,7 +285,7 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Print progress to stderr")
     args = parser.parse_args()
 
-    eval_set = json.loads(Path(args.eval_set).read_text())
+    eval_set = json.loads(Path(args.eval_set).read_text(encoding="utf-8"))
     skill_path = Path(args.skill_path)
 
     if not (skill_path / "SKILL.md").exists():

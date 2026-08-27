@@ -2,7 +2,7 @@
 name: skill-creator
 argument-hint: "[skill-name or description of what the skill should do]"
 description: "Creates new skills, modifies and improves existing skills, and measures skill performance. Use when users want to create a skill from scratch, update or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy."
-compatibility: "Claude Code, Codex, Gemini CLI — requires Python 3.10+, pyyaml, anthropic SDK. Description optimization requires claude CLI."
+compatibility: "Claude Code, Codex, Gemini CLI — requires Python 3.10+, pyyaml, and the claude CLI. No API key needed."
 ---
 
 # Skill Creator
@@ -75,23 +75,12 @@ Based on the user interview, fill in these components:
 
 #### Authoring Best Practices
 
-Reference: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+Reference: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices — the full checklist lives in `references/best-practices.md`; read it before writing or reviewing skill content. The four principles that matter most while drafting:
 
-**Core principle: Claude is already very smart.** Only add context Claude doesn't already have. For every piece of information, ask: "Does Claude really need this? Can it figure this out by reading the code?" If yes, leave it out. Project file trees, database schemas, and script lists are things Claude can discover with Glob/Read — don't duplicate them in the skill.
-
-**Concise is key.** The context window is a shared resource. Once SKILL.md is loaded, every token competes with conversation history. Be ruthless about cutting explanations Claude doesn't need.
-
-**Descriptions in third person.** The description is injected into the system prompt — inconsistent point-of-view causes discovery problems. Write "Processes Excel files" not "I can help you process Excel files."
-
-**Match freedom to fragility.** High freedom (text guidelines) for tasks where many approaches are valid. Low freedom (exact scripts) for fragile operations where consistency is critical. Most skills land somewhere in between.
-
-**Avoid deeply nested references.** Keep references one level deep from SKILL.md. Claude may partially read files referenced from other referenced files.
-
-**No time-sensitive information.** Don't include dates or version-dependent instructions that will become stale.
-
-**Consistent terminology.** Pick one term and use it throughout — don't mix "endpoint"/"route"/"path" for the same concept.
-
-**Test with real usage.** Create 2-3 realistic test prompts and run them. Iterate based on observed behavior, not assumptions.
+- **Claude is already very smart.** Only add context Claude lacks. For every line ask "can it figure this out by reading the code?" — if yes, cut it. File trees, schemas, and script lists are discoverable with Glob/Read; duplicating them in the skill just burns context.
+- **Concise is key.** Once SKILL.md loads, every token competes with the conversation. Be ruthless.
+- **Match freedom to fragility.** Text guidelines where many approaches work; exact scripts where consistency is critical. Most skills land in between.
+- **Descriptions in third person.** "Processes Excel files", not "I can help you process Excel files" — the description is injected into the system prompt, and mixed point-of-view hurts discovery.
 
 #### Anatomy of a Skill
 
@@ -417,7 +406,7 @@ Use the model ID from your system prompt (the one powering the current session) 
 
 While it runs, periodically tail the output to give the user updates on which iteration it's on and what the scores look like.
 
-This handles the full optimization loop automatically. It splits the eval set into 60% train and 40% held-out test, evaluates the current description (running each query 3 times to get a reliable trigger rate), then calls Claude with extended thinking to propose improvements based on what failed. It re-evaluates each new description on both train and test, iterating up to 5 times. When it's done, it opens an HTML report in the browser showing the results per iteration and returns JSON with `best_description` — selected by test score rather than train score to avoid overfitting.
+This handles the full optimization loop automatically. It splits the eval set into 60% train and 40% held-out test, evaluates the current description (running each query 3 times to get a reliable trigger rate), then calls Claude to propose improvements based on what failed. It re-evaluates each new description on both train and test, iterating up to 5 times. When it's done, it opens an HTML report in the browser showing the results per iteration and returns JSON with `best_description` — selected by test score rather than train score to avoid overfitting.
 
 ### How skill triggering works
 
@@ -461,6 +450,10 @@ In Claude.ai, the core workflow is the same (draft → test → review → impro
 
 **Packaging**: The `package_skill.py` script works anywhere with Python and a filesystem. On Claude.ai, you can run it and the user can download the resulting `.skill` file.
 
+**Updating an existing skill**: The user might be asking you to update an existing skill, not create a new one. In this case:
+- **Preserve the original name.** Note the skill's directory name and `name` frontmatter field -- use them unchanged. E.g., if the installed skill is `research-helper`, output `research-helper.skill` (not `research-helper-v2`).
+- **Copy to a writeable location before editing.** The installed skill path may be read-only. Copy it to a scratch directory, edit there, and package from the copy.
+
 ---
 
 ## Cowork-Specific Instructions
@@ -472,6 +465,7 @@ If you're in Cowork, the main things to know are:
 - Cowork setups sometimes skip the eval viewer step. To be clear: whether you're in Cowork or Claude Code, after running tests, always generate the eval viewer for the human to review before you revise the skill yourself. Use `generate_review.py` (not custom HTML). The human's feedback is the most valuable signal — get the viewer in front of them before you start making changes.
 - Feedback works differently: since there's no running server, the viewer's "Submit All Reviews" button will download `feedback.json` as a file. You can then read it from there (you may have to request access first).
 - Packaging works — `package_skill.py` just needs Python and a filesystem.
+- **Updating an existing skill**: follow the update guidance in the claude.ai section above.
 - Description optimization (`run_loop.py` / `run_eval.py`) should work in Cowork just fine since it uses `claude -p` via subprocess, not a browser, but please save it until you've fully finished making the skill and the user agrees it's in good shape.
 
 ---
@@ -480,8 +474,9 @@ If you're in Cowork, the main things to know are:
 
 Scripts in this skill require:
 - **Python 3.10+** with `pyyaml` (`pip install pyyaml`)
-- **anthropic** SDK (`pip install anthropic`) — used by `improve_description.py`
-- **claude** CLI — used by `run_eval.py` and `run_loop.py` for trigger testing via `claude -p`
+- **claude** CLI — used by `run_eval.py`, `run_loop.py`, and `improve_description.py`, all of which shell out to `claude -p`
+
+No `ANTHROPIC_API_KEY` is needed: every script reuses the session's own Claude Code auth.
 
 ## Reference files
 

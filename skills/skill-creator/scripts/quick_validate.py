@@ -19,7 +19,7 @@ def validate_skill(skill_path):
         return False, "SKILL.md not found"
 
     # Read and validate frontmatter
-    content = skill_md.read_text()
+    content = skill_md.read_text(encoding="utf-8")
     if not content.startswith('---'):
         return False, "No YAML frontmatter found"
 
@@ -41,8 +41,13 @@ def validate_skill(skill_path):
     # Define allowed properties
     ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility'}
 
+    # Client-specific extensions: not in the agentskills.io spec, but valid
+    # where the host supports them. Other clients ignore unknown keys, so
+    # these are portable — don't fail the skill over them.
+    CLIENT_EXTENSIONS = {'argument-hint'}
+
     # Check for unexpected properties (excluding nested keys under metadata)
-    unexpected_keys = set(frontmatter.keys()) - ALLOWED_PROPERTIES
+    unexpected_keys = set(frontmatter.keys()) - ALLOWED_PROPERTIES - CLIENT_EXTENSIONS
     if unexpected_keys:
         return False, (
             f"Unexpected key(s) in SKILL.md frontmatter: {', '.join(sorted(unexpected_keys))}. "
