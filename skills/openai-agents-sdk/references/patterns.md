@@ -1,5 +1,14 @@
 # Patterns
 
+## Contents
+
+- [Multi-Agent Workflow Pipeline](#multi-agent-workflow-pipeline)
+- [LLM as a Judge](#llm-as-a-judge)
+- [Tracing](#tracing)
+- [Parallelization](#parallelization)
+- [Routing](#routing)
+- [Deterministic Workflows](#deterministic-workflows)
+
 ## Multi-Agent Workflow Pipeline
 
 Example: 3-stage pipeline (ProductSelector -> SetOptimizer -> PlanGenerator)
@@ -194,6 +203,18 @@ result = await Runner.run(
     ),
 )
 ```
+
+More tracing and loop controls:
+
+- `custom_span("name")` — wrap your own work (DB call, external API) so it shows
+  inside the run's trace.
+- `set_tracing_disabled(True)` or env `OPENAI_AGENTS_DISABLE_TRACING=1` — stop
+  uploads; needed when no `OPENAI_API_KEY` exists (Azure- or LiteLLM-only setups).
+- `add_trace_processor(...)` / `set_trace_processors([...])` — send spans to your
+  own backend (Langfuse, Logfire, OpenTelemetry, …) in addition to, or instead of,
+  OpenAI's dashboard.
+- `Runner.run(..., max_turns=10)` — cap the agent loop (default 10); the run raises
+  `MaxTurnsExceeded` when the cap is hit.
 
 ## Parallelization
 

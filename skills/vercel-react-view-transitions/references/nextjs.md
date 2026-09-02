@@ -1,10 +1,24 @@
 # View Transitions in Next.js
 
+## Contents
+
+- [Setup](#setup)
+- [Next.js Implementation Additions](#nextjs-implementation-additions)
+- [Layout-Level ViewTransition](#layout-level-viewtransition)
+- [The transitionTypes Prop](#the-transitiontypes-prop-on-nextlink)
+- [Programmatic Navigation](#programmatic-navigation)
+- [Server-Side Filtering](#server-side-filtering-with-routerreplace)
+- [Two-Layer Pattern](#two-layer-pattern-directional--suspense)
+- [loading.tsx as Suspense Boundary](#loadingtsx-as-suspense-boundary)
+- [Shared Elements Across Routes](#shared-elements-across-routes)
+- [Same-Route Dynamic Segment Transitions](#same-route-dynamic-segment-transitions)
+- [Server Components](#server-components)
+
 ## Setup
 
-**Next.js 16.3+: no configuration needed.** View transitions work in the App Router out of the box — `<Link>` navigations, `startTransition` and `Suspense` updates all animate. The `experimental.viewTransition` flag was **removed** in 16.3; do not add it back to `next.config`.
-
-**Next.js 15 canary – 16.2 only:**
+The official Next.js docs still mark the integration experimental and require
+the flag below. Because this API moves quickly, check the installed Next.js
+docs/source before production use:
 
 ```js
 // next.config.js
@@ -18,13 +32,29 @@ Every `<Link>` navigation runs inside `document.startViewTransition`. Any VT wit
 
 Do **not** install `react@canary` — see SKILL.md "Availability" for details.
 
+**TypeScript projects need one more line.** Next.js swaps in a React build that exports
+`ViewTransition` at runtime, but `@types/react` keeps that declaration in `canary.d.ts`,
+so `next build` fails at the type check:
+
+```
+Module '"react"' has no exported member 'ViewTransition'.
+```
+
+Reference the declarations the package already ships rather than writing your own:
+
+```ts
+// types/react-canary.d.ts
+/// <reference types="react/canary" />
+```
+
 ---
 
 ## Next.js Implementation Additions
 
 When following `implementation.md`, apply these additions:
 
-**After Step 2:** Check the Next.js version — on 16.3+ nothing to enable; on 15 canary – 16.2 enable the experimental flag above.
+**After Step 2:** Enable the experimental flag above, then verify it exists in
+the installed Next.js version before continuing.
 
 **Step 4:** Use `transitionTypes` on `<Link>` — see "The `transitionTypes` Prop" section below for usage and availability.
 
@@ -52,7 +82,11 @@ No wrapper component needed, works in Server Components:
 
 Replaces the manual pattern of `onNavigate` + `startTransition` + `addTransitionType` + `router.push()`. Reserve manual `startTransition` for non-link interactions (buttons, forms).
 
-**Availability:** `transitionTypes` works out of the box in Next.js 16.3+. On Next.js 15 canary – 16.2 it additionally requires `experimental.viewTransition: true`. If unavailable, use `startTransition` + `addTransitionType` + `router.push()` (see Programmatic Navigation below). To check: `grep -r "transitionTypes" node_modules/next/dist/` — if no results, fall back to programmatic navigation.
+**Availability:** `transitionTypes` is version-dependent and not part of the
+stable documented surface. Enable `experimental.viewTransition: true`, then
+check the installed package with `grep -r "transitionTypes" node_modules/next/dist/`.
+If absent, use `startTransition` + `addTransitionType` + `router.push()` (see
+Programmatic Navigation below).
 
 ---
 

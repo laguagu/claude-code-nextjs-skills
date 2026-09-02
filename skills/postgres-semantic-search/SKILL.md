@@ -17,7 +17,6 @@ description: |
 
   For general Postgres schema, index, RLS or query tuning unrelated to
   retrieval, use supabase-postgres-best-practices instead.
-argument-hint: "[question or use case]"
 ---
 
 # PostgreSQL Semantic Search
@@ -78,14 +77,6 @@ Connect: `psql postgresql://postgres:postgres@localhost:5432/postgres`
 
 ## Cheat Sheet
 
-### Distance Operators
-
-```sql
-embedding <=> query  -- Cosine distance (1 - similarity)
-embedding <-> query  -- L2/Euclidean distance
-embedding <#> query  -- Negative inner product
-```
-
 ### Common Queries
 
 ```sql
@@ -119,7 +110,10 @@ CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops)
 WITH (m = 24, ef_construction = 200);
 
 -- Query-time recall. Set this: pgvector's default of 40 costs recall silently
--- (measured ~1.1 pp at 54k vectors, for no latency saving). See indexing.md.
+-- (measured ~1.1 pp at 54k vectors for no latency saving; on a 22k-vector
+-- corpus recall@20 went 96.2% -> 99.2% for +0.7 ms median). See indexing.md.
+-- Query-time settings are connection-local. Use SET LOCAL inside a transaction
+-- when a transaction pooler can hand each request a different connection.
 SET hnsw.ef_search = 100;
 
 -- Iterative scan for filtered queries (pgvector 0.8+; OFF by default)
@@ -232,35 +226,47 @@ measured as hurting the other.
 | `<=>` | Cosine | Text embeddings (default) |
 | `<->` | L2/Euclidean | Image embeddings |
 | `<#>` | **Negative** inner product | Already-normalized vectors. Negative so that `ORDER BY` ascending still puts the closest first — negate it to read as a score |
+| `<+>` | L1 / taxicab (`vector_l1_ops`, HNSW only) | Outlier-heavy features; `vector`, `halfvec`, `sparsevec` |
+| `<~>` | Hamming (`bit_hamming_ops`) | Binary embeddings stored as `bit(n)` — compact and fast, coarser recall |
+| `<%>` | Jaccard (`bit_jaccard_ops`, HNSW only) | Set-style binary embeddings as `bit(n)` |
 
 ## SQL Functions
 
 **These are defined by this skill, not by pgvector.** Install them by running
 the matching file from [scripts/](#scripts) — `match_documents` does not exist
-in a database that has not had `semantic_search.sql` applied.
+in a database that has not had `semantic_search.sql` applied. Parameter names
+below are the real ones from the scripts — Supabase `.rpc()` binds **by name**,
+so a misspelled key fails at call time.
 
 ### Semantic Search — `scripts/semantic_search.sql`
-- `match_documents(query_vec, threshold, limit)` - Basic search
-- `match_documents_filtered(query_vec, metadata_filter, threshold, limit)` - With JSONB filter
-- `match_documents_halfvec(query_vec, threshold, limit)` - halfvec column variant
-- `match_documents_dynamic(query_vec, filter, threshold, limit)` - Runtime-built filter
-- `match_chunks(query_vec, threshold, limit)` - Search document chunks
+- `match_documents(query_embedding, match_threshold, match_count)` - Basic search
+- `match_documents_filtered(query_embedding, filter_metadata, match_threshold, match_count)` - With JSONB filter
+- `match_documents_halfvec(query_embedding halfvec(3072), match_threshold, match_count)` - halfvec column variant
+- `match_documents_dynamic(table_name, query_embedding, match_threshold, match_count)` - Same search against any table name
+- `match_chunks(query_embedding, match_threshold, match_count)` - Search document chunks
 
 ### Fuzzy Search (pg_trgm) — `scripts/fuzzy_search.sql`
-- `fuzzy_search_trigram(query_text, threshold, limit)` - Trigram similarity search
-- `autocomplete_search(prefix, limit)` - Prefix + fuzzy autocomplete
-- `hybrid_search_fuzzy_semantic(query_text, query_vec, limit, rrf_k)` - Fuzzy + vector RRF
-- `weighted_fts_search(query_text, language, limit)` - FTS with title/content weighting
+- `fuzzy_search_trigram(query_text, similarity_threshold, max_results)` - Trigram similarity search
+- `autocomplete_search(search_prefix, max_results)` - Prefix + fuzzy autocomplete
+- `hybrid_search_fuzzy_semantic(query_text, query_embedding, max_results, rrf_k)` - Fuzzy + vector RRF
+- `weighted_fts_search(query_text, fts_language, max_results)` - FTS with title/content weighting
 
 ### Hybrid Search (FTS) — `scripts/hybrid_search_fts.sql`
-- `hybrid_search_fts(query_vec, query_text, limit, rrf_k, language)` - FTS + RRF
-- `hybrid_search_weighted(query_vec, query_text, limit, sem_weight, kw_weight)` - Linear combination
-- `hybrid_search_fallback(query_vec, query_text, limit)` - Graceful degradation
+- `hybrid_search_fts(query_embedding, query_text, match_count, rrf_k, fts_language)` - FTS + RRF
+- `hybrid_search_weighted(query_embedding, query_text, match_count, semantic_weight, keyword_weight, fts_language)` - Linear combination
+- `hybrid_search_fallback(query_embedding, query_text, match_count, rrf_k, fts_language)` - Graceful degradation (either input may be NULL)
+
+These functions do not set `hnsw.ef_search`; the caller controls that query-time
+tradeoff. Set it on the active connection (or with `SET LOCAL` in the same
+transaction) before calling, or pgvector's default of 40 applies.
+Their keyword arm also wraps content in `unaccent()` and computes the tsvector
+per row; read the header of `hybrid_search_fts.sql` before using them on Finnish,
+Swedish, German or Turkish text, or on a table that has a tsvector GIN index.
 
 ### Hybrid Search (BM25) — `scripts/hybrid_search_bm25.sql`
-- `hybrid_search_bm25(query_vec, query_text, limit, rrf_k)` - BM25 + RRF
-- `hybrid_search_bm25_highlighted(...)` - With snippet highlighting
-- `hybrid_search_chunks_bm25(...)` - For RAG with chunks
+- `hybrid_search_bm25(query_embedding, query_text, match_count, rrf_k)` - BM25 + RRF
+- `hybrid_search_bm25_highlighted(query_embedding, query_text, match_count, rrf_k)` - With snippet highlighting
+- `hybrid_search_chunks_bm25(query_embedding, query_text, match_count, rrf_k)` - For RAG with chunks
 
 ## Re-ranking (Optional)
 
@@ -275,40 +281,16 @@ timeout) returns `null` and the caller falls back to original retrieval order
 For provider comparison, generic `Promise<T | null>` wrapper, and self-hosted
 options, see [reranking.md](references/reranking.md).
 
-## Multilingual / non-English content tips
+## Multilingual / non-English content
 
-When the corpus is non-English (Finnish, German, French, Spanish, etc.):
-
-- **FTS language config**: pass the matching language to `to_tsvector(language, text)` to apply the built-in snowball stemmer (e.g., `'finnish'` handles `opiskelija → opiskelij`). For mixed-language corpora, use `'simple'` and rely on prefix/trigram fallbacks instead.
-- **Combine stemmer + unaccent** for accent-insensitive matching ("café" matches "cafe"). See [hybrid-search.md → Custom FTS configuration](references/hybrid-search.md#custom-fts-configuration-eg-language--unaccent) for the 3-step DDL pattern.
-- **Prefix tsquery** for languages with rich inflection: build the tsquery by hand with `:*` on each token, since `websearch_to_tsquery` cannot emit it. Use the hardened `prefix_tsquery` in [fuzzy-search.md](references/fuzzy-search.md#prefix-matching-for-agglutinative-languages) rather than writing one — a naive version fails silently in three separate ways, each returning zero rows rather than an error.
-
-- **Compound-word fallback**: pair semantic search with `pg_trgm` similarity to catch compound-word misses (e.g., a query for `"ammattikorkea"` should still find `"ammattikorkeakoulu"`).
-- **Synonym expansion is how the keyword arm learns that two names mean one thing** — the embedding carries the relationship, the keyword arm cannot, because the two names share no prefix and no trigram. But a **multi-word** synonym is OR-joined into the tsquery, so its generic half becomes an independent match arm and can take over the ranking. Weigh a phrase's parts against each other, not against the query, and trim the keyword text only: [hybrid-search.md → Query expansion](references/hybrid-search.md#query-expansion-a-multi-word-synonym-is-not-one-term).
-- **Translate an off-language query into a sentence, not a keyword list** — the list form helps the keyword arm and costs more than it gains overall ([measured](references/hybrid-search.md#translate-to-a-sentence-not-to-a-keyword-list)).
-- **Stemmer in a ParadeDB index**: apply it as a cast at index time — `(content::pdb.simple('stemmer=finnish'))` or `(content::pdb.unicode_words('stemmer=finnish'))`. The JSON-object tokenizer config (`{"type": "default", "stemmer": …}`) is the pre-v2 API and no longer appears in the docs; the untokenized option is now `pdb.literal`, not `raw`.
-- **Multilingual embeddings**: prefer models explicitly trained on your target language(s). English-only embeddings often miss inflected forms and compound words. The gap can be large — several percentage points of Hit@5 on non-English retrieval is realistic. Benchmark your specific language + domain before committing.
-- **Cross-language RRF fusion for monolingual corpora**: when the corpus is
-  one language and queries arrive in many, run two hybrid passes per
-  off-language query (original-language embedding + translated-language
-  embedding, same FTS text) and RRF-merge. Recovers domain terms that
-  cross-lingual embeddings collapse. See [hybrid-search.md →
-  Cross-language RRF fusion pattern](references/hybrid-search.md#cross-language-rrf-fusion-pattern).
-
-- **Per-language indexing for multilingual content**: when translated
-  content exists, add `language_code` to the chunk table (default to the
-  original language so existing rows backfill), include it in the
-  uniqueness constraint, and scope ingest writes/deletes to one language.
-  Search stays language-agnostic; native-language queries hit native
-  embeddings directly.
-
-  ```sql
-  ALTER TABLE chunks ADD COLUMN language_code TEXT NOT NULL DEFAULT 'en';
-  ALTER TABLE chunks DROP CONSTRAINT chunks_doc_chunk_unique;
-  ALTER TABLE chunks ADD CONSTRAINT chunks_doc_chunk_lang_unique
-    UNIQUE (doc_id, chunk_index, language_code);
-  CREATE INDEX chunks_doc_lang_idx ON chunks (doc_id, language_code);
-  ```
+Non-English corpora fail in specific, silent ways: the wrong FTS config skips
+stemming, `unaccent` merges distinct Finnish/Swedish/German words, zero-width
+characters glue onto tokens, every parser ANDs a long question into zero hits,
+and English-derived chunk caps overflow the embedding endpoint. The rules and
+fixes — FTS configs, prefix tsquery, synonym expansion, query translation,
+ParadeDB stemmer casts, per-language indexing, cross-language RRF fusion — are
+in [multilingual.md](references/multilingual.md). Read it before indexing
+anything that is not English prose.
 
 ## References
 
@@ -320,6 +302,7 @@ When the corpus is non-English (Finnish, German, French, Spanish, etc.):
 - [performance.md](references/performance.md) - Cold-start, memory, HNSW vs IVFFlat
 - [evaluation.md](references/evaluation.md) - Eval-set construction, Hit@K / MRR, adoption thresholds, reranker/expansion benchmarking
 - [reranking.md](references/reranking.md) - Two-stage retrieval, graceful fallback, when rerankers regress
+- [multilingual.md](references/multilingual.md) - FTS configs and unaccent rules, invisible characters, prefix tsquery, query translation, per-language indexing, cross-language RRF
 
 ## Scripts
 
@@ -375,6 +358,9 @@ const results = await db.execute(sql`
 | Slow first query (30-60s) | HNSW cold-start | `SELECT pg_prewarm('idx_name')` or preload query |
 | Poor recall | Low ef_search | `SET hnsw.ef_search = 100` or higher |
 | FTS returns nothing | Wrong language config | Use `'simple'` for mixed/unknown languages |
+| Long plain-language question returns 0 keyword hits | Parser ANDs every term | For queries without explicit `OR`, quotes, or `-`, parse with `plainto_tsquery`, rewrite `&`→`\|`, and rank with `ts_rank_cd` — see hybrid-search.md |
+| FTS misses a word that is visibly there | Invisible character (U+200B etc.) glued to the token blocks stemming | Strip zero-width characters at ingest and query time |
+| `could not determine data type of parameter $N` | A placeholder never appears in this variant's SQL (e.g. vector-only vs keyword-only mode sharing one numbering) | Give each query variant its own statement and parameter numbering |
 | Memory error on index build | maintenance_work_mem too low | Increase to 2GB+ |
 | "Cosine similarity" > 1 | `<#>` used in the cosine formula | `1 - (a <=> b)` is cosine similarity and is bounded in [-1, 1] whatever the magnitudes — `<=>` divides by them. `<#>` returns the **negative inner product**, unbounded: for `[3,4]` and `[6,8]` it is `-50`, so `1 - (a <#> b)` is `51`. Use `<=>` for cosine, or `(a <#> b) * -1` for inner product on already-normalized vectors |
 | Slow inserts | Index overhead | Batch inserts, consider IVFFlat |
@@ -384,7 +370,7 @@ const results = await db.execute(sql`
 
 ## Compatibility
 
-- **pgvector**: 0.8.6+ recommended as the safe floor. Feature history: 0.7.0 added halfvec/bit/sparsevec, 0.8.0 added iterative scans. Correctness history: 0.6.0–0.8.1 carry a parallel-HNSW-build buffer overflow (CVE-2026-3172 — leaks data from other relations or crashes the server), 0.8.2 fixed it, 0.8.3 fixed possible HNSW index corruption during vacuum, 0.8.4 fixed further HNSW vacuum errors, 0.8.6 fixed an IVFFlat build overflow on 32-bit. Verify current state in the [CHANGELOG](https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md) — the GitHub Releases tab is empty, releases ship as tags.
+- **pgvector**: 0.8.6+ recommended as the safe floor (as of 2026-09). Feature history: 0.7.0 added halfvec/bit/sparsevec, 0.8.0 added iterative scans. Correctness history: 0.6.0–0.8.1 carry a parallel-HNSW-build buffer overflow (CVE-2026-3172 — leaks data from other relations or crashes the server), 0.8.2 fixed it, 0.8.3 fixed possible HNSW index corruption during vacuum, 0.8.4 fixed further HNSW vacuum errors, and 0.8.6 fixed an IVFFlat build integer wraparound on 32-bit systems (CVE-2026-18022). Verify current state in the [CHANGELOG](https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md) — the GitHub Releases tab is empty, releases ship as tags.
 - **pg_search**: Since 0.25.0 pg_search depends on pgvector's `vector` type — install pgvector first. Check [ParadeDB releases](https://github.com/paradedb/paradedb/releases) for latest.
 - **PostgreSQL**: pgvector supports 13+; pg_search ships prebuilt binaries for 15+. Prefer the newest major your host offers.
 
@@ -396,7 +382,7 @@ const results = await db.execute(sql`
 | Chatbot orchestration, session DB, tool calls, HITL, feedback | `/nextjs-chatbot` |
 | AI SDK usage for embeddings and retrieval | `/ai-sdk` |
 
-For ParadeDB-specific questions, always apply the Documentation Fetch Policy in [references/paradedb.md](references/paradedb.md) — live docs at `https://docs.paradedb.com/llms-full.txt` are the authoritative source.
+For ParadeDB-specific questions, always apply the Documentation Fetch Policy in [references/paradedb.md](references/paradedb.md) — live docs at `https://www.paradedb.com/docs/llms-full.txt` are the authoritative source.
 
 ## External Documentation
 
@@ -418,5 +404,5 @@ For ParadeDB-specific questions, always apply the Documentation Fetch Policy in 
 
 ### Hosting / extensions
 - [Supabase Vector Guide](https://supabase.com/docs/guides/ai/vector-columns) - Supabase-specific integration
-- [ParadeDB pg_search](https://docs.paradedb.com/documentation/getting-started/install) - BM25 extension documentation
-- [ParadeDB AI Docs](https://docs.paradedb.com/llms-full.txt) - Fetch for latest ParadeDB API (always current)
+- [ParadeDB pg_search](https://www.paradedb.com/docs/documentation/getting-started/install) - BM25 extension documentation
+- [ParadeDB AI Docs](https://www.paradedb.com/docs/llms-full.txt) - Fetch for latest ParadeDB API (always current)

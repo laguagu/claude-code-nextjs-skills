@@ -363,6 +363,6 @@ export default function RootLayout({ children }) {
 
 1. **Match visible content** - JSON-LD must reflect what users see
 2. **Use XSS protection** - Always escape `<` characters
-3. **Don't duplicate** - One schema type per page (except @graph)
+3. **Multiple types per page are fine** - Google expects several items on one page; nest them or link separate blocks with `@id`. Don't emit the *same* entity twice with conflicting values
 4. **Keep updated** - Update dateModified when content changes
 5. **Test regularly** - Validate after changes

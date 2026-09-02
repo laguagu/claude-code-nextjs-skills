@@ -1,5 +1,13 @@
 # Handoffs
 
+## Contents
+
+- [Basic Handoffs](#basic-handoffs)
+- [Multiple Handoffs](#multiple-handoffs)
+- [Handoff with Context](#handoff-with-context)
+- [Handoff vs Agents as Tools](#handoff-vs-agents-as-tools)
+- [Message Filtering](#message-filtering)
+
 ## Basic Handoffs
 
 Handoffs allow agents to delegate tasks to specialized agents:
@@ -124,9 +132,10 @@ orchestrator = Agent(
 
 Control what messages are passed during handoff:
 
-An input filter receives and returns `HandoffInputData` (fields: `input_history`, `pre_handoff_items`, `new_items`):
+An input filter receives and returns `HandoffInputData` (fields include `input_history`, `pre_handoff_items`, `new_items`, `input_items`, `run_context` — the set grows across releases, so never rebuild the dataclass field by field):
 
 ```python
+import dataclasses
 from agents import Agent, handoff
 from agents.handoffs import HandoffInputData
 
@@ -135,11 +144,8 @@ def filter_messages(data: HandoffInputData) -> HandoffInputData:
     history = data.input_history
     if isinstance(history, tuple):
         history = history[-5:]
-    return HandoffInputData(
-        input_history=history,
-        pre_handoff_items=data.pre_handoff_items,
-        new_items=data.new_items,
-    )
+    # replace() copies every other field, so fields added by newer SDKs survive
+    return dataclasses.replace(data, input_history=history)
 
 specialist = Agent(
     name="Specialist",

@@ -1,7 +1,6 @@
 ---
 name: ai-elements
-description: Build AI chat interfaces with pre-built shadcn-style components (Message, Conversation, PromptInput, Reasoning, Sources, Tool, Artifact, CodeBlock, Branch, Suggestions, Task, Image, ChainOfThought, InlineCitation, WebPreview, and more). Use when adding AI chat UI to a Next.js + AI SDK app, installing AI Elements components via the CLI (`bun x ai-elements@latest add <name>` or `npx shadcn@latest add @ai-elements/<name>`), composing message displays with markdown, building prompt inputs with attachments, or rendering streaming reasoning and tool output.
-argument-hint: "[component-name]"
+description: Build AI chat interfaces with pre-built shadcn-style components (Message, Conversation, PromptInput, Reasoning, Sources, Tool, Artifact, CodeBlock, Suggestion, Task, Image, ChainOfThought, InlineCitation, WebPreview, Checkpoint, Plan, Queue, ModelSelector, and more). Use when adding AI chat UI to a Next.js + AI SDK app, installing AI Elements components via the CLI (`bun x ai-elements@latest add message` or `npx shadcn@latest add @ai-elements/message`), composing message displays with markdown, building prompt inputs with attachments, or rendering streaming reasoning and tool output.
 ---
 
 # AI Elements

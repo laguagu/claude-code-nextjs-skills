@@ -1,5 +1,20 @@
 # Patterns and Guidelines
 
+## Contents
+
+- [Searchable Grid](#searchable-grid-with-usedeferredvalue)
+- [Card Expand/Collapse](#card-expandcollapse-with-starttransition)
+- [Type-Safe Transition Helpers](#type-safe-transition-helpers)
+- [Cross-Fade Without Remount](#cross-fade-without-remount)
+- [Isolate Elements from Parent Animations](#isolate-elements-from-parent-animations)
+- [Shared Controls Between Skeleton and Content](#shared-controls-between-skeleton-and-content)
+- [Reusable Animated Collapse](#reusable-animated-collapse)
+- [Preserve State with Activity](#preserve-state-with-activity)
+- [Exclude Elements with useOptimistic](#exclude-elements-with-useoptimistic)
+- [View Transition Events](#view-transition-events)
+- [Animation Timing](#animation-timing)
+- [Troubleshooting](#troubleshooting)
+
 ## Searchable Grid with `useDeferredValue`
 
 `useDeferredValue` makes filter updates a transition, activating `<ViewTransition>`:

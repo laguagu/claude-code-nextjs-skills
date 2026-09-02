@@ -23,7 +23,7 @@
 ParadeDB API evolves quickly — the content below is a practical guide but may lag behind. Use the live docs as the authoritative source.
 
 **Fetch rules:**
-- On the first ParadeDB question in a session, fetch `https://docs.paradedb.com/llms-full.txt`.
+- On the first ParadeDB question in a session, fetch `https://www.paradedb.com/docs/llms-full.txt`.
 - After a successful fetch, treat that content as cached session context and reuse it for later ParadeDB questions in the same session.
 - Do not refetch on every turn when the previously fetched docs are still available and relevant.
 - Refresh the docs only when one of these is true:
@@ -379,7 +379,7 @@ ParadeDB positions Enterprise as the "production-hardened" edition (support,
 hardening, operational tooling) rather than a fixed feature gate.
 
 **Do not quote a feature split from memory.** The boundary moves between
-releases. Fetch `https://docs.paradedb.com/llms-full.txt` or ask ParadeDB
+releases. Fetch `https://www.paradedb.com/docs/llms-full.txt` or ask ParadeDB
 before telling a user a capability is Enterprise-only.
 
 ### Limitations
@@ -399,8 +399,8 @@ REINDEX INDEX search_idx;
 
 ## External Links
 
-- [ParadeDB Documentation](https://docs.paradedb.com)
-- [ParadeDB AI Docs](https://docs.paradedb.com/llms-full.txt) - Full docs for AI agents (always current)
-- [ParadeDB MCP Endpoint](https://docs.paradedb.com/mcp) - For MCP-compatible tools
+- [ParadeDB Documentation](https://www.paradedb.com/docs)
+- [ParadeDB AI Docs](https://www.paradedb.com/docs/llms-full.txt) - Full docs for AI agents (always current)
+- [ParadeDB MCP Endpoint](https://www.paradedb.com/docs/mcp) - For MCP-compatible tools
 - [GitHub Repository](https://github.com/paradedb/paradedb)
-- [Install Guide](https://docs.paradedb.com/documentation/getting-started/install)
+- [Install Guide](https://www.paradedb.com/docs/documentation/getting-started/install)

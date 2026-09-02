@@ -37,6 +37,7 @@ It does **not** manage:
 | OS images | `hcloud image list --type system` (add `--architecture arm` for ARM) |
 | Command/flag details | `hcloud <resource> <verb> --help` |
 | Everything in this project at a glance | `hcloud all list` |
+| Is a server actually reachable? | `hcloud server describe <srv> -o json` → `public_net.ipv4.blocked` (see gotcha 9) |
 
 Structured output for scripts: `--output json | jq …`, `--output columns=id,name,status`, `--output format='{{.PublicNet.IPv4.IP}}'`.
 
@@ -77,6 +78,26 @@ hcloud firewall replace-rules --rules-file rules.json <fw>
 7. **Deletion is immediate and unrecoverable.** No undo on `server delete` or `volume delete`. `describe` first; create a snapshot (`hcloud server create-image --type snapshot <srv>`) beforehand if you might want the server back.
 
 8. **Hetzner Cloud ≠ Hetzner Robot.** If the user mentions dedicated servers, server auctions, or the Robot dashboard — that's the other product. Surface the distinction; don't try to manage it here.
+
+9. **`status: running` is not reachability — check `blocked`.** Hetzner null-routes a server's IPs at the network level for abuse reports or unpaid invoices. The server keeps reporting `running` and `locked: false` while nothing reaches it: not SSH, not the app, not ICMP.
+
+   ```bash
+   hcloud server describe <srv> -o json | jq '.public_net | {v4:.ipv4.blocked, v6:.ipv6.blocked}'
+   ```
+
+   `blocked: true` cannot be cleared from the API or the console — **only Hetzner support lifts it**. Do not debug firewalls, `pg_hba`, or application timeouts until you have ruled this out; the symptom is an indistinguishable `ETIMEDOUT`. Two tells that point here rather than at an allowlist: a port that is open to `0.0.0.0/0` (usually SSH/22) times out at the same moment as the application port, and **every server on the account** is blocked at once — that means an account-level action (billing or abuse), not a per-server fault.
+
+10. **`replace-rules` needs `source_ips` as a real JSON array.** The file must match the API schema exactly, and hcloud rejects the *whole* file — leaving the old rules silently in place — if one field is shaped wrong:
+
+    ```
+    json: cannot unmarshal object into Go struct field FirewallRule.source_ips of type []string
+    ```
+
+    In PowerShell, build `source_ips` as an array (for example `@('10.0.0.0/8', '192.168.0.0/16')`) and pass enough `ConvertTo-Json -Depth` for the full rule structure. Since the write is all-or-nothing, always read the result back rather than assuming it applied:
+
+    ```bash
+    hcloud firewall describe <fw> -o json | jq '.rules[] | {port, n: (.source_ips|length)}'
+    ```
 
 ## Docs
 

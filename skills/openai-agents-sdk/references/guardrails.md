@@ -1,5 +1,14 @@
 # Guardrails
 
+## Contents
+
+- [Input Guardrails](#input-guardrails)
+- [Output Guardrails](#output-guardrails)
+- [Guardrail with Context](#guardrail-with-context)
+- [Tool Guardrails](#tool-guardrails)
+- [Handling Guardrail Errors](#handling-guardrail-errors)
+- [GuardrailFunctionOutput Fields](#guardrailfunctionoutput-fields)
+
 ## Input Guardrails
 
 Validate and filter input before the agent processes it. Note: input guardrails run in parallel with the agent by default (`run_in_parallel=True`); pass `run_in_parallel=False` for a strict pre-check that blocks before the agent starts.

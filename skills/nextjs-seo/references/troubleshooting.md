@@ -5,8 +5,7 @@
 - [Google Indexing Issues](#google-indexing-issues)
 - [Google Search Console Usage](#google-search-console-usage)
 - [Common Technical Issues](#common-technical-issues)
-- [Building Authority](#building-authority)
-- [Timeline Expectations](#timeline-expectations)
+- [PPR route serves SEO HTML but never hydrates](#ppr-route-serves-perfect-seo-html-but-client-components-never-hydrate)
 - [Debug Checklist](#debug-checklist)
 - [Tools](#tools)
 
@@ -174,37 +173,18 @@ export default {
 
 See [ai-search.md](ai-search.md) for AI crawler rules and GEO guidance.
 
-## Building Authority
+## PPR route serves perfect SEO HTML but client components never hydrate
 
-### For New Sites
+Observed in one app and not tied to an upstream issue — treat it as a hypothesis
+to test, not a known bug. A PPR route (`◐` in the build output, typically because
+it reads `searchParams`) served complete SEO HTML (title, canonical, body) while
+none of its `<Suspense>` boundaries hydrated on a direct URL load of the
+production build; the same client component hydrated on a static (`○`) route and
+after client-side navigation.
 
-1. **Submit to GSC** - Add sitemap
-2. **Build backlinks** - Quality over quantity
-3. **Social signals** - Share content
-4. **Directory listings** - Relevant directories
-5. **Guest posts** - Industry blogs
-
-### Backlink Sources
-
-| Type | Examples |
-|------|----------|
-| Directories | Industry-specific directories |
-| Social profiles | LinkedIn, Twitter, GitHub |
-| Guest posts | Relevant blogs |
-| PR | News coverage |
-| Partners | Business partners |
-
-## Timeline Expectations
-
-Rough heuristics only — Google guarantees no indexing or ranking timelines, and
-actual times vary widely with site authority, crawl budget, and content quality.
-
-| Scenario | Typical range (indicative) |
-|----------|---------------------------|
-| New site indexed | 4 days - 4 weeks |
-| New page indexed | 1 day - 2 weeks |
-| Ranking improvement | 2-6 months |
-| Authority building | 6-12 months |
+**Check:** `next build && next start`, load the route directly, and interact with
+a client component inside a Suspense boundary. An SEO audit passing does not
+prove the page is usable.
 
 ## Debug Checklist
 

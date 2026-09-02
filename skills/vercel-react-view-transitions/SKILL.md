@@ -1,6 +1,6 @@
 ---
 name: vercel-react-view-transitions
-description: Guide for implementing smooth, native-feeling animations using React's View Transition API (`<ViewTransition>` component, `addTransitionType`, and CSS view transition pseudo-elements). Use this skill whenever the user wants to add page transitions, animate route changes, create shared element animations, animate enter/exit of components, animate list reorder, implement directional (forward/back) navigation animations, or integrate view transitions in Next.js. Also use when the user mentions view transitions, `startViewTransition`, `ViewTransition`, transition types, or asks about animating between UI states in React without third-party animation libraries.
+description: Guide for implementing smooth, native-feeling animations using React's View Transition API (the `ViewTransition` component, `addTransitionType`, and CSS view transition pseudo-elements). Use this skill whenever the user wants to add page transitions, animate route changes, create shared element animations, animate enter/exit of components, animate list reorder, implement directional (forward/back) navigation animations, or integrate view transitions in Next.js. Also use when the user mentions view transitions, `startViewTransition`, `ViewTransition`, transition types, or asks about animating between UI states in React without third-party animation libraries.
 license: MIT
 metadata:
   author: vercel
@@ -42,8 +42,16 @@ Reserve directional slides for hierarchical navigation (list → detail) and ord
 
 ## Availability
 
-- **Next.js:** Do **not** install `react@canary` — the App Router already bundles a compatible React version internally. **Since Next.js 16.3, view transitions work in the App Router with no configuration** — the `experimental.viewTransition` flag was removed; do not add it back to `next.config`. On Next.js 15 canary – 16.2 the flag `experimental.viewTransition: true` is still required (see `references/nextjs.md`).
+- **Next.js:** Do **not** install `react@canary` — the App Router already bundles a compatible React version internally. The official docs still require `experimental.viewTransition: true` for Next.js integration and mark it experimental; verify the installed version's docs/source before relying on it in production (see `references/nextjs.md`).
 - **Without Next.js:** Install `react@canary react-dom@canary` (`ViewTransition` is not in stable React). `<ViewTransition>` and `addTransitionType` are only available in React's Canary and Experimental channels — not in stable React 19.2.
+- **TypeScript:** `@types/react` declares `ViewTransition` and `addTransitionType` in `canary.d.ts`, not in `index.d.ts`, so a project using the stable types fails to compile with `Module '"react"' has no exported member 'ViewTransition'` even though Next.js has swapped in a React build that exports them at runtime. Point the compiler at the shipped declarations — do **not** hand-write a module augmentation, the accurate ones are already in the package:
+
+  ```ts
+  // types/react-canary.d.ts
+  /// <reference types="react/canary" />
+  ```
+
+  Or add `"react/canary"` to `compilerOptions.types` in `tsconfig.json`.
 - Browser support: React's integration uses newer View Transitions API features (transition types, `view-transition-class`) — Chromium 125+, Firefox 144+, Safari 18.2+. Some animations may behave differently in Safari. Graceful degradation on unsupported browsers.
 
 ---

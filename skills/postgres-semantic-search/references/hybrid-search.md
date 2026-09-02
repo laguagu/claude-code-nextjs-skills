@@ -60,45 +60,86 @@ This is the most common FTS pitfall. Pick the right parser for your input:
 | `phraseto_tsquery` | Phrase (`<->`) | When token order matters |
 | `to_tsquery` | Manual operators | Power users only — fragile with raw input |
 
-**The trap:** `plainto_tsquery('how do I reset my password')` requires ALL six
-words to be present in a single document → returns 0 hits for most realistic
-queries. Use `websearch_to_tsquery` for any user-typed input.
+**The trap:** BOTH parsers join bare terms with AND. `websearch_to_tsquery` is
+still the right choice for user input (it survives punctuation, supports quoted
+phrases and an explicit `OR`), but it does **not** make a long query
+OR-friendly: a nine-content-word question only matches a row containing all
+nine stems, which on real prose is never — the keyword arm of a hybrid then
+silently contributes nothing. (English hides this because stop words are
+dropped; languages whose questions are mostly content words, like Finnish, hit
+it constantly.)
+
+**For an ordinary long question without search operators**, parse with
+`plainto_tsquery`, rewrite its AND operators to OR, and let `ts_rank_cd` do the
+discriminating — it already scores by how many distinct terms matched and how
+close together they sit. If the UI supports explicit `OR`, quoted phrases, or
+`-excluded` terms, keep `websearch_to_tsquery` unchanged; blindly rewriting it
+would turn `foo -bar` into `foo OR NOT bar`, which matches almost everything:
 
 ```sql
--- ❌ BAD: long natural-language query → 0 hits
-WHERE tsv @@ plainto_tsquery('english', 'how do I reset my password')
+-- ❌ BAD: every stem required → 0 hits on long queries
+WHERE tsv @@ websearch_to_tsquery('finnish', $1)
 
--- ✅ GOOD: same query, OR-friendly matching
-WHERE tsv @@ websearch_to_tsquery('english', 'how do I reset my password')
+-- ✅ GOOD for plain questions: parse, then OR-rewrite
+CROSS JOIN LATERAL (
+  SELECT replace(plainto_tsquery('finnish', $1)::text, ' & ', ' | ')::tsquery AS tsq
+) q
+WHERE q.tsq IS NOT NULL AND tsv @@ q.tsq
+ORDER BY ts_rank_cd(tsv, q.tsq) DESC
 ```
+
+Going through the parser before the rewrite keeps stemming and stop-word
+handling intact. It intentionally does not preserve quoted-phrase syntax; use
+the unmodified web-search parser when that syntax is part of the product.
 
 ### Custom FTS configuration (e.g., language + unaccent)
 
-For non-English content, combine a stemmer with `unaccent` so accented
-characters match their base forms ("café" matches "cafe", "naïve" matches
-"naive"). This is essential for Finnish, French, German, Spanish, Portuguese,
-etc.
+Combine a stemmer with `unaccent` **only for languages where diacritics are
+decorative accents** — French, Spanish, Portuguese, Italian — so "café" matches
+"cafe" and "naïve" matches "naive".
+
+**Do NOT unaccent languages where the marked characters are distinct letters**:
+Finnish, Swedish, Danish, Norwegian, German, Turkish, Hungarian. In Finnish,
+`ä` and `a` are different letters — unaccenting merges different words
+(`säästää` *to save* / `saastaa` *to pollute*) and, because the mapping runs
+*before* the stemmer, feeds the snowball stemmer forms it was never trained
+on, so stemming quality degrades across the board. For these languages use the
+plain language config (`'finnish'`, `'german'`, …) and handle accentless typing
+with a `pg_trgm` fallback instead.
 
 ```sql
 -- 1. Enable unaccent extension
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
 -- 2. Create custom config: copy the language base, then prepend unaccent mapping
-CREATE TEXT SEARCH CONFIGURATION finnish_unaccent (COPY = finnish);
-ALTER TEXT SEARCH CONFIGURATION finnish_unaccent
+CREATE TEXT SEARCH CONFIGURATION french_unaccent (COPY = french);
+ALTER TEXT SEARCH CONFIGURATION french_unaccent
   ALTER MAPPING FOR hword, hword_part, word
-  WITH unaccent, finnish_stem;
+  WITH unaccent, french_stem;
 
 -- 3. Use in indexes and queries
-CREATE INDEX ON documents USING GIN (to_tsvector('finnish_unaccent', content));
+CREATE INDEX ON documents USING GIN (to_tsvector('french_unaccent', content));
 
 SELECT * FROM documents
-WHERE to_tsvector('finnish_unaccent', content) @@ websearch_to_tsquery('finnish_unaccent', 'kahvi naiivi');
--- Matches both "kahvi"/"kahvia" and "naïvi"/"naiivit"
+WHERE to_tsvector('french_unaccent', content) @@ websearch_to_tsquery('french_unaccent', 'cafe eleve');
+-- Matches "café" and "élève" typed without accents
 ```
 
-The same pattern works for any language: `german_unaccent`, `spanish_unaccent`,
-etc. Always create the custom config once (DDL), then reference it everywhere.
+The same pattern works for `spanish_unaccent`, `portuguese_unaccent`, etc.
+Always create the custom config once (DDL), then reference it everywhere.
+
+### Invisible characters silently defeat stemming
+
+CMS and rich-text exports commonly leave zero-width characters (U+200B
+zero-width space, U+200C/U+200D joiners, U+FEFF BOM) glued to words. Postgres
+does **not** treat them as whitespace, so the token reaches the stemmer with
+the invisible character attached and comes out unstemmed:
+`to_tsvector('finnish', 'kirjanpidossa')` stems to `kirjanpido`, but the same
+word with a trailing U+200B stays whole and never matches a search for the
+word. Measured on a real CMS export: 10 titles and 23 chunks affected, each
+invisible in every editor. Strip these characters from body text and every
+metadata field at ingest, and from queries before parsing — not just at
+display time.
 
 ### Dual FTS (exact + prefix) for agglutinative languages
 
@@ -110,7 +151,7 @@ take the max rank, damping the fuzzier source so exact matches keep winning
 ties:
 
 ```sql
-WITH ws_q AS (SELECT websearch_to_tsquery('finnish_unaccent', $1) AS q),
+WITH ws_q AS (SELECT websearch_to_tsquery('finnish', $1) AS q),
      px_q AS (SELECT prefix_tsquery('simple', $1) AS q)
 SELECT id,
        GREATEST(

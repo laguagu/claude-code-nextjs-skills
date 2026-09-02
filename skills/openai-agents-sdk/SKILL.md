@@ -1,7 +1,6 @@
 ---
 name: openai-agents-sdk
-argument-hint: "[question or feature]"
-description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent handoffs, function tools, guardrails, sessions, streaming, or tracing with the `openai-agents` / `agents` Python package — including Azure OpenAI via LiteLLM. Triggers on imports from `agents`, uses of `Runner.run_sync`/`Runner.run_streamed`, `@function_tool`, `AgentOutputSchema`, `SQLiteSession`, or questions about the openai-agents-python SDK.
+description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent handoffs, function tools, guardrails, sessions, streaming, or tracing with the `openai-agents` / `agents` Python package — including Azure OpenAI via LiteLLM. Triggers on imports from `agents`, uses of `Runner.run_sync`/`Runner.run_streamed`, `@function_tool`, `AgentOutputSchema`, `SQLiteSession`, or questions about the openai-agents-python SDK. Python only — not the TypeScript `@openai/agents` SDK.
 ---
 
 # OpenAI Agents SDK (Python)
@@ -32,8 +31,8 @@ from agents import Agent, Runner
 agent = Agent(
     name="Assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.6-sol",  # or "gpt-5.6-terra" / "gpt-5.6-luna" (cheaper tiers). There is no
-                          # bare "gpt-5.6" — every GPT-5.6 call names a variant. Verify
+    model="gpt-5.6-sol",  # or "gpt-5.6-terra" / "gpt-5.6-luna" (cheaper tiers).
+                          # "gpt-5.6" is an alias for gpt-5.6-sol. Verify
                           # current IDs from the model catalog.
 )
 
@@ -44,6 +43,8 @@ print(result.final_output)
 # Asynchronous
 result = await Runner.run(agent, "Tell me a joke")
 ```
+
+Omitting `model=` uses the SDK's built-in default (currently `gpt-5.6-luna` with low-effort reasoning settings) — set it explicitly in production so an upstream default change cannot swap tiers silently.
 
 ### Key Patterns
 
@@ -60,9 +61,12 @@ result = await Runner.run(agent, "Tell me a joke")
 | Guardrails | Input/output validation |
 | Sessions | Automatic conversation history |
 | Multi-Agent Pipeline | Multi-step workflows |
-| Sandboxing | Isolated execution environment for agents |
-| Subagents | Spawn specialized subordinate agents (Python; TS in beta/development) |
-| Observability | Built-in execution graph recording |
+| Sandboxing | `SandboxAgent` — filesystem, shell and skills inside a local/Docker sandbox (beta) |
+| Tracing | Built-in spans for runs, tools, handoffs and guardrails; pluggable processors |
+
+The SDK has no separate `Subagent` class: express delegation with handoffs or
+`agent.as_tool()`. For model-written tool orchestration, use
+`ProgrammaticToolCallingTool` and verify its Responses-only constraints.
 
 ## Preferred: Live Docs via MCP
 
@@ -71,6 +75,11 @@ Model names and API details change frequently. When available, consult the **Ope
 Setup (Codex CLI):
 ```bash
 codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp
+```
+
+Setup (Claude Code):
+```bash
+claude mcp add --transport http openaiDeveloperDocs https://developers.openai.com/mcp
 ```
 
 Or config (`~/.codex/config.toml`, VS Code `.vscode/mcp.json`, Cursor `~/.cursor/mcp.json`):
@@ -89,14 +98,15 @@ Fallback when MCP is unavailable: `https://developers.openai.com/api/docs/llms.t
 
 Offline/quick-lookup snippets. Verify model names and API signatures against the MCP or docs when accuracy matters.
 
-- [agents.md](references/agents.md) - Agent creation, multi-provider setup via LiteLLM
-- [tools.md](references/tools.md) - Function tools, hosted tools, agents as tools
-- [structured-output.md](references/structured-output.md) - Pydantic output, AgentOutputSchema
-- [streaming.md](references/streaming.md) - Streaming patterns, SSE with FastAPI
-- [handoffs.md](references/handoffs.md) - Agent delegation
-- [guardrails.md](references/guardrails.md) - Input/output validation
-- [sessions.md](references/sessions.md) - Sessions, conversation history
-- [patterns.md](references/patterns.md) - Multi-agent workflows, LLM as judge, tracing
+- [agents.md](references/agents.md) - read when choosing or wiring a model: default-model caveat, LiteLLM, native Azure client
+- [tools.md](references/tools.md) - read when adding function tools, hosted tools, or agents-as-tools
+- [structured-output.md](references/structured-output.md) - read when the output must be a Pydantic/dataclass shape (`AgentOutputSchema`, strict vs non-strict)
+- [streaming.md](references/streaming.md) - read when streaming to a UI (event types, SSE with FastAPI)
+- [handoffs.md](references/handoffs.md) - read when one agent delegates to another (handoff vs `as_tool`, input filters)
+- [guardrails.md](references/guardrails.md) - read when validating input/output or gating tool calls
+- [sessions.md](references/sessions.md) - read when conversation history must persist across requests (SQLite, SQLAlchemy, Redis, OpenAI Conversations)
+- [patterns.md](references/patterns.md) - read for multi-agent pipelines, LLM-as-judge loops, tracing controls, `max_turns`, parallelization
+- [sandbox.md](references/sandbox.md) - read when the agent must edit files or run commands in an isolated workspace (`SandboxAgent`, beta)
 
 ## Official Documentation
 

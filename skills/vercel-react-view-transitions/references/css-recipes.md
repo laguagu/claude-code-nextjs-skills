@@ -1,5 +1,17 @@
 # CSS Animation Recipes
 
+## Contents
+
+- [Timing Variables](#timing-variables)
+- [Fade](#fade)
+- [Slide](#slide-vertical)
+- [Directional Navigation](#directional-navigation)
+- [Shared Element Morph](#shared-element-morph)
+- [Text Morph](#text-morph)
+- [Scale](#scale)
+- [Persistent Element Isolation](#persistent-element-isolation)
+- [Reduced Motion](#reduced-motion)
+
 Ready-to-use CSS for `<ViewTransition>` props. Copy into your global stylesheet.
 
 ---

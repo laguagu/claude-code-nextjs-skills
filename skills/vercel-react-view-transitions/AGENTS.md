@@ -79,8 +79,14 @@ Reserve directional slides for hierarchical navigation (list → detail) and ord
 
 ## Availability
 
-- **Next.js:** Do **not** install `react@canary` — the App Router already bundles React canary internally. `ViewTransition` works out of the box. Since Next.js 16.3 no configuration is needed (the `experimental.viewTransition` flag was removed — do not add it back); on 15 canary – 16.2 the flag is required. `npm ls react` may show a stable-looking version; this is expected.
+- **Next.js:** Do **not** install `react@canary` — the App Router already bundles a compatible React build internally. The official docs still require `experimental.viewTransition: true` and mark the integration experimental; verify the installed version before production use. `npm ls react` may show a stable-looking version; this is expected.
 - **Without Next.js:** Install `react@canary react-dom@canary` (`ViewTransition` is not in stable React).
+- **TypeScript:** `@types/react` declares `ViewTransition` and `addTransitionType` in `canary.d.ts`, not `index.d.ts`. A project on the stable types fails to compile with `Module '"react"' has no exported member 'ViewTransition'` even though the bundled React exports them at runtime. Reference the shipped declarations rather than hand-writing a module augmentation:
+
+  ```ts
+  // types/react-canary.d.ts
+  /// <reference types="react/canary" />
+  ```
 - Browser support: React's integration uses transition types and `view-transition-class` — Chromium 125+, Firefox 144+, Safari 18.2+. Graceful degradation.
 
 ---
@@ -862,7 +868,7 @@ Avoids raster scaling artifacts on text by hiding the old snapshot and showing t
 
 ## Setup
 
-**Next.js 16.3+: no configuration needed** — the `experimental.viewTransition` flag was removed; do not add it back. On Next.js 15 canary – 16.2 only:
+The official Next.js docs still mark the integration experimental and require:
 
 ```js
 // next.config.js
@@ -871,9 +877,11 @@ experimental: { viewTransition: true }
 
 Every `<Link>` navigation runs inside `document.startViewTransition`. Use `default="none"` to prevent competing animations. Do **not** install `react@canary` — the App Router already bundles it.
 
+**TypeScript:** add `/// <reference types="react/canary" />` in a `.d.ts` file, or `next build` fails at the type check with `Module '"react"' has no exported member 'ViewTransition'`.
+
 ## Next.js Implementation Additions
 
-**After Step 2:** Check the Next.js version — on 16.3+ nothing to enable; on 15 canary – 16.2 enable the experimental flag above.
+**After Step 2:** Enable the experimental flag above, then verify it exists in the installed Next.js version.
 
 **Step 4:** Use `transitionTypes` on `<Link>` (if available — see availability note below):
 ```tsx
@@ -894,7 +902,7 @@ Works in Server Components, no wrapper needed:
 <Link href="/products/1" transitionTypes={['nav-forward']}>View</Link>
 ```
 
-**Availability:** Works out of the box in Next.js 16.3+; on 15 canary – 16.2 requires `experimental.viewTransition: true`. If unavailable, use `startTransition` + `addTransitionType` + `router.push()`. To check: `grep -r "transitionTypes" node_modules/next/dist/`. Reserve manual `startTransition` for non-link interactions.
+**Availability:** `transitionTypes` is version-dependent and not part of the stable documented surface. Enable `experimental.viewTransition: true`, then check with `grep -r "transitionTypes" node_modules/next/dist/`. If absent, use `startTransition` + `addTransitionType` + `router.push()`. Reserve manual `startTransition` for non-link interactions.
 
 ## `loading.tsx` as Suspense Boundary
 

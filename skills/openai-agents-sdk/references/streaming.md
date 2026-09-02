@@ -1,5 +1,14 @@
 # Streaming
 
+## Contents
+
+- [Basic Streaming](#basic-streaming)
+- [Stream Items](#stream-items)
+- [SSE Streaming with FastAPI](#sse-streaming-with-fastapi)
+- [Streaming with Tool Calls](#streaming-with-tool-calls)
+- [Streaming with Guardrails](#streaming-with-guardrails)
+- [Collecting Full Response](#collecting-full-response)
+
 ## Basic Streaming
 
 ```python

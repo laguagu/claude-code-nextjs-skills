@@ -1,7 +1,6 @@
 ---
 name: nextjs-seo
 description: Next.js App Router SEO optimization and auditing. Use when implementing or fixing SEO in a Next.js app — metadata and generateMetadata, viewport/themeColor, Open Graph and og/twitter images (file conventions + ImageResponse), web app manifest, favicons/icons, sitemap.xml, robots.txt, canonical URLs, hreflang/i18n alternates, JSON-LD structured data and rich results, Core Web Vitals (LCP/INP/CLS), AI search/GEO and AI crawler rules (GPTBot, OAI-SearchBot), or diagnosing Google indexing problems (Search Console, "Discovered/Crawled - currently not indexed"). Also use to run an SEO audit checklist. Not for general Next.js feature work unrelated to SEO.
-argument-hint: "[question or URL]"
 ---
 
 # Next.js SEO Optimization
@@ -26,7 +25,8 @@ Run this checklist for any Next.js project:
 import type { Metadata, Viewport } from 'next';
 
 // Viewport must be a separate export — `themeColor`, `colorScheme`, and
-// `viewport` inside the `metadata` object are not supported.
+// `viewport` inside the `metadata` object are deprecated (since v14: still
+// emitted with a warning today, not guaranteed to stay).
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -113,7 +113,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/admin/'],
         // Do NOT disallow /_next/ — crawlers need render-critical CSS/JS
         // Do NOT add bot-specific rules (Googlebot, Bingbot) unless overriding wildcard —
-        // and if you do, repeat all disallows: named groups don't inherit `*` rules (RFC 9309)
+        // and if you do, repeat all disallows: named groups don't inherit `*` rules
+        // (RFC 9309 §2.2.1; Google never merges a specific group with `*`)
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
@@ -125,27 +126,7 @@ export default function robots(): MetadataRoute.Robots {
 
 ### app/manifest.ts - Web App Manifest
 
-```typescript
-import type { MetadataRoute } from 'next';
-
-export default function manifest(): MetadataRoute.Manifest {
-  return {
-    name: 'Site Name',
-    short_name: 'Site',
-    description: 'Site description',
-    start_url: '/',
-    display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#0a0a0a',
-    icons: [
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-    ],
-  };
-}
-```
-
-Same `MetadataRoute` family as sitemap/robots; place at the root of `app/`. **Not an SEO requirement** — a PWA-completeness nicety with no ranking effect; skip it unless the site is (or may become) a PWA. (A static `app/manifest.json` works too.)
+Same `MetadataRoute` family as sitemap/robots, placed at the root of `app/`. **Not an SEO requirement** — a PWA-completeness nicety with no ranking effect; skip it unless the site is (or may become) a PWA. Full example in [references/metadata-api.md](references/metadata-api.md#web-app-manifest--icon-file-conventions).
 
 ### OG / Twitter Images
 
@@ -153,27 +134,7 @@ Three ways to set social images — prefer the file conventions over hand-syncin
 
 1. **External URL in metadata** (the `openGraph.images` / `twitter.images` examples above) — fine for externally hosted images.
 2. **Static file convention (recommended default):** drop `opengraph-image.(png|jpg|gif)` and/or `twitter-image.*` into a route segment (`app/opengraph-image.png` for the root, `app/blog/opengraph-image.png` for `/blog`). Next.js auto-emits `og:image`/`twitter:image` + `:type/:width/:height`. A deeper, more specific image overrides one above it. Add alt text with a sibling `opengraph-image.alt.txt`. Build fails if the file exceeds 8 MB (OG) / 5 MB (Twitter).
-3. **Dynamic generation with `ImageResponse`** (per-page/per-post images):
-
-```tsx
-// app/blog/[slug]/opengraph-image.tsx
-import { ImageResponse } from 'next/og';
-
-export const alt = 'Post preview';
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
-
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;            // params is a Promise in v16
-  const post = await getPost(slug);
-  return new ImageResponse(
-    <div style={{ display: 'flex', fontSize: 64, width: '100%', height: '100%' }}>{post.title}</div>,
-    { ...size },
-  );
-}
-```
-
-`ImageResponse` renders via Satori — **flexbox only, no `display: grid`**. These files are statically optimized at build time unless they read request-time data. See [references/metadata-api.md](references/metadata-api.md) for fonts, `generateImageMetadata`, and the favicon/`icon.tsx`/`apple-icon` conventions.
+3. **Dynamic generation with `ImageResponse`** (per-page/per-post images): an `opengraph-image.tsx` in the route segment exporting `alt`, `size`, `contentType` and a default `Image({ params })` (params is a Promise in v16) that returns `new ImageResponse(<jsx/>, { ...size })`. Renders via Satori — **flexbox only, no `display: grid`**; statically optimized at build time unless it reads request-time data. Full example, fonts, `generateImageMetadata` and the favicon/`icon.tsx`/`apple-icon` conventions: [references/metadata-api.md](references/metadata-api.md).
 
 ## Key Principles
 
@@ -200,8 +161,8 @@ export async function HeroSection() {
 **Key rules:**
 - `"use cache"` must be the first statement in the function body (or at the top of the file for file-level caching)
 - No `cookies()`/`headers()`/`searchParams` inside a plain `"use cache"` scope — good for SEO, since indexable content should be request-agnostic. (`"use cache: private"` *does* allow them, but is never prerendered, so it never lands in the static SEO shell.)
-- Invalidate with `updateTag("hero")` inside a Server Action (read-your-writes), or `revalidateTag("hero")` from a Route Handler / webhook — prefer these over `export const revalidate`
-- Short-lived caches are excluded from the prerender and become dynamic holes that need a `<Suspense>` boundary. The trigger is **`revalidate: 0` or `expire` under 5 minutes** — *not* a short `revalidate`. This matters: `minutes` (revalidate 1 min, expire 1 h) and a custom `{ revalidate: 60, expire: 300 }` both still prerender. Keep SEO-critical content on a profile whose **`expire`** is ≥ 5 min so it stays in the static shell
+- Invalidate with `updateTag("hero")` inside a Server Action (read-your-writes; it throws outside one), or `revalidateTag("hero", "max")` from a Route Handler / webhook (pass the profile — the one-argument form is legacy behaviour) — prefer these over `export const revalidate`
+- Very short cache profiles can change what Next.js includes in the prerendered shell. Do not infer that behavior from `revalidate` alone: choose a profile from the documented freshness requirements and verify the installed Next.js version's `next build` output. Prefer `hours`/`days`/`max` for SEO-critical content unless the product genuinely needs fresher data
 - Sitemaps and metadata are static by default — only add `"use cache"` (+ `cacheTag`) if they fetch CMS/dynamic data you want to invalidate on publish
 
 ### Rendering Strategy for SEO
@@ -224,7 +185,7 @@ export async function HeroSection() {
 - **Measured on field data, not lab.** Google ranks on the 75th percentile of real users (Chrome UX Report, 28-day rolling window, mobile/desktop separate). A URL group passes only when ≥75% of visits hit "Good" on all three. Use PageSpeed Insights and the Search Console CWV report for the real signal — **Lighthouse is lab-only and cannot measure INP**.
 - **INP replaced FID** as a Core Web Vital on 2024-03-12; FID is deprecated. INP is the most commonly failed metric — prioritize it.
 - **Page experience is a tiebreaker, not a standalone ranking system** (Google de-emphasized it). Good CWV won't rescue thin content; content relevance and quality come first. Treat CWV as baseline UX hygiene.
-- **Myths to ignore:** 2026 SEO blogs falsely claim "LCP was lowered to 2.0s" and invent an "Engagement Reliability" metric. Neither exists in any Google/web.dev source — the thresholds above are current and unchanged since 2021.
+- **Myths to ignore:** 2026 SEO blogs falsely claim "LCP was lowered to 2.0s" and invent an "Engagement Reliability" metric. Neither exists in any Google/web.dev source — the LCP and CLS thresholds are unchanged since 2021, and INP's 200 ms has been fixed since it became a Core Web Vital in 2024.
 
 ### Ranking Signals Beyond Technical SEO
 
@@ -236,12 +197,12 @@ Metadata + CWV alone don't drive rankings. Keep these in mind (out of scope for 
 
 ## References
 
-- **Metadata API**: See [references/metadata-api.md](references/metadata-api.md) — generateMetadata, OG/icon file conventions, ImageResponse, manifest
-- **Sitemap & Robots**: See [references/sitemap-robots.md](references/sitemap-robots.md)
-- **JSON-LD Structured Data**: See [references/json-ld.md](references/json-ld.md)
-- **AI Search (GEO/AEO) & AI Crawlers**: See [references/ai-search.md](references/ai-search.md)
-- **SEO Audit Checklist**: See [references/checklist.md](references/checklist.md)
-- **Troubleshooting**: See [references/troubleshooting.md](references/troubleshooting.md)
+- **Metadata API** — [references/metadata-api.md](references/metadata-api.md): read when writing `generateMetadata`, OG/icon files, `ImageResponse`, the manifest, or when streaming metadata / `htmlLimitedBots` is in play
+- **Sitemap & Robots** — [references/sitemap-robots.md](references/sitemap-robots.md): read for `generateSitemaps`, image/video sitemaps, multi-group robots rules, static `robots.txt`/`sitemap.xml` files
+- **JSON-LD Structured Data** — [references/json-ld.md](references/json-ld.md): read before adding any schema type; has the supported/deprecated rich-result list and the `@graph` pattern
+- **AI Search (GEO/AEO) & AI Crawlers** — [references/ai-search.md](references/ai-search.md): read when deciding robots rules for GPTBot/OAI-SearchBot/ClaudeBot etc., or when asked about llms.txt or AI Overviews
+- **SEO Audit Checklist** — [references/checklist.md](references/checklist.md): read when asked to audit a site end to end
+- **Troubleshooting** — [references/troubleshooting.md](references/troubleshooting.md): read when a page is missing from Google, stuck in "Discovered/Crawled – currently not indexed", or indexes fine but never hydrates
 
 ## Common Mistakes to Avoid
 
@@ -255,9 +216,9 @@ Metadata + CWV alone don't drive rankings. Keep these in mind (out of scope for 
 8. **Duplicating icons in metadata + file conventions** - Prefer `favicon.ico`/`icon.*`/`opengraph-image.*` file conventions; they auto-emit tags and override the metadata object
 9. **Blanket-blocking AI crawlers** - `GPTBot disallow: /` blocks training but leaves you in AI search; don't accidentally block citation bots (OAI-SearchBot, PerplexityBot). See [references/ai-search.md](references/ai-search.md)
 10. **Adding the `keywords` meta tag for Google** - Google ignores it entirely (no indexing or ranking effect); it's noise, not a signal
-11. **Assuming named robots.txt groups inherit `*` rules** - Per RFC 9309, a crawler obeys only its most specific matching group. A `{ userAgent: 'OAI-SearchBot', allow: '/' }` group drops the wildcard's `/api/`/`/admin/` disallows — repeat them in every named group
-12. **Trusting browser view for bot metadata** - Observed on Next.js 16.2.x: PPR + streaming metadata can serve bots a page with no `<title>`/canonical (vercel/next.js #93401, #95406). Check the issues before assuming it still reproduces on your version, but keep the verification habit either way — confirm production HTML with a bot User-Agent: `curl -A "Googlebot" https://your-site.com | grep -E '<title>|canonical'`
-13. **Assuming a route that indexes well also *works*** - Observed on Next.js 16.2.10; re-check on your version. A PPR route (`◐` in the build output) can serve perfect SEO HTML — title, canonical, description, full body content — while **none of its `<Suspense>` boundaries ever hydrate in the production build**. Maps, forms and every other client component inside them stay dead. Reproduced with `next build` + `next start`: the same client component hydrates fine on a static (`○`) route, and client-side navigation to the PPR route also works — only the direct URL load is broken. In one app the trigger correlated perfectly with reading `searchParams`, which is what makes a route PPR; `cacheComponents` refuses to let you await `searchParams` outside `<Suspense>`, so the pattern cannot simply be avoided. **An SEO audit passing does not mean the page is usable — always load the route directly in a browser and interact with it.**
+11. **Assuming named robots.txt groups inherit `*` rules** - Per RFC 9309 §2.2.1 the `*` group applies only when no group matches, and Google never merges a specific group with `*`. A `{ userAgent: 'OAI-SearchBot', allow: '/' }` group drops the wildcard's `/api/`/`/admin/` disallows — repeat them in every named group
+12. **Trusting browser view for bot metadata** - PPR + streaming metadata has served bots pages with no `<title>`/canonical (vercel/next.js #95406 — check its status on your version), and the browser view never shows it. Confirm production HTML with a bot User-Agent: `curl -A "Googlebot" https://your-site.com | grep -E '<title>|canonical'`
+13. **Assuming a route that indexes well also *works*** - A PPR route (`◐` in the build output) can serve perfect SEO HTML while none of its `<Suspense>` boundaries hydrate on a direct load. Load the route directly in a browser and interact with it; the observation and the check are in [references/troubleshooting.md](references/troubleshooting.md#ppr-route-serves-perfect-seo-html-but-client-components-never-hydrate).
 
 ## Quick Fixes
 

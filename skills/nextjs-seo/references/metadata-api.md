@@ -285,14 +285,35 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 }
 ```
 
-- Default export must return one of `Blob | ArrayBuffer | TypedArray | DataView | ReadableStream | Response` — `ImageResponse` satisfies this.
+- Default export should return a `Response` — `ImageResponse` satisfies this.
 - **Satori rendering:** flexbox + a subset of CSS only; `display: grid` is unsupported. Load local images via `readFile` (base64 data URI) under the Node.js runtime.
 - **Caching:** these are special Route Handlers, **statically optimized** (built once, cached) unless they read request-time APIs or uncached data; they accept the same route segment config as pages.
 - **Multiple images per route:** export `generateImageMetadata()` returning an array of `{ id (required), alt?, size?, contentType? }`; the default `Image({ id, params })` receives both as Promises (v16).
 
 ## Web App Manifest & Icon File Conventions
 
-**Manifest:** `app/manifest.ts` returning `MetadataRoute.Manifest` (see SKILL.md for the full example) — or a static `app/manifest.(json|webmanifest)`.
+**Manifest:** `app/manifest.ts` returning `MetadataRoute.Manifest` — or a static `app/manifest.(json|webmanifest)`. **Not an SEO requirement** (no ranking effect); a PWA-completeness nicety, so skip it unless the site is or may become a PWA.
+
+```typescript
+// app/manifest.ts
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Site Name',
+    short_name: 'Site',
+    description: 'Site description',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#0a0a0a',
+    icons: [
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+  };
+}
+```
 
 **Icons (prefer over the metadata `icons` field):**
 - `favicon.ico` — root `app/` only; appears in browser tabs **and Google SERPs**.
@@ -353,14 +374,13 @@ export default config;
 
 Streaming metadata is an advanced feature — **the default is correct for almost all cases**, so usually you should not set `htmlLimitedBots` at all.
 
-> ⚠️ **Known Next.js 16.2.x bugs (PPR + streaming metadata):** the PPR shell can
-> be prerendered with the streaming-metadata tree even when streaming is fully
-> disabled, causing resume mismatches ([#93401](https://github.com/vercel/next.js/issues/93401));
-> and with a custom `htmlLimitedBots` pattern, bots outside the built-in list
-> (GoogleOther, GPTBot, AhrefsBot, …) can hit resume errors and receive pages
-> with **no `<title>`, canonical, or description**
-> ([#95406](https://github.com/vercel/next.js/issues/95406)). Until fixed, always
-> verify production HTML with bot User-Agents:
+> ⚠️ **PPR + streaming metadata can drop bot metadata.** With a custom
+> `htmlLimitedBots` pattern, bots outside the built-in list (GoogleOther, GPTBot,
+> AhrefsBot, …) have hit resume errors and received pages with **no `<title>`,
+> canonical, or description**
+> ([vercel/next.js #95406](https://github.com/vercel/next.js/issues/95406) — check
+> its status for your version; the related resume-mismatch report #93401 is
+> closed). Whatever the issue status, verify production HTML with bot User-Agents:
 >
 > ```bash
 > curl -sA "Googlebot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"|name="description"'

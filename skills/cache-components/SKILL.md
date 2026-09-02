@@ -1,7 +1,6 @@
 ---
 name: cache-components
 description: "Expert guidance for Next.js Cache Components and Partial Prerendering (PPR). Use when implementing 'use cache' directive, configuring cache lifetimes with cacheLife(), tagging cached data with cacheTag(), invalidating caches with updateTag()/revalidateTag(), optimizing static vs dynamic content boundaries, managing 'use cache: private' for compliance scenarios, pass-through/interleaving patterns, GET Route Handler caching, debugging cache issues, and reviewing Cache Component implementations."
-argument-hint: "[pattern or question]"
 metadata:
   version: "1.0"
 ---
@@ -261,7 +260,9 @@ async function UserProfile({ userId }: { userId: string }) {
 
 ### 4. `updateTag()` - Immediate Invalidation
 
-For **read-your-own-writes** semantics:
+For **read-your-own-writes** semantics. `updateTag()` is only callable from a
+Server Action and throws in Route Handlers and other contexts; use
+`revalidateTag(tag, 'max')` outside a Server Action:
 
 ```tsx
 'use server'
@@ -439,6 +440,7 @@ When reviewing code in Cache Components projects, flag these issues:
 - [ ] Missing `cacheTag()` calls (makes invalidation impossible)
 - [ ] Missing `cacheLife()` (relies on defaults which may not be appropriate)
 - [ ] Server Actions without `updateTag()`/`revalidateTag()` after mutations
+- [ ] `updateTag()` outside a Server Action - use `revalidateTag(tag, 'max')`
 - [ ] `cookies()`/`headers()` called inside `'use cache'` scope
 - [ ] Dynamic components without `<Suspense>` boundaries
 - [ ] **DEPRECATED**: `export const revalidate` - replace with `cacheLife()` in `'use cache'`

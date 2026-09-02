@@ -1,5 +1,16 @@
 # Sessions
 
+## Contents
+
+- [Conversation History](#conversation-history-with-to_input_list)
+- [SQLite Session](#sqlite-session)
+- [Advanced SQLite Session](#advanced-sqlite-session)
+- [Redis Session](#redis-session)
+- [OpenAI Conversations Session](#openai-conversations-session)
+- [Compaction Session](#compaction-session)
+- [Encrypted Session](#encrypted-session)
+- [Session Comparison](#session-comparison)
+
 ## Conversation History with to_input_list()
 
 Manual conversation history management:

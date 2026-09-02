@@ -1,5 +1,13 @@
 # Structured Output
 
+## Contents
+
+- [AgentOutputSchema with Pydantic](#agentoutputschema-with-pydantic)
+- [Simple Output Type](#simple-output-type)
+- [ModelSettings](#modelsettings)
+- [ModelSettings Options](#modelsettings-options)
+- [Non-Strict Output](#non-strict-output)
+
 ## AgentOutputSchema with Pydantic
 
 ```python
@@ -21,10 +29,10 @@ class ProductSelectionOutput(BaseModel):
 agent = Agent(
     name="ProductSelector",
     instructions="Select the 10 best products matching user request...",
-    model=get_model(),
+    model=get_model(),  # defined in agents.md (LiteLLM/Azure switch)
     model_settings=ModelSettings(
         max_tokens=64000,
-        # Reasoning effort: "none", "low", "medium", "high", "xhigh"
+        # Reasoning effort: "none", "low", "medium", "high", "xhigh", "max"
         reasoning=Reasoning(effort="low"),
     ),
     # strict_json_schema=True forces LLM to return valid JSON
@@ -70,7 +78,7 @@ from openai.types.shared.reasoning import Reasoning
 agent = Agent(
     name="Assistant",
     instructions="Be helpful.",
-    model="gpt-5.6",
+    model="gpt-5.6-sol",
     model_settings=ModelSettings(
         max_tokens=32000,
         temperature=0.7,

@@ -1,5 +1,14 @@
 # Tools
 
+## Contents
+
+- [Function Tools](#function-tools-function_tool)
+- [Tool with Multiple Parameters](#tool-with-multiple-parameters)
+- [Hosted Tools](#hosted-tools-built-in)
+- [Agents as Tools](#agents-as-tools)
+- [Tool Guardrails](#tool-guardrails)
+- [Forcing Tool Use](#forcing-tool-use)
+
 ## Function Tools (@function_tool)
 
 ```python
@@ -64,12 +73,17 @@ Hosted tools (run on OpenAI's servers):
 - `CodeInterpreterTool` - sandboxed code execution (requires `tool_config`)
 - `HostedMCPTool` - remote MCP server tools
 - `ImageGenerationTool` - image generation
+- `ToolSearchTool` - on-demand tool discovery for large tool sets
+- `ProgrammaticToolCallingTool` - the model calls tools from code it writes
+- `ShellTool` - shell execution in a hosted container (also has a local mode)
 
 Local runtime tools (execute on your machine):
 - `ComputerTool` - computer use / GUI automation
-- `ShellTool` - shell command execution
-- `LocalShellTool` - local shell commands
+- `ShellTool` (local mode) / `LocalShellTool` - local shell commands
 - `ApplyPatchTool` - apply file patches
+
+The list moves between releases — confirm names in the tools reference
+(https://openai.github.io/openai-agents-python/tools/) before use.
 
 ## Agents as Tools
 

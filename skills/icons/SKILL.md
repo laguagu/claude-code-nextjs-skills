@@ -73,13 +73,21 @@ Only reach for a package when the project needs dozens of icons from one set:
 
 Still the best source for product and company logos in colour, with light/dark variants.
 
-```bash
-bunx --bun shadcn@latest add https://svgl.app/r/<name>.json     # per icon
-bunx --bun shadcn@latest add @svgl/<name>                       # if components.json has the @svgl registry
+Register the svgl registry once in `components.json`, then add logos by name — svgl's
+docs are explicit that the full `https://svgl.app/r/<name>.json` URL is *not* passed to
+the CLI:
+
+```jsonc
+// components.json
+{ "registries": { "@svgl": "https://svgl.app/r/{name}.json" } }
 ```
 
-Several names in one command, space-separated. `components.json` must exist — if it does
-not, stop and tell the user to run `bunx --bun shadcn@latest init` first.
+```bash
+bunx --bun shadcn@latest add @svgl/<name>     # several names in one command, space-separated
+```
+
+`components.json` must exist — if it does not, stop and tell the user to run
+`bunx --bun shadcn@latest init` first.
 
 Resolve the exact name before installing:
 

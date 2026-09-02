@@ -24,7 +24,7 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 - [ ] SEO pages use SSG, SSR, or `"use cache"` Cache Components (not CSR)
 - [ ] Content visible without JavaScript (test with JS disabled)
 - [ ] No client-side only content for SEO-critical text
-- [ ] Metadata verified in production with a bot User-Agent (e.g. `curl -A "Googlebot" | grep '<title>'`) — Next.js 16.2.x has known PPR + streaming-metadata bugs that can drop `<title>`/canonical/description for some bots (vercel/next.js #93401, #95406)
+- [ ] Metadata verified in production with a bot User-Agent (e.g. `curl -A "Googlebot" | grep '<title>'`) — PPR + streaming metadata has dropped `<title>`/canonical/description for some bots (vercel/next.js #95406); see [metadata-api.md](metadata-api.md#streaming-metadata)
 
 ### Core Web Vitals
 

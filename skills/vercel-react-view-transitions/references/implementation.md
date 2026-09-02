@@ -1,5 +1,16 @@
 # Implementation Workflow
 
+## Contents
+
+- [Step 1: Audit the App](#step-1-audit-the-app)
+- [Step 2: Add CSS Recipes](#step-2-add-css-recipes)
+- [Step 3: Isolate Persistent Elements](#step-3-isolate-persistent-elements)
+- [Step 4: Add Directional Page Transitions](#step-4-add-directional-page-transitions)
+- [Step 5: Add Suspense Reveals](#step-5-add-suspense-reveals)
+- [Step 6: Add Shared Element Transitions](#step-6-add-shared-element-transitions)
+- [Step 7: Verify Each Navigation Path](#step-7-verify-each-navigation-path)
+- [Common Mistakes](#common-mistakes)
+
 Follow these steps in order when adding view transitions to an app. Each step builds on the previous one.
 
 ## Step 1: Audit the App

@@ -1,5 +1,19 @@
 -- Hybrid Search with PostgreSQL Full-Text Search + RRF
 -- No extra extensions needed (except pgvector + unaccent)
+--
+-- Three caveats before using these functions as-is:
+-- 1. The keyword arm wraps content and query in unaccent(). Right for
+--    French/Spanish/Portuguese, wrong for Finnish, Swedish, German or Turkish,
+--    where diacritics are distinct letters (saastaa vs säästää are different
+--    words) -- drop the unaccent() calls for those languages even though
+--    fts_language='finnish' is accepted.
+-- 2. to_tsvector(fts_language::regconfig, unaccent(content)) is computed per
+--    row, so no GIN index on a stored tsvector column can serve it and the
+--    keyword arm sequentially scans. For large tables, store a tsvector column
+--    (written at ingest with the row's language) and rank against that.
+-- 3. hnsw.ef_search is not set here; the caller owns that recall/latency
+--    tradeoff. SET it on the active connection (or SET LOCAL in the same
+--    transaction) before calling, or the default of 40 applies.
 
 -- ===========================================
 -- 1. HYBRID SEARCH (FTS + Vector + RRF)

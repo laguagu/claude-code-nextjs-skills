@@ -80,9 +80,10 @@ import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = 'https://your-site.com';
-  // RFC 9309: a crawler obeys ONLY its most specific matching group — named
-  // groups do NOT inherit the `*` rules. Repeat the disallows in every named
-  // allow-group, or those bots will crawl /api/ and /admin/ too.
+  // Named groups do NOT inherit the `*` rules (RFC 9309 §2.2.1: `*` applies only
+  // when no group matches; Google: specific and `*` groups are never combined).
+  // Repeat the disallows in every named allow-group, or those bots will crawl
+  // /api/ and /admin/ too.
   const disallow = ['/api/', '/admin/'];
   return {
     rules: [
