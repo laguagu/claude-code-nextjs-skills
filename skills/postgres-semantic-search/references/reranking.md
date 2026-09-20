@@ -9,6 +9,7 @@
 - [Self-hosting notes](#self-hosting-notes)
 - [Two-stage retrieval pattern](#two-stage-retrieval-pattern)
 - [When NOT to re-rank](#when-not-to-re-rank)
+- [Report the shortlist ceiling with every number](#report-the-shortlist-ceiling-with-every-number)
 - [Rerankers can regress — benchmark first](#rerankers-can-regress--benchmark-first)
 - [Provider docs](#provider-docs)
 
@@ -101,6 +102,32 @@ Stage 2: Cross-encoder rerank (precise)
 - Real-time autocomplete (latency critical)
 - Very large candidate sets (> 100 docs → too slow, pre-filter first)
 - Simple exact-match queries (BM25 alone is already optimal)
+
+## Report the shortlist ceiling with every number
+
+A reranker only reorders the candidates stage 1 handed it. So the fraction of
+queries whose shortlist contains a relevant passage **at all** is a hard ceiling
+on every metric, and a recall number without it cannot be read.
+
+Measure it once per first stage: the share of queries where any candidate in the
+top *k* is relevant. Then report the pair.
+
+Worked example, 84 questions over a Finnish legal corpus, 30 candidates:
+
+| | R@10 | ceiling | share of ceiling reached |
+| --- | ---: | ---: | ---: |
+| hybrid, no rerank | 58.3 % | 70.8 % | 82 % |
+| hybrid + reranker | 65.3 % | 70.8 % | **92 %** |
+
+"65.3 %" reads as mediocre and is actually near-exhaustion: 21 of the 72 scorable
+queries never had the answer in the shortlist, and no reranker can retrieve what
+it was not given. Deepening the shortlist to 100 raised the ceiling to 84.7 % and
+R@10 by seven points, while R@1 moved one to three — depth buys recall, not
+precision.
+
+**Rule**: before tuning a reranker, check how much headroom it has. Above ~90 %
+of ceiling, spend the next effort on stage 1 (chunking, embedding model, query
+rewriting, candidate depth) rather than on reranking.
 
 ## Rerankers can regress — benchmark first
 

@@ -3,7 +3,7 @@
 ## Contents
 
 - [Index Selection](#index-selection)
-- [HNSW](#hnsw-hierarchical-navigable-small-world) — parameters, settings, **`ef_search` default**, operator classes, `iterative_scan`, halfvec
+- [HNSW](#hnsw-hierarchical-navigable-small-world) — parameters, settings, **`ef_search` default**, **confirming the index is in the plan**, operator classes, `iterative_scan`, halfvec
 - [IVFFlat](#ivfflat)
 - [GIN Indexes (Full-Text Search)](#gin-indexes-full-text-search) — FTS, weighted tsvector, JSONB, arrays
 - [Partial Indexes](#partial-indexes)
@@ -78,6 +78,35 @@ Three things worth taking from that:
   returned, 3.4× faster. "Approximate" does not have to mean "worse".
 - **Past 100 you buy nothing.** 400 found the same rows and was slower. Tune
   up until recall stops moving, then stop.
+
+### Confirm the planner actually chose the index before tuning it
+
+`ef_search` does nothing if the index is not in the plan, and nothing warns you.
+Check the plan node, not the latency:
+
+```sql
+EXPLAIN (ANALYZE, COSTS ON)
+SELECT id FROM chunks ORDER BY embedding <=> $1::vector LIMIT 60;
+-- want: "Index Scan using chunks_embedding_hnsw"
+-- got "Seq Scan"? every ef_search value below is a no-op
+```
+
+**A refusal can be correct.** The same query shape, measured on two setups:
+
+| corpus | exact (Seq Scan) | HNSW index | planner's choice |
+| --- | ---: | ---: | --- |
+| ~54 000 vectors, index cached | 233 ms | 69 ms | index — 3.4× faster |
+| 37 440 vectors, 283 MB graph, 1 CU | **356 ms** | 1417 ms *(forced)* | seq scan — index 4× slower |
+
+Below roughly 10⁵ vectors the distance computation is cheap and the deciding
+factor is whether the graph fits in memory. On a small instance it does not, and
+a sequential scan wins — the planner's cost model gets this right. Forcing the
+index with `enable_seqscan = off` to "fix" a Seq Scan makes it slower.
+
+Two consequences worth stating in any write-up: a seq-scanned vector query
+returns **exact** nearest neighbours, so retrieval quality is an upper bound
+rather than an ANN approximation; and every `ef_search` number measured that way
+is meaningless. Re-check after the corpus grows or the instance changes.
 
 Set it per connection alongside `hnsw.iterative_scan` rather than per query,
 and re-check it whenever the corpus grows by an order of magnitude — the right
