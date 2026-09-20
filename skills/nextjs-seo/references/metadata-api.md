@@ -73,6 +73,11 @@ export async function generateMetadata(
 
 ## Complete Metadata Object
 
+This is a field reference, not a root-layout template. Keep only relevant
+fields. Set canonical, language alternates and `openGraph.url` per page;
+copying the homepage values into a shared layout can misidentify child pages.
+Do not invent authors, social IDs or separate mobile URLs to fill the example.
+
 ```typescript
 import type { Metadata } from 'next';
 
@@ -374,25 +379,27 @@ export default config;
 
 Streaming metadata is an advanced feature — **the default is correct for almost all cases**, so usually you should not set `htmlLimitedBots` at all.
 
-> ⚠️ **PPR + streaming metadata can drop bot metadata.** With a custom
-> `htmlLimitedBots` pattern, bots outside the built-in list (GoogleOther, GPTBot,
-> AhrefsBot, …) have hit resume errors and received pages with **no `<title>`,
-> canonical, or description**
-> ([vercel/next.js #95406](https://github.com/vercel/next.js/issues/95406) — check
-> its status for your version; the related resume-mismatch report #93401 is
-> closed). Whatever the issue status, verify production HTML with bot User-Agents:
+> **Verify rather than assuming.** Capture the full production response and
+> headers for relevant User-Agents. If metadata is missing, reproduce it on the
+> installed version before attributing it to a framework bug or changing
+> `htmlLimitedBots`. Tags outside the initial head may be expected streaming;
+> browser success alone does not prove a social crawler receives correct tags.
 >
 > ```bash
 > curl -sA "Googlebot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"|name="description"'
 > curl -sA "GPTBot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"'
 > ```
 
+Use OAI-SearchBot for an OpenAI search-access check; GPTBot tests the separate
+training policy. Include an HTML-limited bot such as Twitterbot for share
+previews. A spoofed User-Agent is not verified bot identity or an indexing test.
+
 ## Best Practices
 
 1. **Always set metadataBase** - Required for relative URLs. URL composition: a missing `metadataBase` + a relative URL = **build error**; an absolute URL in any field **ignores** `metadataBase`. OG/Twitter image URLs must resolve to absolute URLs.
 2. **Use title templates** - Consistent branding across pages
 3. **Write unique descriptions** - Each page needs unique description
-4. **Include canonical URLs** - Prevent duplicate content issues
+4. **Use consistent canonical signals** - Canonicals are hints, not a guarantee; avoid inheriting the homepage canonical on child pages
 5. **Test with validators** - Use the Facebook Sharing Debugger; for X, preview in the post composer or use a third-party OG preview tool (e.g. opengraph.xyz)
 6. **Don't mix static and dynamic** - Use either `metadata` object or `generateMetadata` in the **same route segment** (a layout can use static metadata while its child page uses `generateMetadata`)
 7. **`themeColor`/`colorScheme`/`viewport` are deprecated inside `metadata`** - use the separate `export const viewport` (see above)

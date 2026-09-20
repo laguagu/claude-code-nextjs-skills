@@ -112,7 +112,7 @@ const webAppSchema = {
 
 ### FAQPage Schema
 
-> **⚠️ FAQ rich results are deprecated.** Google restricted them to authoritative gov/health sites in Aug 2023 and **fully removed them for all sites as of 2026-05-07** (Rich Results Test support drops June 2026, Search Console API August 2026). FAQPage no longer produces any rich result in Google Search. Keep this markup only as an optional AI-search / LLM-extraction signal (machine-readable Q&A) — not for SERP enhancement. Existing markup is harmless but has no visible SERP effect.
+> Google [removed FAQ rich results on 2026-05-07](https://developers.google.com/search/updates). Schema.org FAQPage remains a vocabulary type; that does not establish an AI citation benefit. Keep it only when it accurately describes an existing useful FAQ and serves a known consumer. Do not add repetitive questions or schema solely for a presumed SEO/AI boost.
 
 ```typescript
 const faqSchema = {
@@ -330,7 +330,7 @@ Use a single `<script type="application/ld+json">` with an `@graph` array to wir
 
 ## Structured data for AI search
 
-Schema is **not required** for AI Overviews — Google has stated structured data is not needed to appear in AI Overviews. Still, well-formed JSON-LD that matches the visible page plausibly helps AI systems parse, ground, and cite your content. Frame this as a correlation / trust signal, **not** a confirmed ranking factor. See [ai-search.md](ai-search.md) for AI-search and GEO guidance.
+Google requires no special schema for AI Overviews. Valid JSON-LD describes the page to consumers that support it; do not claim a citation, trust or ranking benefit without evidence. Use relevant types and real facts, not more schema for its own sake. See [ai-search.md](ai-search.md).
 
 > Caveat: the Rich Results Test only validates currently-supported types, so valid FAQ/HowTo markup will correctly show "no eligible rich results" — that is expected, not an error.
 

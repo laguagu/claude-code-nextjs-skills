@@ -1,146 +1,109 @@
-# AI Search Optimization (GEO / AEO) & AI Crawlers
-
-How to make a Next.js site visible in AI answer engines (Google AI Overviews / AI Mode, ChatGPT Search, Perplexity, Gemini, Claude) — grounded in what's actually established, not hype.
+# AI search and crawler controls
 
 ## Contents
 
-- Core principle (layer on top of SEO, not a replacement)
-- Google AI Overviews / AI Mode — official eligibility
-- llms.txt — honest status
-- AI crawlers: training vs search/citation bots
-- Recommended robots.ts pattern
-- robots.txt is advisory (WAF/edge for real blocking)
-- Content structure that drives AI citation
-- Structured data for AI search
-- Measuring AI search visibility
+- Eligibility and evidence
+- Useful content without filler
+- Crawlers and policy
+- robots.ts example
+- llms.txt
+- Measurement and sources
 
-## Core principle
+## Eligibility and evidence
 
-**GEO** (Generative Engine Optimization) / **AEO** (Answer Engine Optimization) = optimizing so your content is **cited** in AI-generated answers. It is a layer **on top of** classic SEO, not a replacement. Most tactics that help AI citation also help users and traditional search — favor those low-risk, high-overlap moves over AI-specific "tricks."
+Google says AI Overviews and AI Mode need no special schema or AI text file.
+The page must be indexed and eligible for a Search snippet. This is eligibility,
+not a guarantee of selection or citation. Apply ordinary technical SEO first.
 
-## Google AI Overviews / AI Mode — official eligibility
+Do not describe FAQPage, a TL;DR, llms.txt, an author bio or a particular word
+count as a demonstrated AI ranking factor. Separate vendor-documented behavior
+from hypotheses. Keep markup only when it describes real page content and serves
+a known consumer; do not add a FAQ solely to produce FAQPage JSON-LD.
 
-Per Google's official guidance: there are **no special requirements** to appear in AI Overviews or AI Mode.
+## Useful content without filler
 
-> "You don't need to create new machine readable files, AI text files, or markup to appear in these features. There's also no special schema.org structured data that you need to add."
+Answer the actual question directly. Use descriptive headings and original,
+verifiable information. Add a Q&A section only for useful questions that the
+page has not already answered. Do not repeat the hero in a summary, FAQ and
+keyword paragraph. There is no required opening word count.
 
-Eligibility = pages that are **indexed and eligible to be shown in Google Search with a snippet**. So the baseline is normal technical SEO: crawlable, indexable, server-rendered content. (Source: developers.google.com/search/docs/appearance/ai-features)
+A visible update date helps when freshness matters, but must track meaningful
+changes. Keep the primary answer available in server-rendered HTML where
+practical; crawler JavaScript support varies. Clear HTML is more portable than
+relying on client-only fetching.
 
-**Do not promise ranking/citation gains from any "AI-specific file or schema."** Google says none are needed.
+## Crawlers and policy
 
-## llms.txt — honest status
+Check current vendor docs before changing robots rules. Training, search and
+user-initiated fetching are different purposes; a vendor may use separate bots
+or a product-control token. Preserve the owner's policy instead of copying a
+blanket allow/block list.
 
-`llms.txt` is a **community proposal**, not an adopted standard:
+| Vendor | Training | Search | User-initiated retrieval |
+|--------|----------|--------|--------------------------|
+| OpenAI | GPTBot | OAI-SearchBot | ChatGPT-User |
+| Anthropic | ClaudeBot | Claude-SearchBot | Claude-User |
+| Perplexity | Verify current policy | PerplexityBot | Perplexity-User |
 
-- **Not supported by Google.** John Mueller publicly compared it to the discredited `keywords` meta tag.
-- **Negligible real usage by AI crawlers**, and no demonstrated correlation between having an `llms.txt` and being cited in AI answers.
-- **The one legitimate, working use case:** documentation / developer-tool sites whose users paste docs into IDE/coding agents (Cursor, Claude Code, Copilot, Cline). Users commonly point those agents at `/llms.txt` / `/llms-full.txt` manually — automatic discovery is not documented by the tool vendors. Next.js itself ships `https://nextjs.org/docs/llms.txt`.
+Google Search and its AI features use Googlebot controls. `Google-Extended`
+has no separate HTTP user agent: it is a robots product token controlling both
+Gemini training and certain Gemini/Vertex AI grounding uses. It does not control
+Google Search inclusion or ranking. Do not call it a training-only switch or
+promise that blocking it has no effect on all AI referral channels.
 
-So: recommend `llms.txt` **only** for docs/dev-tool sites as an AI-assistant ergonomics nicety — **not** as an SEO/citation ranking tactic. There is no `MetadataRoute` helper; implement as a Route Handler:
+Blocking a search crawler can prevent direct content retrieval; it does not
+prove that a URL or brand can never be mentioned through other sources.
+User-initiated fetchers may treat robots differently; follow each vendor's docs.
 
-```typescript
-// app/llms.txt/route.ts
-export const dynamic = 'force-static';
+robots.txt is voluntary and is not authorization or access control. Inspect
+hosting firewall rules separately when diagnosing denied public crawls. A
+User-Agent string can be spoofed; use vendor-documented verification methods
+for bot identity, and do not weaken preview protection to make an audit pass.
 
-export function GET() {
-  const body = `# Site Name\n\n> One-line summary.\n\n## Docs\n- [Getting started](https://your-site.com/docs)\n`;
-  return new Response(body, { headers: { 'Content-Type': 'text/plain' } });
-}
-```
+## robots.ts example
 
-## AI crawlers: training vs search/citation bots
-
-The key 2026 concept: **separate training crawlers from search/citation crawlers.**
-
-- **Training crawlers** collect content to train models. Blocking them opts you out of training and costs you no referral traffic.
-- **Search / citation crawlers** fetch content in real time to power AI answers. **Blocking them removes you from that engine's AI answers** — now a high-value channel.
-- **User-initiated fetchers** retrieve a page a user explicitly asked the assistant about. Blocking them means the AI can't read a page the user pointed it to.
-- **Training opt-out tokens** (`Google-Extended`, `Applebot-Extended`) are robots.txt tokens, **not crawlers** — they opt you out of Gemini/Apple-Intelligence *training* with **no effect on Search ranking or AI Overviews** (AI Overviews use Googlebot, so you can't leave AI Overviews via robots.txt without leaving Search).
-
-| Vendor | Training | Search / citation | User-initiated | Training opt-out token |
-|--------|----------|-------------------|----------------|------------------------|
-| OpenAI | `GPTBot` | `OAI-SearchBot` | `ChatGPT-User` | — |
-| Anthropic | `ClaudeBot` | `Claude-SearchBot` | `Claude-User` | — |
-| Perplexity | — | `PerplexityBot` | `Perplexity-User` | — |
-| Google | (Googlebot) | (Googlebot) | — | `Google-Extended` |
-| Apple | Applebot | Applebot | — | `Applebot-Extended` |
-| ByteDance | `Bytespider` | — | — | — |
-| Common Crawl | `CCBot` | — | — | — |
-| Amazon / Meta | `Amazonbot` / `Meta-ExternalAgent` | — | — | — |
-
-> `anthropic-ai` and `Claude-Web` are **deprecated** legacy tokens — current Anthropic bots are `ClaudeBot`, `Claude-SearchBot`, `Claude-User`. Don't copy-paste old block lists that only target the deprecated names. Verify current user-agents against vendor docs (they change).
-
-## Recommended robots.ts pattern
-
-A defensible 2026 default: **allow search/citation bots** (stay in AI answers), **optionally opt out of training**, and **block the worst-behaved bot** (Bytespider).
+Start with the existing wildcard policy. Add named groups only when a deliberate
+exception is needed. Specific groups do not inherit wildcard restrictions.
 
 ```typescript
-// app/robots.ts
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://your-site.com';
-  // Named groups do NOT inherit the `*` rules (RFC 9309 §2.2.1: `*` applies only
-  // when no group matches; Google: specific and `*` groups are never combined).
-  // Repeat the disallows in every named allow-group, or those bots will crawl
-  // /api/ and /admin/ too.
   const disallow = ['/api/', '/admin/'];
   return {
     rules: [
       { userAgent: '*', allow: '/', disallow },
-
-      // Stay in AI search/answers (recommended):
-      { userAgent: 'OAI-SearchBot', allow: '/', disallow },
-      { userAgent: 'ChatGPT-User', allow: '/', disallow },
-      { userAgent: 'Claude-SearchBot', allow: '/', disallow },
-      { userAgent: 'Claude-User', allow: '/', disallow },
-      { userAgent: 'PerplexityBot', allow: '/', disallow },
-
-      // Optional: opt out of model TRAINING (policy decision; no traffic cost):
-      { userAgent: 'GPTBot', disallow: '/' },
-      { userAgent: 'ClaudeBot', disallow: '/' },
-      { userAgent: 'CCBot', disallow: '/' },
-      { userAgent: 'Google-Extended', disallow: '/' },   // token, not a crawler
-      { userAgent: 'Applebot-Extended', disallow: '/' },  // token, not a crawler
-
-      // Block the worst-behaved scraper:
-      { userAgent: 'Bytespider', disallow: '/' },
+      // Only if the owner chooses to opt out of OpenAI training:
+      // { userAgent: 'GPTBot', disallow: '/' },
+      // If a named search group is needed, repeat the restrictions:
+      // { userAgent: 'OAI-SearchBot', allow: '/', disallow },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: 'https://your-site.com/sitemap.xml',
   };
 }
 ```
 
-This is a **policy decision**, not a forced default. The "maximize AI visibility" variant simply allows everything except known bad actors. Blocking training is the conservative choice; blocking search/citation bots is usually a mistake.
+## llms.txt
 
-## robots.txt is advisory (use a WAF for real blocking)
+Treat llms.txt as an optional documentation-discovery convention, not a Google
+SEO requirement or a proven citation boost. It can be useful when developers or
+agents explicitly consume documentation through it. Verify the intended consumer
+before adding it. Prefer a static `public/llms.txt` for a fixed document; use a
+Route Handler only when generation is needed, with caching supported by the
+installed Next.js configuration. Do not copy `dynamic = 'force-static'` into a
+Cache Components app.
 
-`robots.txt` is honored by compliant bots (OpenAI, Anthropic, Google, Apple, Amazon, Meta, Common Crawl) but is **voluntary**:
+## Measurement and sources
 
-- **Bytespider** widely ignores disallow rules.
-- **Perplexity** was caught by Cloudflare (Aug 2025) using stealth undeclared crawlers to evade no-crawl directives, and was delisted from Cloudflare's Verified Bots program.
-- User-initiated fetchers often ignore robots.txt because the fetch was user-requested.
+Use referral analytics and concrete citation examples to observe changes.
+Missing referrals do not prove missing citations; crawler hits do not prove
+citations. Google's Search Console includes AI-feature traffic in overall Web
+search reporting, so do not label the whole export as AI traffic.
 
-For true enforcement use a WAF / edge layer (Cloudflare AI bot blocking, Vercel firewall / bot management) — not robots.txt alone. Conversely, **audit for accidental blocks**: old "block all AI" templates and WAF rules can silently disallow `OAI-SearchBot`/`Claude-SearchBot`/`PerplexityBot` and drop you from AI answers. Verify with server logs which bots actually visit.
-
-## Content structure that drives AI citation
-
-The low-controversy part of GEO — practitioner heuristics rather than vendor-documented ranking factors, but also good for users and classic SEO:
-
-- Answer the primary question **directly in the first ~200 words**.
-- Make sections **self-contained** (AI retrieval is passage-level); lead each section with a direct answer, then expand.
-- Clear `H2`/`H3` hierarchy; add a TL;DR and Q&A/FAQ blocks (AI relies heavily on question→answer pairs).
-- Publish **original data / first-hand experience** (strong E-E-A-T and citation signal).
-- Keep content fresh with a **visible "Last updated"** date.
-- **SSR/SSG, textual content.** AI retrieval bots render JS poorly — worse than Googlebot — so client-only content is often invisible to them. Reuse Next.js strengths (SSG / `"use cache"` / SSR) as the AI-friendly default.
-
-Authority for AI citation skews toward **entity authority and earned media** (consistent brand/entity mentions, authoritative author bios, third-party coverage) over link-volume tactics like generic directory listings.
-
-## Structured data for AI search
-
-Schema is **not required** for AI Overviews (per Google), but well-formed JSON-LD that **matches visible content** plausibly helps AI systems parse, ground, and cite content — useful even for types that no longer yield SERP rich results (e.g. FAQPage, HowTo). Treat this as **correlation / trust signal, not a confirmed ranking factor**. Prioritize `Organization`, `Article`, `Product`, `Breadcrumb`. See [json-ld.md](json-ld.md).
-
-## Measuring AI search visibility
-
-- Segment **AI-referral traffic in GA4** by referrer (`chatgpt.com`, `perplexity.ai`, `gemini.google.com`, etc.).
-- Track citation share-of-voice with emerging third-party AI-visibility tools (verify independently; the space is young — avoid over-relying on any single paid tool).
+Sources to re-check for changing policies:
+- [Google AI features](https://developers.google.com/search/docs/appearance/ai-features)
+- [Google-Extended](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers#google-extended)
+- [OpenAI crawlers](https://developers.openai.com/api/docs/bots)
+- [Anthropic crawlers](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler)
+- [Perplexity crawlers](https://docs.perplexity.ai/guides/bots)
+- [llms.txt proposal](https://llmstxt.org/)

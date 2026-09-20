@@ -4,6 +4,18 @@
 
 Critical | Important | Nice to Have | Audit Tools | Red Flags
 
+Scope the audit to the actual site. Mark optional or unavailable checks as such;
+do not manufacture failures because a small site lacks every item below.
+
+## Content and evidence first
+
+- [ ] Headings, subtitles and introductory text add different information
+- [ ] No filler, repeated keyword variants or decorative badges added for SEO
+- [ ] Extra FAQ/category/team pages answer distinct needs with maintained content
+- [ ] Seasons, availability, claims and dates match current data
+- [ ] Performance exports are not treated as indexing, canonical or CWV reports
+- [ ] Findings distinguish observed behavior from hypotheses and unavailable data
+
 ## Critical (Must Have)
 
 ### Technical Foundation
@@ -11,11 +23,11 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 - [ ] `metadataBase` set in root layout
 - [ ] Unique `<title>` on every page (~50-60 chars is a guideline, not a Google limit — titles are truncated by device width, not character count)
 - [ ] Unique `meta description` on every page (~150-160 chars is a guideline — Google has no hard limit and truncates per device/query)
-- [ ] `robots.txt` exists and allows crawling
-- [ ] `sitemap.xml` exists and is valid
-- [ ] Sitemap submitted to Google Search Console
+- [ ] Intended public pages are crawlable; robots.txt has no unintended blocks (a file is not mandatory)
+- [ ] If a sitemap is useful, it contains canonical indexable URLs and accurate timestamps
+- [ ] Sitemap discovery/submission checked when applicable; submission does not guarantee indexing
 - [ ] No `noindex` on pages you want indexed
-- [ ] Canonical URLs set for all pages
+- [ ] Canonical signals are consistent; no inherited homepage canonical on child pages
 - [ ] `viewport` exported separately from `metadata`
 - [ ] `favicon.ico` (or `app/icon`) present — appears in Google SERPs and browser tabs
 
@@ -24,7 +36,9 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 - [ ] SEO pages use SSG, SSR, or `"use cache"` Cache Components (not CSR)
 - [ ] Content visible without JavaScript (test with JS disabled)
 - [ ] No client-side only content for SEO-critical text
-- [ ] Metadata verified in production with a bot User-Agent (e.g. `curl -A "Googlebot" | grep '<title>'`) — PPR + streaming metadata has dropped `<title>`/canonical/description for some bots (vercel/next.js #95406); see [metadata-api.md](metadata-api.md#streaming-metadata)
+- [ ] Full production HTML and headers checked for relevant bot User-Agents; distinguish streamed metadata from missing metadata
+- [ ] Direct production-build load, console/hydration errors and key interactions checked, not just navigation from the homepage
+- [ ] Preview noindex/access protection verified independently of NODE_ENV
 
 ### Core Web Vitals
 
@@ -42,15 +56,15 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 - [ ] WebSite schema on homepage
 - [ ] Organization schema
 - [ ] Relevant page-specific schemas (Article, Product) for rich results
-- [ ] FAQPage = AI-search/LLM signal only (rich results removed 2026-05-07)
+- [ ] FAQPage only for an existing useful FAQ; no promised AI citation benefit (Google rich results removed 2026-05-07)
 - [ ] JSON-LD matches visible content
-- [ ] Validated with Rich Results Test
+- [ ] Eligible types validated with Rich Results Test; other schema with Schema.org Validator
 
 ### Open Graph & Social
 
 - [ ] Open Graph title and description
 - [ ] OG image (1200x630 recommended)
-- [ ] OG image set via `opengraph-image` file convention or `ImageResponse` (not just a hardcoded URL)
+- [ ] OG image resolves publicly with the right MIME type; file convention, ImageResponse or metadata URL are all valid
 - [ ] Twitter Card configured
 - [ ] Images tested with Facebook Debugger
 
@@ -63,7 +77,7 @@ Critical | Important | Nice to Have | Audit Tools | Red Flags
 
 ### Images
 
-- [ ] All images have `alt` text
+- [ ] Informative images have useful alt text; decorative images have empty alt
 - [ ] Images use `next/image` component
 - [ ] Images in sitemap (only if image-search traffic matters — e.g. products, recipes, photography)
 - [ ] Appropriate image sizes (no oversized images)
@@ -113,8 +127,8 @@ curl https://your-site.com/robots.txt
 # Check sitemap
 curl https://your-site.com/sitemap.xml
 
-# Check if indexed
-# Search in Google: site:your-site.com
+# Verify indexing with Search Console URL Inspection.
+# A site: search is a discovery clue, not a complete indexing report.
 
 # Test mobile rendering
 # Use Chrome DevTools device emulation
@@ -128,5 +142,5 @@ curl https://your-site.com/sitemap.xml
 4. **Blocked resources in robots.txt**
 5. **Slow LCP (> 4s)**
 6. **High CLS (> 0.25)**
-7. **No structured data**
+7. **Misleading structured data or unsupported rich-result claims**
 8. **Missing alt text on images**

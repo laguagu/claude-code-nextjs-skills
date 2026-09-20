@@ -49,6 +49,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 ```
 
+For a database-backed sitemap, define how it refreshes after publication. A DB
+query alone may run only at build time. With Cache Components use the documented
+cache/invalidation model; otherwise use the supported route revalidation policy.
+Verify a content update reaches sitemap.xml without assuming a rebuild occurs.
+
 ### Image Sitemap
 
 ```typescript
@@ -215,6 +220,13 @@ export default function robots(): MetadataRoute.Robots {
 
 ### Environment-Based Robots
 
+`NODE_ENV` is `production` for optimized preview builds too. On Vercel use
+`VERCEL_ENV` (or the project's explicit deployment policy); elsewhere use an
+explicit environment setting. The following controls crawling only. For public
+previews also verify a `noindex` meta tag or `X-Robots-Tag` response header and
+keep access protection where required. A robots block can prevent a crawler
+from seeing noindex, so do not use disallow as a removal mechanism.
+
 ```typescript
 // app/robots.ts
 import type { MetadataRoute } from 'next';
@@ -222,8 +234,8 @@ import type { MetadataRoute } from 'next';
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://your-site.com';
 
-  // Block indexing on non-production
-  if (process.env.NODE_ENV !== 'production') {
+  // Vercel example: disallow crawling outside the production environment.
+  if (process.env.VERCEL_ENV !== 'production') {
     return {
       rules: {
         userAgent: '*',
@@ -279,8 +291,8 @@ Sitemap: https://your-site.com/sitemap.xml
 | Max URLs per sitemap | 50,000 |
 | Max file size | 50 MB |
 | Update frequency | Match actual content changes |
-| Priority values | 0.0 to 1.0 (homepage = 1.0) |
-| Include only | Canonical, 200-status pages |
+| Priority values | Omit; Google ignores them |
+| Include only | Canonical, indexable, 200-status pages |
 
 ## Robots.txt Best Practices
 

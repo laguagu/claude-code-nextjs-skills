@@ -15,7 +15,7 @@
 
 **Meaning:** Google found the URL but hasn't crawled it yet.
 
-**Causes:**
+**Possible factors to investigate, not a diagnosis from this status alone:**
 - New website (low crawl priority)
 - Low-quality signals
 - Crawl budget exhaustion
@@ -30,14 +30,14 @@
 
 **Meaning:** Google crawled but chose not to index.
 
-**Causes:**
+**Possible factors to investigate, not a diagnosis from this status alone:**
 - Thin content
 - Duplicate content
 - Low-quality content
 - Technical issues
 
 **Solutions:**
-1. Add more unique, valuable content
+1. Check whether the page answers a distinct need; improve usefulness without adding filler or chasing a word count
 2. Check for duplicate content issues
 3. Ensure canonical URLs are correct
 4. Improve E-E-A-T signals (Experience, Expertise, Authoritativeness, Trust)
@@ -54,7 +54,8 @@
 
 ### "Blocked by robots.txt"
 
-**Solution:** Update `app/robots.ts`:
+**Solution:** Confirm the URL should be public, then narrow only the offending
+rule in `app/robots.ts`. Preserve unrelated restrictions and named-group rules:
 
 ```typescript
 // Remove the blocking rule
@@ -63,7 +64,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      // Remove or fix disallow rules
+      disallow: ['/api/', '/admin/'], // preserve intended restrictions
     },
   };
 }
@@ -153,7 +154,7 @@ export default {
 **Solutions:**
 1. Use `next/image` for images
 2. Use `next/font` for fonts
-3. Implement lazy loading
+3. Lazy-load below-the-fold media; do not lazy-load the LCP/hero image
 4. Reduce JavaScript bundle size
 5. Use SSG where possible
 
@@ -185,6 +186,14 @@ after client-side navigation.
 **Check:** `next build && next start`, load the route directly, and interact with
 a client component inside a Suspense boundary. An SEO audit passing does not
 prove the page is usable.
+
+Inspect console errors as well as clicks: React can recover from a hydration
+mismatch by rebuilding a subtree, leaving a usable-looking page with an error.
+Compare the streamed HTML and client tree, check invalid nesting, unstable dates
+or randomness, and server/client data differences. Do not suppress the warning
+or remove SSR as a generic fix. Test both direct load and client navigation after
+the correction. An inactive browser tab may delay streamed reveal; distinguish
+that test condition from a reproducible application failure.
 
 ## Debug Checklist
 
