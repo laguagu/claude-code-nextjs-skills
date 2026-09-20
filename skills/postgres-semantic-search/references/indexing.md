@@ -98,10 +98,14 @@ SELECT id FROM chunks ORDER BY embedding <=> $1::vector LIMIT 60;
 | ~54 000 vectors, index cached | 233 ms | 69 ms | index — 3.4× faster |
 | 37 440 vectors, 283 MB graph, 1 CU | **356 ms** | 1417 ms *(forced)* | seq scan — index 4× slower |
 
-Below roughly 10⁵ vectors the distance computation is cheap and the deciding
-factor is whether the graph fits in memory. On a small instance it does not, and
-a sequential scan wins — the planner's cost model gets this right. Forcing the
-index with `enable_seqscan = off` to "fix" a Seq Scan makes it slower.
+Note the direction: the index lost on the *smaller* corpus. Vector count is not
+what decided it — whether the 283 MB graph fits the instance's memory is, and a
+1 CU compute reads it from disk. Two points do not locate a threshold, so do not
+carry either row over as a rule; measure your own corpus on your own instance.
+
+What does generalise: the planner's cost model was right both times, and forcing
+the index with `enable_seqscan = off` to "fix" a Seq Scan made the query four
+times slower.
 
 Two consequences worth stating in any write-up: a seq-scanned vector query
 returns **exact** nearest neighbours, so retrieval quality is an upper bound

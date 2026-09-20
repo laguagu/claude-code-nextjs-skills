@@ -125,9 +125,13 @@ it was not given. Deepening the shortlist to 100 raised the ceiling to 84.7 % an
 R@10 by seven points, while R@1 moved one to three — depth buys recall, not
 precision.
 
-**Rule**: before tuning a reranker, check how much headroom it has. Above ~90 %
-of ceiling, spend the next effort on stage 1 (chunking, embedding model, query
-rewriting, candidate depth) rather than on reranking.
+**Rule**: before tuning a reranker, compute how much headroom it has. The
+remaining gain available to *any* reranker is ceiling minus current score —
+so when that gap is small, further reranking work cannot pay, however good the
+next model is, and the effort belongs in stage 1 (chunking, embedding model,
+query rewriting, candidate depth). Compare the two gaps rather than reaching for
+a fixed cut-off: the example above has 5.5 points left to reranking and 29.2 to
+retrieval.
 
 ## Rerankers can regress — benchmark first
 
