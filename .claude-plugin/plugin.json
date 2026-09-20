@@ -1,7 +1,7 @@
 {
   "name": "claude-code-nextjs-skills",
   "description": "Agent skills for building Next.js + AI SDK applications: app scaffolding, shadcn/ui, RSC and caching, pgvector search, SEO, and browser verification.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "laguagu",
     "url": "https://github.com/laguagu"
@@ -17,5 +17,6 @@
     "postgres",
     "pgvector",
     "agent-skills"
-  ]
+  ],
+  "mcpServers": "./mcp.json"
 }

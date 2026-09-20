@@ -90,15 +90,11 @@ Mitigations:
 
 ## Adoption thresholds
 
-Use these as defaults when deciding whether a change ships:
-
-| Δ Hit@5 vs. baseline | Interpretation | Action |
-|---|---|---|
-| < ±1 pp | Noise | Reject |
-| 1–3 pp | Marginal | Weigh vs. added latency, cost, complexity |
-| ≥ 3 pp | Meaningful | Adopt if p95 latency fits budget |
-
-Same scale works for MRR deltas (use ± 0.01, 0.01–0.03, ≥ 0.03).
+Define a minimum useful gain and a latency/cost budget before the experiment.
+Report sample size, per-query wins/losses and uncertainty (for example a paired
+bootstrap interval). A fixed percentage-point delta is not inherently noise or
+significance: the interpretation depends on dataset size and variance. Evaluate
+MRR separately because it measures rank, not the same event as Hit@K.
 
 ## Four ways a measurement lies to you
 

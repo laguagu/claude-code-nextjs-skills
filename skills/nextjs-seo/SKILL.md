@@ -62,9 +62,7 @@ export const metadata: Metadata = {
     description: 'Description for Twitter',
     images: ['/og-image.png'],
   },
-  alternates: {
-    canonical: '/',
-  },
+  // Set alternates.canonical per page; a root '/' would be inherited by children.
   robots: {
     index: true,
     follow: true,
@@ -156,7 +154,9 @@ export async function HeroSection() {
 }
 ```
 
-**Built-in `cacheLife` profiles** (`stale` / `revalidate` / `expire`): `seconds` (30s/1s/1m), `minutes` (5m/1m/1h), `hours` (5m/1h/1d), `days` (5m/1d/1w), `weeks` (5m/1w/30d), `max` (5m/30d/1y), and the implicit `default` (5m/15m/never). For SEO pages pick by how often content changes — `days` for blog/docs, `max` for legal/marketing. (`minutes` revalidates every 1 min — too aggressive for most SEO content.)
+Choose `cacheLife` from the product's freshness requirements and the installed
+Next.js documentation. Do not infer a cache lifetime from the page category;
+marketing and legal pages also need timely publication and invalidation.
 
 **Key rules:**
 - `"use cache"` must be the first statement in the function body (or at the top of the file for file-level caching)
@@ -182,18 +182,13 @@ export async function HeroSection() {
 | INP (Interaction to Next Paint) | < 200ms | Interactivity |
 | CLS (Cumulative Layout Shift) | < 0.1 | Visual stability |
 
-- **Measured on field data, not lab.** Google ranks on the 75th percentile of real users (Chrome UX Report, 28-day rolling window, mobile/desktop separate). A URL group passes only when ≥75% of visits hit "Good" on all three. Use PageSpeed Insights and the Search Console CWV report for the real signal — **Lighthouse is lab-only and cannot measure INP**.
-- **INP replaced FID** as a Core Web Vital on 2024-03-12; FID is deprecated. INP is the most commonly failed metric — prioritize it.
-- **Page experience is a tiebreaker, not a standalone ranking system** (Google de-emphasized it). Good CWV won't rescue thin content; content relevance and quality come first. Treat CWV as baseline UX hygiene.
-- **Myths to ignore:** 2026 SEO blogs falsely claim "LCP was lowered to 2.0s" and invent an "Engagement Reliability" metric. Neither exists in any Google/web.dev source — the LCP and CLS thresholds are unchanged since 2021, and INP's 200 ms has been fixed since it became a Core Web Vital in 2024.
-
-### Ranking Signals Beyond Technical SEO
-
-Metadata + CWV alone don't drive rankings. Keep these in mind (out of scope for this skill, but pointers):
-
-- **Helpful content** is part of core ranking (since 2024-03), evaluated continuously — not an episodic penalty.
-- **E-E-A-T** (Experience, Expertise, Authoritativeness, Trust): cite real authors/credentials and first-hand experience, especially on YMYL pages.
-- **Mobile-first indexing is complete** (since 2024-07): Google indexes the mobile rendering only. Ensure the mobile view has the same content, metadata, and structured data as desktop; never block mobile resources. (Mostly automatic with Next.js responsive design.)
+- Use the 75th percentile of field measurements, segmented by device. Evaluate
+  each metric separately; this does not mean the same 75% of visits pass all
+  three simultaneously. Lighthouse is a lab diagnostic, not an INP field score.
+- Good CWV does not guarantee ranking. Relevant content, crawlability and
+  accurate metadata remain necessary; avoid invented numerical ranking weights.
+- Keep mobile content, metadata and structured data equivalent to desktop.
+  Verify authorship and credentials rather than generating them.
 
 ## References
 

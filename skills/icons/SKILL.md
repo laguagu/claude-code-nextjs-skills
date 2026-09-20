@@ -1,6 +1,6 @@
 ---
 name: icons
-description: Find, fetch, and install the right icon or logo from the right source — brand marks, country flags, file-type icons (PDF, DOCX, ZIP), and UI glyphs — and keep them visually consistent with the app. Use when the project's icon library has no match, when svgl comes up empty, or when the user asks for a flag, a file-type badge, a brand logo, or just "an icon for X". Covers the Iconify search API (200k+ icons across flags, file types, logos and UI sets), the svgl shadcn registry for full-colour brand logos, family and stroke-weight matching so a borrowed icon does not look pasted in, and how to reach svgrepo through browser automation when curl and WebFetch are blocked. Triggers on "lisää ikoni", "maan lippu", "flag icon", "PDF icon", "file type icon", "brand logo", "sign in with Google/GitHub", "language switcher", "svgl", "iconify", "find an icon". For overall visual direction rather than sourcing one specific mark, use ui-signature; for installing shadcn components generally, use shadcn.
+description: Find, fetch, and install the right icon or logo from the right source — brand marks, country flags, file-type icons (PDF, DOCX, ZIP), and UI glyphs — and keep them visually consistent with the app. Use when the project's icon library has no match, when svgl comes up empty, or when the user asks for a flag, a file-type badge, a brand logo, or just "an icon for X". Covers the Iconify search API (200k+ icons across flags, file types, logos and UI sets), the svgl shadcn registry for full-colour brand logos, family and stroke-weight matching so a borrowed icon does not look pasted in, and how to reach svgrepo through browser automation when curl and WebFetch are blocked. Triggers on "lisää ikoni", "maan lippu", "flag icon", "PDF icon", "file type icon", "brand logo", "sign in with Google/GitHub", "language switcher", "svgl", "iconify", "find an icon". For overall visual direction rather than sourcing one specific mark, use frontend-design; for installing shadcn components generally, use shadcn.
 license: MIT
 ---
 
@@ -17,7 +17,7 @@ source by what kind of mark it is, then match it to what the app already uses.
 | Country flag | Iconify `circle-flags` / `flag` / `flagpack` | real flag geometry, MIT, no emoji-font dependency |
 | File type (PDF, DOCX, ZIP) | Iconify `vscode-icons` / `catppuccin` / `material-icon-theme` (colour), or `lucide:file-text` (mono) | pick colour or mono to match the surrounding UI, not both |
 | Brand logo, full colour, light/dark variants | svgl | curated, has wordmarks and theme variants |
-| Tech / infra logo (OpenShift, Docker, Postgres, Redis) | Iconify `logos` (1800+, CC0), `devicon`, `skill-icons` | svgl has almost none of these; `logos` covers the whole stack in colour |
+| Tech / infra logo (OpenShift, Docker, Postgres, Redis) | Iconify `logos` (1800+, CC0), `devicon`, `skill-icons` | check coverage by exact brand; available marks change |
 | Brand logo, monochrome long tail | Iconify `simple-icons` (3400+, CC0) | covers brands svgl does not |
 | Anything else | Iconify search across all sets | 200k+ icons, one API |
 
@@ -44,8 +44,7 @@ curl -s "https://api.iconify.design/circle-flags:fi.svg" -o public/flags/fi.svg
 
 Browse visually at `https://icon-sets.iconify.design` when the user should choose. The
 `collections` response carries each set's licence — nearly all of them are permissive;
-**Twemoji is CC BY 4.0 and needs visible attribution**, which is the one that costs you
-something.
+check attribution requirements for each selected set (including Twemoji).
 
 Iconify SVGs come out at `width="1em" height="1em"`, and monochrome sets use `currentColor`
 — so `className="size-4 text-muted-foreground"` just works in Tailwind. Colour sets
@@ -146,49 +145,25 @@ SVG certainly does not.
 Inlining raw SVG into JSX: `stroke-width` → `strokeWidth`, `class` → `className`, `style`
 strings → objects, `<style>` block rules inlined onto elements.
 
-**Rename every `id` per mark.** Iconify serves the *same* mask id to every icon in a set —
-`circle-flags:fi` and `circle-flags:se` both arrive as `<mask id="SVGuywqVbel">`. Inline
-both into one language switcher and the second mask wins for both flags. Suffix them
-(`SVGmask-fi`, `SVGmask-se`) and update the matching `mask="url(#…)"` reference. Same trap
-with gradients in colour logos.
+**Ensure inline SVG IDs are unique per rendered instance.** Repeated masks or
+gradients can reference the wrong element. Use a stable instance prefix (such as
+React `useId`) and update every `url(#...)`/href reference; a brand-only suffix
+still collides when the same icon renders twice.
 
-## When nothing is found — svgrepo, flaticon
+## Other sources
 
-Neither can be fetched with `curl` or WebFetch. Verified 2026-08-19: `svgrepo.com` returns
-HTTP 429 to every programmatic request, browser user-agent or not; `flaticon.com` returns
-403. Do not retry with header tricks — the block is not user-agent based.
+If Iconify and svgl lack the asset, use the organization's official brand assets
+or another icon catalog. Availability, authentication and download rules change:
+inspect the current site and respect access restrictions. Check the license of
+the specific asset rather than assuming every icon in a catalog shares one.
 
-**svgrepo does work through a real browser.** If browser automation is available (the
-`claude-in-chrome` tools), that is a legitimate route, not a scraping workaround — the
-pages render normally and same-origin `fetch` is allowed:
-
-1. Navigate to `https://www.svgrepo.com/vectors/<term>/` and read the result list. Icon
-   links have the form `https://www.svgrepo.com/svg/<id>/<slug>`.
-2. Open the icon page and read its `LICENSE:` field (shown next to `COLLECTION:` and
-   `UPLOADER:`, e.g. `CC0 License`). Check it per icon — svgrepo mixes CC0, MIT, CC BY and
-   non-commercial packs on the same site.
-3. From a page on that origin, `fetch('https://www.svgrepo.com/download/<id>/<slug>.svg')`
-   returns the raw SVG (200, `image/svg+xml`). Write it into the project yourself.
-
-Without browser automation, ask the user to download the file in the browser and drop the
-`.svg` in the project. Do not suggest `svgapi.com` — it is svgrepo's official API but
-starts at $9.90/mo for 5,000 calls, and without a key returns
-`{"error": "Your domainHash is not valid."}`. The free tier is a case-by-case grant for
-non-commercial accessibility projects only.
-
-flaticon stays off limits: downloads need an account, and its free tier requires visible
-attribution in the shipped product. Ask the user for the file if they specifically want one
-from there.
-
-Mixed licensing plus mixed drawing style is why both remain a last resort rather than a
-first stop, even where the browser route works.
+Use an available browser when normal browsing is needed. If downloading needs
+the user's account or manual interaction, ask for the official asset.
 
 Better fallbacks before giving up on Iconify: search a synonym (`document` for `file`,
 `invoice` for `receipt`), search unprefixed to see every set, or browse the nearest
 category at icon-sets.iconify.design. 200k icons is usually enough.
 
-**Local organisations, universities and public bodies are in no icon set at all** — a
-regional university, a national research centre or a municipality returns nothing from svgl
-or Iconify, and that is the expected answer, not a failed search. Ask the user for the
-official asset, or use a lettermark in a circle. Never invent a logo for a real
-organisation.
+**Local organizations may be absent from icon catalogs.** Search before assuming
+absence. Prefer the official asset; if none is available, use an explicitly
+generic placeholder rather than inventing a logo for a real organization.

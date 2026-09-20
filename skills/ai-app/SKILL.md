@@ -6,282 +6,49 @@ description: |
 
   Triggers: chatbot, chat app, agent dashboard, AI application, Next.js AI,
   useChat, streamText, ai-elements, build AI app, create chatbot
-argument-hint: "[app-type or description]"
 ---
 
 # AI App Generator
 
-Build full-stack AI applications with Next.js, AI SDK, and ai-elements.
-
-## Quick Start
-
-### 1. Scaffold Project
-
-```bash
-bunx --bun shadcn@latest create --name my-ai-app --template next --preset "https://ui.shadcn.com/init?base=radix&style=nova&baseColor=neutral&theme=neutral&iconLibrary=lucide&font=geist-sans&menuAccent=subtle&menuColor=default&radius=default"
-cd my-ai-app
-```
-
-### 2. Install Dependencies
-
-```bash
-bun add ai@6 @ai-sdk/react @ai-sdk/anthropic zod
-bunx --bun ai-elements@latest
-```
-
-> **Version:** the patterns below target **AI SDK 6** (`ToolLoopAgent`,
-> `createAgentUIStreamResponse`, `toUIMessageStreamResponse`), which is why the
-> install is pinned to `ai@6` — an unpinned `bun add ai` resolves to v7 and the
-> examples here will not match. For a v7 build, scaffold with these steps and
-> then follow `/ai-sdk-7` for the API surface.
-
-### 3. Configure Environment
-
-```bash
-# .env.local - Choose your provider
-ANTHROPIC_API_KEY=sk-ant-...
-# OPENAI_API_KEY=sk-...
-# GOOGLE_GENERATIVE_AI_API_KEY=...
-```
-
-### 4. Generate Application
-
-Based on user requirements, generate:
-- **Chatbot**: See [references/chatbot.md](references/chatbot.md)
-- **Agent Dashboard**: See [references/agent-dashboard.md](references/agent-dashboard.md)
-- **Custom**: Combine patterns as needed
-
-## Application Types
-
-### Chatbot
-
-Simple conversational AI with streaming responses.
-
-| Feature | Implementation |
-|---------|----------------|
-| Chat UI | Conversation + Message + PromptInput |
-| API | streamText + toUIMessageStreamResponse |
-| Extras | Reasoning, Sources, File attachments |
-
-### Agent Dashboard
-
-Multi-agent interface with tool visualization.
-
-| Feature | Implementation |
-|---------|----------------|
-| Agents | ToolLoopAgent with tools |
-| UI | Dashboard layout + Tool components |
-| API | createAgentUIStreamResponse |
-| Extras | Status monitoring, tool approval |
-
-### Custom AI App
-
-Mix and match based on user needs:
-- Web search chatbot
-- Code generation assistant
-- Document analyzer
-- Multi-modal chat
-
-## Project Structure
-
-```
-my-ai-app/
-├── app/
-│   ├── page.tsx                 # Main UI
-│   ├── layout.tsx               # Root layout
-│   ├── globals.css              # Theme
-│   └── api/
-│       └── chat/
-│           └── route.ts         # AI endpoint
-├── components/
-│   ├── ai-elements/             # AI Elements components
-│   ├── ui/                      # shadcn/ui components
-│   └── chat.tsx                 # Chat component (if extracted)
-├── lib/
-│   ├── utils.ts                 # Utilities
-│   └── ai.ts                    # AI configuration (optional)
-├── ai/                          # Agent definitions (if needed)
-│   └── assistant.ts
-└── .env.local                   # API keys
-```
-
-See [references/project-structure.md](references/project-structure.md) for details.
-
-## Core Patterns
-
-### API Route
-
-```typescript
-// app/api/chat/route.ts
-import { streamText, UIMessage, convertToModelMessages } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
-
-export const maxDuration = 30;
-
-export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
-
-  const result = streamText({
-    model: anthropic('claude-sonnet-5'),
-    messages: await convertToModelMessages(messages),
-    system: 'You are a helpful assistant.',
-  });
-
-  return result.toUIMessageStreamResponse({
-    sendSources: true,
-    sendReasoning: true,
-  });
-}
-```
-
-### Chat Page
-
-```tsx
-// app/page.tsx
-'use client';
-import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from '@/components/ai-elements/conversation';
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from '@/components/ai-elements/message';
-import {
-  PromptInput,
-  PromptInputBody,
-  PromptInputTextarea,
-  PromptInputFooter,
-  PromptInputSubmit,
-  type PromptInputMessage,
-} from '@/components/ai-elements/prompt-input';
-import { Loader } from '@/components/ai-elements/loader';
-import { useState } from 'react';
-
-export default function ChatPage() {
-  const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/chat' }),
-  });
-
-  const handleSubmit = (message: PromptInputMessage) => {
-    if (!message.text.trim()) return;
-    sendMessage({ text: message.text, files: message.files });
-    setInput('');
-  };
-
-  return (
-    <div className="flex h-screen flex-col p-4">
-      <Conversation className="flex-1">
-        <ConversationContent>
-          {messages.map((message) => (
-            <div key={message.id}>
-              {message.parts.map((part, i) => {
-                if (part.type === 'text') {
-                  return (
-                    <Message key={i} from={message.role}>
-                      <MessageContent>
-                        <MessageResponse>{part.text}</MessageResponse>
-                      </MessageContent>
-                    </Message>
-                  );
-                }
-                return null;
-              })}
-            </div>
-          ))}
-          {status === 'submitted' && <Loader />}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
-
-      <PromptInput onSubmit={handleSubmit} className="mt-4">
-        <PromptInputBody>
-          <PromptInputTextarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-          />
-        </PromptInputBody>
-        <PromptInputFooter>
-          <div />
-          <PromptInputSubmit status={status} />
-        </PromptInputFooter>
-      </PromptInput>
-    </div>
-  );
-}
-```
-
-## Skill References
-
-For detailed patterns, see:
-
-| Need | Skill | Reference |
-|------|-------|-----------|
-| Chat UI components | `/ai-elements` | [chatbot.md](references/chatbot.md) |
-| Next.js patterns | `/nextjs-shadcn` | [architecture.md](../nextjs-shadcn/references/architecture.md) |
-| AI SDK functions | `/ai-sdk-6` | [core-functions.md](../ai-sdk-6/references/core-functions.md) |
-| Agents & tools | `/ai-sdk-6` | [agents.md](../ai-sdk-6/references/agents.md) |
-| Caching | `/cache-components` | [REFERENCE.md](../cache-components/REFERENCE.md) |
-| Production patterns | `/nextjs-chatbot` | DB persistence, HITL approval, consent, feedback, search |
-| Code review & cleanup | `code-simplifier` agent | DRY/KISS/YAGNI validation |
+Scaffold an AI web app, then use the version-specific SDK and UI references.
 
 ## Workflow
 
-### Phase 1: Understand Requirements
+1. Infer the app type, required tools, persistence and visual direction from the
+   request. Ask only for decisions that materially affect the result.
+2. In an existing app, inspect its lockfile, SDK major, shadcn base and aliases.
+   Keep those choices unless migration is requested. Use `ai-sdk` to resolve
+   version-specific APIs before installing packages.
+3. For a new Next.js app, use Bun and the shadcn CLI:
 
-Ask user:
-- What type of AI app? (chatbot, agent, custom)
-- What features? (reasoning, sources, tools, file upload)
-- What style? (vega=classic, nova=compact, maia=soft/rounded, lyra=boxy/sharp, mira=dense) — default: nova
-- What font? (geist-sans, inter, jetbrains-mono, figtree, dm-sans, outfit, noto-sans, nunito-sans, roboto, raleway, public-sans) — default: geist-sans
-- What base color? (neutral, zinc, slate, gray, stone) — default: neutral
-- What theme accent? (neutral, blue, green, orange, red, rose, violet) — default: neutral
-- What border radius style? (default, sm, md, lg, xl)
-- Component library? (radix=default, base-ui)
+   ```bash
+   bunx --bun shadcn@latest init --name my-ai-app --template next
+   ```
 
-### Phase 2: Scaffold Project
+4. Select the SDK major before installing compatible provider and React
+   packages. The bundled templates target **AI SDK 6**: `ai@6`,
+   `@ai-sdk/react@3`, and provider packages compatible with v6 (for example
+   `@ai-sdk/anthropic@3`). For v7, use `ai-sdk-7` and its migration guidance;
+   do not copy v6 response methods into v7 code.
+5. Add only the AI Elements components the app needs. Inspect their installed
+   source for props; registry components can evolve independently of the SDK.
+6. Configure the selected provider's server-side environment variables and a
+   model ID verified from the project's config or provider catalog.
+7. Implement the route and UI with matching stream protocols. Validate incoming
+   messages, authenticate protected operations, and return safe client errors.
+8. Run typecheck/build and verify streaming, a second conversation turn, tool
+   execution/approval, failure handling and mobile layout in a browser.
 
-Run scaffolding commands based on requirements.
+## Read when needed
 
-### Phase 3: Generate Files
+- [Chatbot template](references/chatbot.md): v6 conversation and message parts.
+- [Agent dashboard](references/agent-dashboard.md): v6 tool-loop UI and approvals.
+- [Examples](references/examples.md): focused v6 feature examples.
+- [Project structure](references/project-structure.md): optional larger-app layout.
+- `ai-sdk-6` / `ai-sdk-7`: installed-major APIs and provider integrations.
+- `ai-elements`: component installation and composition.
+- `nextjs-chatbot`: persistence, feedback, approval states and evals.
+- `nextjs-shadcn` / `frontend-design`: framework setup and visual design.
 
-Create files based on application type:
-- API route (`app/api/chat/route.ts`)
-- Main page (`app/page.tsx`)
-- Components (if needed)
-- Agents (if needed)
-
-### Phase 4: Configure
-
-- Set up `.env.local`
-- Configure `next.config.ts` if needed
-- Add any additional dependencies
-
-### Phase 5: Verify
-
-```bash
-bun dev
-```
-
-Test the application works correctly.
-
-## References
-
-- [Chatbot Templates](references/chatbot.md) - Full chatbot implementation
-- [Agent Dashboard Templates](references/agent-dashboard.md) - Agent-based apps
-- [Project Structure](references/project-structure.md) - Directory layout
-- [Examples](references/examples.md) - Copy-paste examples
-
-## Package Manager
-
-**Always use bun** in new projects, never npm:
-- `bun add` (not npm install)
-- `bunx --bun` (not npx)
-- `bun dev` (not npm run dev)
-
-In an existing repo, respect the project's `packageManager` field and lockfile instead of switching to bun.
+Treat templates as starting points, not production-ready authentication,
+authorization or persistence implementations.

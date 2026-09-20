@@ -63,7 +63,7 @@ hcloud firewall replace-rules --rules-file rules.json <fw>
 
 ## Gotchas
 
-1. **Public IPs get recycled.** A new server may inherit a previously-used IP and SSH refuses with `REMOTE HOST IDENTIFICATION HAS CHANGED!`. After deleting a server, `ssh-keygen -R <ip>` and let `ssh-keyscan` re-add the new host key.
+1. **Public IPs get recycled.** A new server may inherit a previously-used IP and SSH refuses with `REMOTE HOST IDENTIFICATION HAS CHANGED!`. Verify the replacement server's host-key fingerprint through a trusted console/channel before updating `known_hosts`. `ssh-keyscan` alone does not authenticate the host.
 
 2. **Context vs `HCLOUD_TOKEN`.** Context (in user-config `cli.toml`) persists across shells — preferred for interactive work. Env var is preferred for non-interactive use, paired with `--token-from-env`. A token sitting in a `.env` file is **not** automatically exported — shells must source it.
 
@@ -85,9 +85,9 @@ hcloud firewall replace-rules --rules-file rules.json <fw>
    hcloud server describe <srv> -o json | jq '.public_net | {v4:.ipv4.blocked, v6:.ipv6.blocked}'
    ```
 
-   `blocked: true` cannot be cleared from the API or the console — **only Hetzner support lifts it**. Do not debug firewalls, `pg_hba`, or application timeouts until you have ruled this out; the symptom is an indistinguishable `ETIMEDOUT`. Two tells that point here rather than at an allowlist: a port that is open to `0.0.0.0/0` (usually SSH/22) times out at the same moment as the application port, and **every server on the account** is blocked at once — that means an account-level action (billing or abuse), not a per-server fault.
+   `blocked: true` cannot be cleared from the API or the console — **only Hetzner support lifts it**. Do not debug firewalls, `pg_hba`, or application timeouts until you have ruled this out; the symptom is an indistinguishable `ETIMEDOUT`. Two tells that point here rather than at an allowlist: a port that is open to `0.0.0.0/0` (usually SSH/22) times out at the same moment as the application port, and **every server on the account** is blocked at once — investigate an account-level block as well as shared networking; these symptoms alone do not prove the cause.
 
-10. **`replace-rules` needs `source_ips` as a real JSON array.** The file must match the API schema exactly, and hcloud rejects the *whole* file — leaving the old rules silently in place — if one field is shaped wrong:
+10. **`replace-rules` needs `source_ips` as a real JSON array.** The file must match the API schema exactly, and hcloud rejects the *whole* file — returning an error and leaving the old rules in place — if one field is shaped wrong:
 
     ```
     json: cannot unmarshal object into Go struct field FirewallRule.source_ips of type []string

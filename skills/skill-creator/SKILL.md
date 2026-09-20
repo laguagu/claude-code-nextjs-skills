@@ -1,6 +1,5 @@
 ---
 name: skill-creator
-argument-hint: "[skill-name or description of what the skill should do]"
 description: "Creates new skills, modifies and improves existing skills, and measures skill performance. Use when users want to create a skill from scratch, update or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy."
 compatibility: "Claude Code, Codex, Gemini CLI — requires Python 3.10+, pyyaml, and the claude CLI. No API key needed."
 ---
@@ -29,20 +28,8 @@ Of course, you should always be flexible and if the user is like "I don't need t
 
 Then after the skill is done (but again, the order is flexible), you can also run the skill description improver, which we have a whole separate script for, to optimize the triggering of the skill.
 
-Cool? Cool.
 
-## Communicating with the user
-
-The skill creator is liable to be used by people across a wide range of familiarity with coding jargon. The bulk of users are probably fairly computer-literate, but some may be unfamiliar with coding jargon.
-
-So please pay attention to context cues to understand how to phrase your communication! In the default case, just to give you some idea:
-
-- "evaluation" and "benchmark" are borderline, but OK
-- for "JSON" and "assertion" you want to see serious cues from the user that they know what those things are before using them without explaining them
-
-It's OK to briefly explain terms if you're in doubt, and feel free to clarify terms with a short definition if you're unsure if the user will get it.
-
----
+Adapt terminology to the user; explain evaluation criteria when needed.
 
 ## Creating a skill
 
@@ -67,7 +54,7 @@ Based on the user interview, fill in these components:
 
 - **name**: Skill identifier (1–64 chars, lowercase a-z/0-9/hyphens, must match directory name)
 - **description**: When to trigger, what it does (1–1024 chars, third person). This is the primary triggering mechanism - include both what the skill does AND specific contexts for when to use it. All "when to use" info goes here, not in the body. Note: currently Claude has a tendency to "undertrigger" skills -- to not use them when they'd be useful. To combat this, please make the skill descriptions a little bit "pushy". So for instance, instead of "How to build a simple fast dashboard to display internal Anthropic data.", you might write "How to build a simple fast dashboard to display internal Anthropic data. Make sure to use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of company data, even if they don't explicitly ask for a 'dashboard.'"
-- **argument-hint** (optional, Claude Code extension — not part of the agentskills.io spec; other clients ignore it and strict validators flag it): Shown in the skill list to guide users (e.g., `"[file or directory]"`)
+- **argument-hint** (optional, Claude Code extension — not part of the agentskills.io spec; other-client support varies and strict validators flag it): Shown in the skill list to guide users (e.g., `"[file or directory]"`)
 - **compatibility** (optional): Platform/environment requirements, 1–500 chars
 - **the rest of the skill :)**
 
@@ -105,7 +92,7 @@ Skills use a three-level loading system:
 These word counts are approximate and you can feel free to go longer if needed.
 
 **Key patterns:**
-- Keep SKILL.md under 500 lines; if you're approaching this limit, add an additional layer of hierarchy along with clear pointers about where the model using the skill should go next to follow up.
+- Keep SKILL.md under 500 lines; if you're approaching this limit, move detail into directly linked reference files with clear pointers about where the model using the skill should go next to follow up.
 - Reference files clearly from SKILL.md with guidance on when to read them
 - For large reference files (>300 lines), include a table of contents
 
@@ -318,7 +305,6 @@ This is the heart of the loop. You've run the test cases, the user has reviewed 
 
 4. **Look for repeated work across test cases.** Read the transcripts from the test runs and notice if the subagents all independently wrote similar helper scripts or took the same multi-step approach to something. If all 3 test cases resulted in the subagent writing a `create_docx.py` or a `build_chart.py`, that's a strong signal the skill should bundle that script. Write it once, put it in `scripts/`, and tell the skill to use it. This saves every future invocation from reinventing the wheel.
 
-This task is pretty important (we are trying to create billions a year in economic value here!) and your thinking time is not the blocker; take your time and really mull things over. I'd suggest writing a draft revision and then looking at it anew and making improvements. Really do your best to get into the head of the user and understand what they want and need.
 
 ### The iteration loop
 
@@ -402,17 +388,19 @@ python -m scripts.run_loop \
   --verbose
 ```
 
-Use the model ID from your system prompt (the one powering the current session) so the triggering test matches what the user actually experiences.
+Use a model ID supported by the authenticated Claude CLI. The current host model may belong to another provider; do not pass its ID blindly to `claude -p`.
 
 While it runs, periodically tail the output to give the user updates on which iteration it's on and what the scores look like.
 
-This handles the full optimization loop automatically. It splits the eval set into 60% train and 40% held-out test, evaluates the current description (running each query 3 times to get a reliable trigger rate), then calls Claude to propose improvements based on what failed. It re-evaluates each new description on both train and test, iterating up to 5 times. When it's done, it opens an HTML report in the browser showing the results per iteration and returns JSON with `best_description` — selected by test score rather than train score to avoid overfitting.
+This handles the full optimization loop automatically. It splits the eval set into 60% train and 40% held-out test, evaluates the current description (running each query 3 times to get a reliable trigger rate), then calls Claude to propose improvements based on what failed. It re-evaluates each new description on both train and test, iterating up to 5 times. When it's done, it opens an HTML report in the browser showing the results per iteration and returns JSON with `best_description` — selected by the held-out score rather than the training score. Because it selects the winner, this split acts as validation data; use a fresh final test set for an unbiased estimate.
 
 ### How skill triggering works
 
-Understanding the triggering mechanism helps design better eval queries. Skills appear in Claude's `available_skills` list with their name + description, and Claude decides whether to consult a skill based on that description. The important thing to know is that Claude only consults skills for tasks it can't easily handle on its own — simple, one-step queries like "read this PDF" may not trigger a skill even if the description matches perfectly, because Claude can handle them directly with basic tools. Complex, multi-step, or specialized queries reliably trigger skills when the description matches.
-
-This means your eval queries should be substantive enough that Claude would actually benefit from consulting a skill. Simple queries like "read file X" are poor test cases — they won't trigger skills regardless of description quality.
+Descriptions help the host choose a skill, but activation depends on the client,
+model and available tools. Test both simple and complex realistic requests,
+including near misses; do not assume simple requests can never trigger a skill.
+Keep a final holdout set separate from the queries used to select descriptions;
+repeatedly selecting against the same test set can overfit that set.
 
 ### Step 4: Apply the result
 

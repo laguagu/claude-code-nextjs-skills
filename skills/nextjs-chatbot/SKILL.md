@@ -1,11 +1,11 @@
 ---
 name: nextjs-chatbot
-description: "Advanced patterns for production Next.js web chatbots built with AI SDK 7 (with a fallback table for projects still on v6) + ai-elements. Covers tool calling with human-in-the-loop (HITL) approval, PostgreSQL session persistence, GDPR consent gating, SQL-first search, per-tool UI rendering, popup widget embedding, message feedback, follow-up suggestions, scope enforcement, streaming error handling, and evals. Use when building a customer support bot, conversational interface, or any web chatbot needing tool approval, database sessions, or custom tool output components. Not a scaffolding tool — use `/ai-app` to scaffold from scratch, `/ai-sdk-7` for general SDK questions, `/ai-elements` for chat UI components, `/vercel:chat-sdk` for multi-platform (Slack/Teams/Discord) bots."
+description: "Advanced patterns for production Next.js web chatbots built with AI SDK 7 (with a fallback table for projects still on v6) + ai-elements. Covers tool calling with human-in-the-loop (HITL) approval, PostgreSQL session persistence, consent gating, SQL-first search, per-tool UI rendering, popup widget embedding, message feedback, follow-up suggestions, scope enforcement, streaming error handling, and evals. Use when building a customer support bot, conversational interface, or any web chatbot needing tool approval, database sessions, or custom tool output components. Not a scaffolding tool — use `/ai-app` to scaffold from scratch, `/ai-sdk-7` for general SDK questions, `/ai-elements` for chat UI components. For multi-platform bots, consult the official Chat SDK docs."
 ---
 
 # Next.js Chatbot
 
-Opinionated blueprint for production **web** chatbots. Focuses on patterns **not** covered by `/ai-sdk-7`, `/ai-elements`, or `/nextjs-shadcn` — use those skills for general SDK, component, and framework questions. For multi-platform bots (Slack, Teams, Discord), use `/vercel:chat-sdk` instead.
+Opinionated blueprint for production **web** chatbots. Focuses on patterns **not** covered by `/ai-sdk-7`, `/ai-elements`, or `/nextjs-shadcn` — use those skills for general SDK, component, and framework questions. For multi-platform bots (Slack, Teams, Discord), consult the [Chat SDK docs](https://chat-sdk.dev/).
 
 ## Stack defaults
 
@@ -27,7 +27,7 @@ Opinionated blueprint for production **web** chatbots. Focuses on patterns **not
 - **next-devtools** (`next-devtools-mcp@latest` via npx) — route inspection, build diagnostics. See [nextjs.org/docs/app/guides/mcp](https://nextjs.org/docs/app/guides/mcp)
 - **ai-elements** (via `mcp-remote` → `https://registry.ai-sdk.dev/api/mcp`) — component registry search
 
-Add both to the project's `.mcp.json` (`claude mcp add` writes it for you);
+Add both to the project's `.mcp.json` (`claude mcp add --scope project` writes it);
 `.claude/settings.json` only enables and permits servers, it does not define them.
 
 ## Agent setup
@@ -36,7 +36,7 @@ Add both to the project's `.mcp.json` (`claude mcp add` writes it for you);
 export function createAgent(opts?: { model?: LanguageModel }) {
   return new ToolLoopAgent({
     model: opts?.model ?? openai(CHAT_MODEL), // one constant, read from env
-    instructions,                             // NOT `system` — that is v6
+    instructions,                             // ToolLoopAgent uses this in v6 and v7
     reasoning: "low",                         // portable top-level, see below
     tools,
     stopWhen: isStepCount(10),
@@ -79,14 +79,11 @@ export async function POST(request: Request) {
 
 ### Azure OpenAI model routing
 
-Azure's Responses API does support non-reasoning models (gpt-4o), but multi-turn tool calls hit an intermittent 400 `Item with id 'fc_...' not found` error ([Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/5559582/azure-openai-intermittent-400-error-item-with-id-n)). Workaround: route non-reasoning models to Chat Completions (`azure.chat()`); reasoning models (gpt-5.x, o-series) use Responses API (default):
-
-```ts
-const isReasoning = /^(o[1-9]|gpt-5)/.test(deployment);
-export const chatModel = isReasoning ? azure(deployment) : azure.chat(deployment);
-```
-
-Set `reasoning` only for reasoning models to avoid warnings.
+Choose Responses or Chat Completions from the deployed model's documented
+capabilities and the project's requirements. Azure deployment names are
+user-defined: do not infer model family from a name regex. If a multi-turn
+request fails, check retained tool-call/result pairs and provider metadata
+against the installed Azure provider docs before changing endpoints.
 
 ## If the project is still on ai@6
 
@@ -98,7 +95,7 @@ a typo. Check `package.json` and translate back:
 
 | v7 | v6 |
 |---|---|
-| `instructions` | `system` |
+| `instructions` on `generateText` / `streamText` | `system`; `ToolLoopAgent` already uses `instructions` in v6 |
 | `isStepCount` | `stepCountIs` |
 | `onEnd` (on the stream) | `onFinish` — the client `useChat` `onFinish` is a different, live callback and keeps its name in both |
 | `telemetry` | `experimental_telemetry` |
@@ -114,8 +111,8 @@ there puts a provider 401, an endpoint URL or a Postgres constraint on a
 customer's screen — and logs nothing, so you find out from a screenshot.
 
 ```ts
-onError: (error) => {          // log the real thing, return a sentence
-  console.error("[chat]", error);
+onError: (error) => {          // redact diagnostics; return a fixed public message
+  logSafeError(error); // app helper: log redacted diagnostics and a correlation ID
   return "Something went wrong generating the answer. Try again.";
 }
 ```
@@ -231,14 +228,9 @@ const generateDocTool = tool({
 });
 ```
 
-LLM-resilient enums — LLMs sometimes append extra text to enum values. Use lenient transforms:
-
-```ts
-const LenientCategory = z.string().transform((val) => {
-  const valid = ["Business", "Technical", "Legal"] as const;
-  return valid.find((c) => val.startsWith(c)) ?? "Business";
-});
-```
+Keep categorical output strict with `z.enum(...)`. Reject or retry invalid
+values; normalize only documented aliases. Do not silently map an unknown
+category to the first enum value.
 
 ## Building a new chatbot
 
@@ -355,28 +347,18 @@ Style rendered markdown with shadcn's **typeset** rather than per-element CSS. I
 
 Define a separate preset per context if the app also renders docs or long-form output. See `/nextjs-shadcn` → `references/shadcn-platform.md`.
 
-### Gotcha: empty bullets under nested lists
+### Nested-list rendering
 
-Streamdown renders lists with `list-style-position: inside`. When the LLM emits a bullet whose first child is a block element (`<p>`, a nested `<ul>`, a blank-line-then-content), the disc marker lands on its own line above empty space — visually: "empty bullet, gap, content".
-
-Fix in two places:
-
-1. **Prompt rule** — require single-line bullets, forbid nested lists under bullets:
-   ```
-   One-line bullets only. Each `- ` item has description, install, and links on the same line.
-   Never open a nested bullet list under a bullet; never put a blank line between `- ` and content.
-   ```
-2. **CSS safety net** — if the LLM slips, keep the marker inline:
-   ```css
-   [data-streamdown="list-item"] > p:first-child { display: inline; }
-   [data-streamdown="list-item"] > :is(ul, ol) { display: block; margin-top: 0.25rem; }
-   ```
-
-The prompt rule also produces denser, more scannable output. CSS alone lets nested lists leak through and looks cramped. Keep the prompt rule even on typeset — it's a model-output problem, not only a styling one.
+If a streamed list marker appears on a separate line, inspect the installed
+renderer and computed `list-style-position`. Fix marker placement in CSS and
+test tight/loose nested lists. Do not ban valid Markdown structures to mask a
+renderer bug.
 
 ## Scope enforcement (system prompt)
 
-Chatbots that serve a specific domain MUST enforce scope in the system prompt:
+Describe the supported domain in the system prompt. Prompts guide model
+behavior; enforce authorization, tenant boundaries and tool permissions in
+server code as well:
 
 ```
 ## Scope
@@ -402,8 +384,8 @@ Scope blocks *off-topic* answers but does not stop on-topic hallucination — mo
 The ONLY source of truth is tool results from this conversation. Before naming
 anything (a component, module, install extra, doc URL), verify it appears
 verbatim in a tool result from THIS conversation. If it does not appear, it
-does not exist — say so plainly and suggest the closest real alternative
-instead of inventing one.
+is unverified — say that the available results do not establish it. Search
+again when appropriate; do not infer nonexistence from an incomplete result set.
 
 Forbidden: inventing names like "FooBarParser"; inventing install extras like
 `pkg[foo-bar]`; promoting unseen items as "premium" or "advanced".

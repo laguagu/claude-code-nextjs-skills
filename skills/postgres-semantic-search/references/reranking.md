@@ -118,8 +118,8 @@ Likely causes:
   bi-encoder similarity, amplifying apparent rerank regression.
 
 **Rule**: never ship a reranker from a paper or vendor benchmark alone. A/B on
-your own eval set (see [evaluation.md](evaluation.md)). Require ≥ +3 pp Hit@5
-AND p95 latency within budget before adopting.
+your own eval set (see [evaluation.md](evaluation.md)). Require a useful, repeatable gain with uncertainty assessed on that dataset
+and p95 latency within the product budget before adopting.
 
 ## Provider docs
 

@@ -18,7 +18,7 @@ Comprehensive performance optimization guide for React and Next.js applications,
 | Core performance rules (async, bundle, js) | React 18 + Next.js 14 |
 | `React.cache()` (`server-cache-react`) | React 19 |
 | `<Activity>` (`rendering-activity`) | React 19.2 |
-| React Compiler (affects `rerender-*` rules) | React 19 |
+| React Compiler (affects `rerender-*` rules) | React 17/18/19; older versions need the matching target and runtime |
 | `use cache` directive (see `cache-components` skill) | Next.js 16 |
 
 ## When to Apply
@@ -42,6 +42,10 @@ Reference these guidelines when:
 | 6 | Rendering Performance | MEDIUM | `rendering-` |
 | 7 | JavaScript Performance | LOW-MEDIUM | `js-` |
 | 8 | Advanced Patterns | LOW | `advanced-` |
+
+Profile before applying low-level JavaScript rules. They are candidates for measured
+hot paths, not a checklist for rewriting clear code. With React Compiler enabled,
+check its coverage before adding manual memoization.
 
 ## Quick Reference
 

@@ -15,7 +15,7 @@ Animate between UI states using the browser's native `document.startViewTransiti
 
 Every `<ViewTransition>` should communicate a spatial relationship or continuity. If you can't articulate what it communicates, don't add it.
 
-Implement **all** applicable patterns from this list, in this order:
+Choose patterns that serve the requested interaction:
 
 | Priority | Pattern | What it communicates |
 |----------|---------|---------------------|
@@ -25,7 +25,7 @@ Implement **all** applicable patterns from this list, in this order:
 | 4 | **State change** (`enter`/`exit`) | "Something appeared/disappeared" |
 | 5 | **Route change** (layout-level) | "Going to a new place" |
 
-This is an implementation order, not a "pick one" list. Implement every pattern that fits the app. Only skip a pattern if the app has no use case for it.
+Start with the smallest useful motion change. Add other patterns only when they improve orientation or continuity; preserve reduced-motion behavior.
 
 ### Choosing Animation Style
 
@@ -185,7 +185,7 @@ export function DirectionalTransition({ children }: { children: React.ReactNode 
 
 ### `router.back()` and Browser Back Button
 
-`router.back()` and the browser's back/forward buttons do **not** trigger view transitions (`popstate` is synchronous, incompatible with `startViewTransition`). Use `router.push()` with an explicit URL instead.
+React skips view transitions initiated by legacy `popstate` navigation. Navigation API integration can differ; verify the router and browser in use. Keep `router.back()` when history traversal is intended: replacing it with `router.push()` adds a history entry and changes navigation semantics.
 
 ### Types and Suspense
 

@@ -1,6 +1,7 @@
 # AI SDK Integration
 
-How to integrate AI Elements with Vercel AI SDK.
+These examples target AI SDK 6 and `@ai-sdk/react@3`. For v7, adapt them
+using `ai-sdk-7`; response helpers and lifecycle callbacks differ.
 
 ## useChat Hook
 
@@ -301,7 +302,7 @@ OPENAI_API_KEY=your_key
 ## Dependencies
 
 ```bash
-bun add ai @ai-sdk/react @ai-sdk/anthropic zod
+bun add ai@6 @ai-sdk/react@3 @ai-sdk/anthropic@3 zod
 ```
 
 | Package | Purpose |

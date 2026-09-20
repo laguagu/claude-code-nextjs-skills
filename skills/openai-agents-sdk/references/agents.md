@@ -15,13 +15,10 @@ The minimal `Agent` + `Runner` example lives in SKILL.md (Quick Reference → Ba
 Agent) and is not repeated here. Two things that example does not show:
 
 - **Omitting `model=` is a choice, not a safe default.** The SDK ships its own
-  default model (currently `gpt-5.6-luna` with `reasoning.effort="none"` and
-  `verbosity="low"`), and that default changes between releases. Set the model
+  default model and settings, which can change between releases. Set the model
   explicitly in production code so an upstream change cannot swap tiers silently.
-- **Use explicit model IDs when tier choice matters.** `gpt-5.6` is an alias for
-  `gpt-5.6-sol`; the explicit `gpt-5.6-sol`, `gpt-5.6-terra` and
-  `gpt-5.6-luna` IDs make the intended tier clear. Verify current IDs from the
-  model catalog (`https://developers.openai.com/api/docs/models.md`).
+- **Use a configured, verified model ID.** Check the provider's current model
+  catalog and deployment configuration; aliases and available tiers can change.
 
 ## Other Providers (LiteLLM)
 

@@ -1,7 +1,6 @@
 ---
 name: handoff
 description: Write or update a HANDOFF.md so a fresh agent can continue this work. Use when the user says "handoff", "compact this", "context is full", or "/clear and continue".
-argument-hint: "What will the next session focus on?"
 ---
 
 Write or update a handoff document so the next agent with fresh context can continue.

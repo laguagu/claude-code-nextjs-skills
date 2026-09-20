@@ -42,8 +42,9 @@ def validate_skill(skill_path):
     ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility'}
 
     # Client-specific extensions: not in the agentskills.io spec, but valid
-    # where the host supports them. Other clients ignore unknown keys, so
-    # these are portable — don't fail the skill over them.
+    # where the host supports them. This quick check accepts argument-hint;
+    # it is not a strict Agent Skills certification. Run skills-ref separately
+    # for shared skills, since other clients may reject extension fields.
     CLIENT_EXTENSIONS = {'argument-hint'}
 
     # Check for unexpected properties (excluding nested keys under metadata)

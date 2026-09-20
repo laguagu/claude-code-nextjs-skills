@@ -1,7 +1,6 @@
 ---
 name: ai-sdk-7
 description: "Vercel AI SDK v7 development and migration. Use when building or upgrading AI SDK 7 apps, especially ToolLoopAgent, WorkflowAgent, HarnessAgent, Claude Code/Codex/Pi harnesses, runtimeContext, toolsContext, toolApproval, telemetry, reasoning, file or skill uploads, realtime, video generation, or v6-to-v7 breaking changes. For AI SDK v6 code use ai-sdk-6; for version discovery and general doc lookup use ai-sdk."
-argument-hint: "[question or feature]"
 compatibility: "TypeScript/JavaScript projects using AI SDK 7; Node.js >=22; AI SDK packages are ESM-only."
 ---
 
@@ -29,7 +28,7 @@ AI SDK 7 requires Node.js >=22 and AI SDK packages are ESM-only. Convert
 Use the project's package manager and install only packages needed by the task:
 
 ```bash
-bun add ai @ai-sdk/react
+bun add ai@7 @ai-sdk/react
 bun add @ai-sdk/openai # or the provider already used by the project
 ```
 

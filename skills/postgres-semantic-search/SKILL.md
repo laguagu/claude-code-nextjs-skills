@@ -45,7 +45,7 @@ ORDER BY embedding <=> query_vec
 LIMIT 10;
 ```
 
-### 3. Add Index (> 10k documents)
+### 3. Add an approximate index when measured latency requires it
 
 ```sql
 CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
@@ -70,7 +70,7 @@ docker run -d --name pgvector-db \
 docker run -d --name paradedb \
   -e POSTGRES_PASSWORD=postgres \
   -p 5432:5432 \
-  paradedb/paradedb:latest  # `latest` is convenient for quick-start; pin to e.g. paradedb/paradedb:pg17 for reproducible builds
+  paradedb/paradedb:latest  # `latest` is convenient for quick-start; pin a tested release or image digest for reproducible builds
 ```
 
 Connect: `psql postgresql://postgres:postgres@localhost:5432/postgres`
@@ -86,16 +86,15 @@ SELECT * FROM docs ORDER BY embedding <=> $1 LIMIT 10;
 -- With similarity score
 SELECT *, 1 - (embedding <=> $1) AS similarity FROM docs ORDER BY embedding <=> $1 LIMIT 10;
 
--- With a distance threshold — put the filter OUTSIDE a materialized CTE.
--- Filtering inline (WHERE (embedding <=> $1) < 0.3 ORDER BY ... LIMIT 10) makes
--- the executor apply the filter before the index returns LIMIT rows, so you get
--- fewer results than expected. pgvector documents this CTE form as the fix.
+-- With iterative scans, pgvector recommends an outer distance filter for
+-- executor performance. The threshold can legitimately return fewer than 10 rows.
+
 WITH nearest AS MATERIALIZED (
   SELECT id, content, embedding <=> $1 AS distance FROM docs
   ORDER BY distance LIMIT 10
 ) SELECT * FROM nearest WHERE distance < 0.3 ORDER BY distance;
 
--- Preload index (run on startup)
+-- Optional warm-up query; touches only the pages visited, not the full index
 SELECT 1 FROM docs ORDER BY embedding <=> $1 LIMIT 1;
 ```
 
@@ -109,9 +108,9 @@ CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops);
 CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops)
 WITH (m = 24, ef_construction = 200);
 
--- Query-time recall. Set this: pgvector's default of 40 costs recall silently
--- (measured ~1.1 pp at 54k vectors for no latency saving; on a 22k-vector
--- corpus recall@20 went 96.2% -> 99.2% for +0.7 ms median). See indexing.md.
+-- Tune ef_search against exact search on representative queries.
+-- Higher values trade query latency for recall; 100 is an example, not a target.
+
 -- Query-time settings are connection-local. Use SET LOCAL inside a transaction
 -- when a transaction pooler can hand each request a different connection.
 SET hnsw.ef_search = 100;
@@ -133,27 +132,16 @@ Query type?
 ├─ Autocomplete/prefix → pg_trgm + prefix index
 ├─ Substring (LIKE/ILIKE) → pg_trgm GIN index
 └─ Mixed/unknown → Hybrid search
-    ├─ Simple setup → FTS + RRF (no extra extensions)
+    ├─ Simple setup → FTS + RRF (pgvector; no BM25 extension)
     ├─ Better ranking → BM25 + RRF (pg_search extension)
     └─ Full-featured → ParadeDB (Elasticsearch alternative)
 ```
 
-**Baseline hybrid against vector-only before shipping it.** Hybrid is the right
-default for mixed queries, not an automatic win: on one measured corpus pure
-vector beat a well-weighted hybrid on both recall and MRR and was 9× faster,
-while a badly weighted one lost 10 pp. The keyword arm still earns its keep for
-exact identifiers, which a needle-in-haystack eval set cannot see — so keep it,
-and judge it on queries that need it. Numbers in
-[hybrid-search.md](references/hybrid-search.md#hybrid-does-not-automatically-beat-pure-vector).
-
-### Choose Index Type
-
-```
-Document count?
-├─ < 10,000 → No index needed
-├─ 10k - 1M → HNSW (best recall)
-└─ > 1M → IVFFlat (less memory) or HNSW
-```
+Benchmark vector-only, keyword-only and hybrid on representative queries,
+including exact identifiers. Select HNSW or IVFFlat from recall, latency, build
+cost and memory measurements; there is no universal document-count cutoff.
+HNSW usually has a better speed/recall tradeoff but higher memory and build cost.
+Keep exact search as the recall baseline.
 
 ### Choose Vector Type
 
@@ -171,7 +159,7 @@ Common embedding dimensions are 1536 and 3072, but sizes vary by provider
 and model — check the provider's docs for the embedding you're using.
 
 For **multilingual** / non-English content, prefer multilingual-tuned embedding
-models (look for "multilingual" in the model name). Models tuned only on
+models (verify language coverage and evaluate on the target languages). Models tuned only on
 English may handle compound words and inflection poorly.
 
 **Storage vs. index trick** for 2000 < N ≤ 4000: keep the column as `vector(N)`
@@ -190,34 +178,12 @@ column type directly.
 
 ## Measure before adopting
 
-Every optimization in this skill (hybrid fusion, reranking, query expansion,
-embedding-model swaps) *can* regress on a specific corpus. Vendor and paper
-benchmarks are usually English, general-domain, and their ordering does not
-reliably transfer. Real counter-examples, each measured rather than argued:
-
-- Query expansion (HyDE) regressing Hit@5 by tens of points on a domain corpus.
-  On another, it found +1.1 pp more and **ranked worse** (MRR 0.557 → 0.536) at
-  6× the hybrid latency — a reranking loss dressed as a recall win.
-- A widely recommended reranker regressing Hit@5 double-digits on multilingual text.
-- Translating an off-language query into a *keyword list* rather than a
-  sentence: it helped the arm it targeted and finished **14 pp below doing
-  nothing at all**.
-- Raising top-k from 15 to 30: recall +5.4 pp, and the share of generated claims
-  actually supported by a source fell 82.1 % → 78.8 %. Better retrieval, worse answer.
-- The cheapest open embedding model beating the paid one on the target corpus,
-  reversing the leaderboard order.
-
-**Rule**: build a domain eval set ([evaluation.md](references/evaluation.md)),
-then A/B each change. Adopt with ≥ +3 pp Hit@5 and p95 latency within budget;
-reject otherwise.
-
-Three traps that make an A/B lie, each covered in
-[evaluation.md](references/evaluation.md#four-ways-a-measurement-lies-to-you):
-measuring one retrieval arm instead of the pipeline; treating retrieval metrics
-as the goal when an LLM consumes the results; and reading an offline sweep's
-absolute numbers as a production forecast. Use **two** eval sets — generated
-sentences and 1–3 word domain terms — because a change that helps one has
-measured as hurting the other.
+Build a domain eval set ([evaluation.md](references/evaluation.md)) with both
+natural-language questions and short domain terms. A/B retrieval, reranking,
+translation and model changes against it. Measure end-to-end answer grounding
+when an LLM consumes results; retrieval gains alone need not improve answers.
+Choose acceptance thresholds and p95 latency/cost budgets for the product,
+accounting for dataset size and run-to-run variance.
 
 ## Operators
 
@@ -354,14 +320,14 @@ const results = await db.execute(sql`
 
 | Symptom | Cause | Solution |
 |---------|-------|----------|
-| Index not used | < 10k rows or planner choice | Normal for small tables, check with EXPLAIN |
+| Index not used | Planner cost, operator/cast mismatch or query shape | Inspect EXPLAIN; sequential scans can be appropriate for small tables |
 | Slow first query (30-60s) | HNSW cold-start | `SELECT pg_prewarm('idx_name')` or preload query |
 | Poor recall | Low ef_search | `SET hnsw.ef_search = 100` or higher |
 | FTS returns nothing | Wrong language config | Use `'simple'` for mixed/unknown languages |
 | Long plain-language question returns 0 keyword hits | Parser ANDs every term | For queries without explicit `OR`, quotes, or `-`, parse with `plainto_tsquery`, rewrite `&`→`\|`, and rank with `ts_rank_cd` — see hybrid-search.md |
 | FTS misses a word that is visibly there | Invisible character (U+200B etc.) glued to the token blocks stemming | Strip zero-width characters at ingest and query time |
 | `could not determine data type of parameter $N` | A placeholder never appears in this variant's SQL (e.g. vector-only vs keyword-only mode sharing one numbering) | Give each query variant its own statement and parameter numbering |
-| Memory error on index build | maintenance_work_mem too low | Increase to 2GB+ |
+| Slow or failed index build | Memory limit or graph exceeds maintenance_work_mem | Inspect the error and available memory; tune within the host budget, never blindly increase it |
 | "Cosine similarity" > 1 | `<#>` used in the cosine formula | `1 - (a <=> b)` is cosine similarity and is bounded in [-1, 1] whatever the magnitudes — `<=>` divides by them. `<#>` returns the **negative inner product**, unbounded: for `[3,4]` and `[6,8]` it is `-50`, so `1 - (a <#> b)` is `51`. Use `<=>` for cosine, or `(a <#> b) * -1` for inner product on already-normalized vectors |
 | Slow inserts | Index overhead | Batch inserts, consider IVFFlat |
 | Fuzzy search slow | Missing trigram index | `CREATE INDEX USING gin (col gin_trgm_ops)` |

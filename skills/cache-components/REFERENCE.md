@@ -72,8 +72,8 @@ async function HeavyComputation() {
 Unlike `'use cache'`, the private variant **lets you access runtime request APIs**
 (`cookies()`, `headers()`, `searchParams`) inside a cached scope. Its results are
 **never stored on the server** — they are cached only in the **browser's memory**
-and **do not persist across page reloads**. This makes it suitable for compliance
-scenarios where data must not be stored server-side, even temporarily.
+and **do not persist across page reloads**. This describes cache storage, not all server processing or logging. It does
+not establish compliance with a data-handling policy.
 
 ```tsx
 import { cookies } from 'next/headers'
@@ -90,8 +90,7 @@ async function UserComplianceData() {
 
 **When to use**: Reach for `'use cache: private'` only when (a) you want to cache a
 function that already accesses runtime data and refactoring to pass values as
-arguments is impractical, OR (b) compliance prevents storing the data on the
-server even temporarily. Prefer `'use cache'` with parameterized arguments for
+arguments is impractical, and its experimental limitations fit the application. Prefer `'use cache'` with parameterized arguments for
 most cases.
 
 ### Understanding Cache Handlers
@@ -115,7 +114,7 @@ Next.js uses **cache handlers** to store and retrieve cached data. The directive
 | Most cached data                      | `'use cache'`          |
 | Heavy computations to share globally  | `'use cache: remote'`  |
 | Data that must be consistent globally | `'use cache: remote'`  |
-| Compliance: no cross-request sharing  | `'use cache: private'` |
+| Experimental browser-only caching    | `'use cache: private'` |
 
 ### Rules
 

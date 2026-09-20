@@ -1,11 +1,4 @@
-<!-- BEGIN:nextjs-agent-rules -->
-
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-
-<!-- END:nextjs-agent-rules -->
-
-# Project Rules
-
-- Always use bun, not npm
+- Use Bun for JavaScript package commands; respect version-specific examples in skills.
+- In the maintainer checkout, edit skills through `~/.agents/skills/`; `skills/*` are junctions to that source. Do not replace junctions with copied directories.
+- Publish only tracked/public skills. References to private local skills will break in clones.
+- Verify changed API claims against official docs or source and run Agent Skills validation before publishing.

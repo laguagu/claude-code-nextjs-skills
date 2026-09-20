@@ -26,14 +26,13 @@ Using Azure or another provider instead? See [agents.md](references/agents.md#ot
 ### Basic Agent
 
 ```python
+import os
 from agents import Agent, Runner
 
 agent = Agent(
     name="Assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.6-sol",  # or "gpt-5.6-terra" / "gpt-5.6-luna" (cheaper tiers).
-                          # "gpt-5.6" is an alias for gpt-5.6-sol. Verify
-                          # current IDs from the model catalog.
+    model=os.environ["OPENAI_MODEL"],  # configure a verified model ID
 )
 
 # Synchronous
@@ -44,7 +43,7 @@ print(result.final_output)
 result = await Runner.run(agent, "Tell me a joke")
 ```
 
-Omitting `model=` uses the SDK's built-in default (currently `gpt-5.6-luna` with low-effort reasoning settings) — set it explicitly in production so an upstream default change cannot swap tiers silently.
+Omitting `model=` uses the installed SDK's default. Configure it explicitly in production and verify available IDs against the provider's model catalog.
 
 ### Key Patterns
 
@@ -82,7 +81,7 @@ Setup (Claude Code):
 claude mcp add --transport http openaiDeveloperDocs https://developers.openai.com/mcp
 ```
 
-Or config (`~/.codex/config.toml`, VS Code `.vscode/mcp.json`, Cursor `~/.cursor/mcp.json`):
+Or in Codex `~/.codex/config.toml` (VS Code and Cursor use different JSON schemas):
 ```toml
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"

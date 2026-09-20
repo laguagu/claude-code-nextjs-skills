@@ -364,7 +364,7 @@ Query type?
 ├─ Conceptual/semantic → Pure vector search
 ├─ Exact terms/names → Pure keyword search
 └─ Mixed/unknown → Hybrid search
-    ├─ Simple setup → FTS + RRF (no extra extensions)
+    ├─ Simple setup → FTS + RRF (pgvector; no BM25 extension)
     ├─ Better ranking → BM25 + RRF (pg_search extension)
     └─ Full-featured → ParadeDB (Elasticsearch alternative)
 ```

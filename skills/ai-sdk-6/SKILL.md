@@ -1,21 +1,20 @@
 ---
 name: ai-sdk-6
 description: Vercel AI SDK v6 development. Use when building AI agents, chatbots, tool integrations, streaming apps, or structured output with the ai package. Covers ToolLoopAgent, useChat, generateText, streamText, tool approval, smoothStream, provider tools, MCP integration, and Output patterns.
-argument-hint: "[question or feature]"
 ---
 
 # Vercel AI SDK v6 Development Guide
 
 Use this skill when developing AI-powered features using Vercel AI SDK v6 (`ai` package).
 
-> **Docs location**: bundled in `node_modules/ai/docs/`. In Bun/pnpm/Yarn workspace monorepos deps aren't hoisted — use `apps/*/node_modules/ai/docs/` or `packages/*/node_modules/ai/docs/` instead.
+> **Docs location**: bundled in `node_modules/ai/docs/`. Workspace dependency layout depends on the package manager and configuration; also check `apps/*/node_modules/ai/docs/` or `packages/*/node_modules/ai/docs/` instead.
 
 ## Quick Reference
 
 ### Installation
 
 ```bash
-bun add ai @ai-sdk/openai zod    # or @ai-sdk/anthropic, @ai-sdk/google, etc.
+bun add ai@6 @ai-sdk/openai@3 zod    # or @ai-sdk/anthropic, @ai-sdk/google, etc.
 ```
 
 ### Core Functions

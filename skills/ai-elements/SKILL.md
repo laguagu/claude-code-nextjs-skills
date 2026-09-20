@@ -11,7 +11,7 @@ Components are copied into the project as source, so they are owned and editable
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/en/download/) 18 or later
+- A Node.js version supported by the installed Next.js, AI SDK and CLI packages; use the strictest engine requirement
 - A [Next.js](https://nextjs.org/) project with the [AI SDK](https://ai-sdk.dev/) installed
 - [shadcn/ui](https://ui.shadcn.com/) in the project — running any install command sets it up if missing
 
@@ -47,89 +47,28 @@ bun x shadcn@latest add @ai-elements/message
 
 The CLI downloads the component's code and integrates it into the project's directory. By default, AI Elements components are added to `@/components/ai-elements/` (or whatever folder is configured in `components.json`). After running the command, the terminal confirms which files were added — proceed to import and use the component in code.
 
-## Example
+## Use the installed source
 
-Import and compose them like any other local React component:
+Inspect the generated component before composing it; APIs can change independently
+of the AI SDK major. Render `UIMessage.parts` with stable message IDs, and handle
+text, tool, reasoning and source parts according to the app's requirements.
+Use [integration.md](references/integration.md) for the bundled v6 integration
+example; use `ai-sdk-7` when the project is on v7.
 
-```tsx title="conversation.tsx"
-"use client";
-
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message";
-import { useChat } from "@ai-sdk/react";
-
-const Example = () => {
-  const { messages } = useChat();
-
-  return (
-    <>
-      {messages.map(({ role, parts }, index) => (
-        <Message from={role} key={index}>
-          <MessageContent>
-            {parts.map((part, i) => {
-              switch (part.type) {
-                case "text":
-                  return (
-                    <MessageResponse key={`${role}-${i}`}>
-                      {part.text}
-                    </MessageResponse>
-                  );
-              }
-            })}
-          </MessageContent>
-        </Message>
-      ))}
-    </>
-  );
-};
-
-export default Example;
-```
-
-The example above imports the `Message` component from the AI Elements directory and composes it with the `MessageContent` and `MessageResponse` subcomponents. Style or configure the component just as you would any local component — since the code lives in your project, the component file can be opened directly for inspection or custom modifications.
-
-## Extensibility
-
-All AI Elements components take as many primitive attributes as possible. For example, the `Message` component extends `HTMLAttributes<HTMLDivElement>`, so you can pass any props that a `div` supports. This makes it easy to extend the component with your own styles or functionality.
-
-## Customization
-
-No post-install setup is needed — the Tailwind classes and scripts ship with the component. Edit the file directly to change it. For example, to remove the rounding on `Message`, drop `rounded-lg` from `components/ai-elements/message.tsx`:
-
-```tsx title="components/ai-elements/message.tsx" highlight="8"
-export const MessageContent = ({
-  children,
-  className,
-  ...props
-}: MessageContentProps) => (
-  <div
-    className={cn(
-      "flex flex-col gap-2 text-sm text-foreground",
-      "group-[.is-user]:bg-primary group-[.is-user]:text-primary-foreground group-[.is-user]:px-4 group-[.is-user]:py-3",
-      className
-    )}
-    {...props}
-  >
-    <div className="is-user:dark">{children}</div>
-  </div>
-);
-```
+Customize the owned source or pass supported props. Do not assume every compound
+component forwards every HTML attribute to the same element.
 
 ## Troubleshooting
 
 ### Components render unstyled
 
-The project is missing the shadcn/ui base layer. Tailwind 4 is CSS-first — there is no
-`tailwind.config.js`; `globals.css` must `@import "tailwindcss"` and define the shadcn
+The project is missing the shadcn/ui base layer. Tailwind 4 is CSS-first (legacy JavaScript config is possible via `@config`); `globals.css` must `@import "tailwindcss"` and define the shadcn
 theme tokens in an `@theme inline` block.
 
 ### The CLI ran but nothing was added
 
 Run it from the directory holding `package.json`, and pass both `@latest` and a component
-name — a bare `ai-elements@latest` with no subcommand does not add a single component.
+name — use an explicit `add <component>` command and inspect the output rather than assuming the default action.
 
 ### Theme switching stays in light mode
 

@@ -1,6 +1,5 @@
 ---
 name: nextjs-shadcn
-argument-hint: "[component or page]"
 description: Creates Next.js frontends with shadcn/ui. Use when building React UIs, components, pages, or applications with shadcn, Tailwind, or modern frontend patterns. Also use when the user asks to create a new Next.js project, add UI components, style pages, or build any web interface — even if they don't mention shadcn explicitly.
 ---
 
@@ -56,35 +55,12 @@ surface, typeset, and the shimmer/scroll-fade utilities.
 
 ## Component Rules
 
-### Page Structure
-
-```tsx
-// page.tsx - content only, no layout chrome
-export default function Page() {
-  return (
-    <>
-      <HeroSection />
-      <Features />
-      <Testimonials />
-    </>
-  );
-}
-
-// layout.tsx - shared UI (header, footer, sidebar)
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </>
-  );
-}
-```
+Put shared navigation/layout chrome in layouts; keep route-specific content in
+pages. A route group named `(protected)` does not enforce authorization.
 
 ### Client Boundaries
 
-- `"use client"` only at leaf components (smallest boundary)
+- Keep `"use client"` boundaries as narrow as practical; providers and interactive subtrees may need a higher boundary
 - Props must be serializable (data or Server Actions, no functions/classes)
 - Pass server content via `children`
 
@@ -95,40 +71,9 @@ Never use relative paths (`../../lib/utils`). Default to the `@/` alias
 and follow the alias style already configured — shadcn also supports Node
 package imports (`#components/ui/button`). Never mix both styles.
 
-### Style Merging
-
-```tsx
-import { cn } from "@/lib/utils";
-
-function Button({ className, ...props }) {
-  return <button className={cn("px-4 py-2 rounded", className)} {...props} />;
-}
-```
-
-## File Organization
-
-```
-app/
-├── (protected)/         # Auth required routes
-│   ├── dashboard/
-│   ├── settings/
-│   ├── components/      # Route-specific components
-│   └── lib/             # Route-specific utils/types
-├── (public)/            # Public routes
-│   ├── login/
-│   └── register/
-├── actions/             # Server Actions (global)
-├── api/                 # API routes
-├── layout.tsx           # Root layout
-└── globals.css          # Theme tokens
-components/              # Shared components
-├── ui/                  # shadcn primitives
-└── shared/              # Business components
-hooks/                   # Custom React hooks
-lib/                     # Shared utils
-data/                    # Database queries
-ai/                      # AI logic (tools, agents, prompts)
-```
+Use the project's `cn()` helper when merging conditional Tailwind classes. Keep
+route-specific code near its route and shared components in the existing shared
+directories; do not impose a new folder tree on an established app.
 
 ## Next.js 16 Features
 
@@ -149,39 +94,14 @@ export default async function Page({
 
 ### Data Fetching vs Server Actions
 
-**CRITICAL RULE:**
-- **Server Actions** = ONLY for mutations (create, update, delete)
-- **Data fetching** = In Server Components or `'use cache'` functions
+Prefer Server Components or Route Handlers for reads and Server Actions for
+mutations. Actions can read data, but client dispatch is designed for mutations
+and can serialize calls; they are not a general read-query transport.
 
-`"use cache"` (and `cacheTag`/`cacheLife`/`updateTag`) requires the Cache Components opt-in flag — Next.js 16 does not enable it by default:
-
-```ts
-// next.config.ts
-const nextConfig = { cacheComponents: true }
-```
-
-```tsx
-// ❌ WRONG: Server Action for data fetching
-"use server"
-export async function getUsers() {
-  return await db.users.findMany()
-}
-
-// ✅ CORRECT: Data function with caching
-// data/users.ts
-export async function getUsers() {
-  "use cache"
-  cacheTag("users")
-  cacheLife("hours")
-  return await db.users.findMany()
-}
-
-// ✅ CORRECT: Read cookies in Server Component directly
-export default async function Page() {
-  const theme = (await cookies()).get("theme")?.value ?? "light"
-  return <App theme={theme} />
-}
-```
+`"use cache"`, `cacheTag` and `cacheLife` require `cacheComponents: true`.
+`updateTag` is restricted to Server Actions, but does not itself require that
+flag; it can invalidate fetch tags too. Choose caching from freshness and
+authorization requirements, not simply because a function reads data.
 
 ### Caching
 
@@ -197,7 +117,7 @@ export async function getProducts() {
 }
 ```
 
-### Server Actions (Mutations Only)
+### Server Actions for Mutations
 
 ```tsx
 "use server";
@@ -211,7 +131,8 @@ const schema = z.object({
 });
 
 export async function createPost(formData: FormData) {
-  // Always validate input
+  // Authenticate and authorize the caller before the write.
+  // Validate input as well.
   const parsed = schema.parse({
     title: formData.get("title"),
     content: formData.get("content"),

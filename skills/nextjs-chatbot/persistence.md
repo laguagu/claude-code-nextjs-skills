@@ -8,7 +8,7 @@
 - [onEnd: save messages after stream](#onend-save-messages-after-stream)
 - [Restoring: strip providerMetadata before replaying](#restoring-strip-providermetadata-before-replaying)
 - [Feedback retry: race window pattern](#feedback-retry-race-window-pattern)
-- [GDPR: cascade delete](#gdpr-cascade-delete)
+- [Session deletion](#session-deletion)
 - [Stream resumption (optional)](#stream-resumption-optional)
 
 ## Database schema (Drizzle)
@@ -30,7 +30,7 @@ export const chatSessions = pgTable("chat_sessions", {
 export const chatMessages = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
   chatId: text("chat_id").notNull()
-    .references(() => chatSessions.id, { onDelete: "cascade" }),  // GDPR cascade
+    .references(() => chatSessions.id, { onDelete: "cascade" }),  // delete related messages with the session
   messageId: text("message_id").notNull(),      // server-generated stable ID
   role: text("role").notNull(),
   content: text("content").notNull(),           // extracted text from parts
@@ -198,7 +198,7 @@ const handleFeedback = (vote: "up" | "down") => {
 };
 ```
 
-## GDPR: cascade delete
+## Session deletion
 
 ```ts
 // FK with cascade delete on chat_messages and contact_requests
@@ -208,6 +208,9 @@ const handleFeedback = (vote: "up" | "down") => {
 // Deletes session row → cascades to all messages and contact requests
 await db.delete(chatSessions).where(eq(chatSessions.id, sessionId));
 ```
+
+This covers the related database rows only. Audit external stores, logs and
+backups separately; a foreign-key cascade alone is not a compliance guarantee.
 
 Consent fields (`consentAccepted`, `consentVersion`, `consentAcceptedAt`) are stored on the session, not per-message, so the consent record is erased together with the session data.
 

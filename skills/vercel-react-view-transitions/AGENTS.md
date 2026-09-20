@@ -52,7 +52,7 @@ Animate between UI states using the browser's native `document.startViewTransiti
 
 Every `<ViewTransition>` should communicate a spatial relationship or continuity. If you can't articulate what it communicates, don't add it.
 
-Implement **all** applicable patterns from this list, in this order:
+Choose patterns that serve the requested interaction:
 
 | Priority | Pattern | What it communicates |
 |----------|---------|---------------------|
@@ -62,7 +62,7 @@ Implement **all** applicable patterns from this list, in this order:
 | 4 | **State change** (`enter`/`exit`) | "Something appeared/disappeared" |
 | 5 | **Route change** (layout-level) | "Going to a new place" |
 
-This is an implementation order, not a "pick one" list. Implement every pattern that fits the app. Only skip a pattern if the app has no use case for it.
+Start with the smallest useful motion change. Add other patterns only when they improve orientation or continuity; preserve reduced-motion behavior.
 
 ### Choosing Animation Style
 
@@ -188,7 +188,7 @@ Map types to CSS classes. Works on `enter`, `exit`, **and** `share`:
 
 ### `router.back()` and Browser Back Button
 
-`router.back()` and the browser's back/forward buttons do **not** trigger view transitions (`popstate` is synchronous, incompatible with `startViewTransition`). Use `router.push()` with an explicit URL instead.
+React skips view transitions initiated by legacy `popstate` navigation. Navigation API integration can differ; verify the router and browser in use. Keep `router.back()` when history traversal is intended: replacing it with `router.push()` adds a history entry and changes navigation semantics.
 
 ### Types and Suspense
 
@@ -480,7 +480,7 @@ Walk through every row in the navigation map from Step 1:
 - **Raw `viewTransitionName` CSS to trigger animations** — React only starts view transitions when `<ViewTransition>` components are in the tree. Bare `viewTransitionName` is for isolating elements, not triggering animations.
 - **`update` trigger for same-route navigations** — nested VTs steal the mutation from the parent. Use `key` + `name` + `share` instead.
 - **Named VT in a reusable component** — if a component with a named VT is rendered in both a modal/popover *and* a page, both mount simultaneously and break the morph. Make the name conditional or move it to the specific consumer.
-- **`router.back()` for back navigation** — `router.back()` triggers synchronous `popstate`, incompatible with view transitions. Use `router.push()` with an explicit URL.
+- **History navigation** — legacy `popstate` skips React view transitions. Preserve back/forward semantics; do not replace history traversal with `router.push()` solely for animation.
 
 For Next.js-specific steps, see the Next.js section below.
 
@@ -643,7 +643,7 @@ Imperative control via `onEnter`, `onExit`, `onUpdate`, `onShare`. Always return
 
 **"Two VTs with same name":** Names must be globally unique. Use IDs.
 
-**`router.back()` and browser back/forward skip animation:** Use `router.push()` with an explicit URL instead.
+**Back/forward may skip animation:** legacy `popstate` does not animate. Preserve history semantics and verify whether the router supports Navigation API integration.
 
 **Only updates animate:** Without `<Suspense>`, React treats swaps as updates. Conditionally render the VT itself, or wrap in `<Suspense>`.
 

@@ -1,7 +1,6 @@
 ---
 name: ai-sdk
 description: 'Answer questions about the AI SDK and help build AI-powered features. Use when developers ask about Vercel AI SDK, generateText, streamText, ToolLoopAgent, useChat, providers, tools, structured output, embeddings, streaming, or adding AI to an app. First identify the installed major version and route version-specific work: use ai-sdk-7 for AI SDK 7 features/migrations such as WorkflowAgent, HarnessAgent, reasoning, runtime/tools context, toolApproval, telemetry, realtime, or v6-to-v7 upgrades; use ai-sdk-6 for v6 code.'
-argument-hint: "[question or feature]"
 ---
 
 ## Prerequisites
@@ -15,27 +14,21 @@ lockfiles, or `node_modules/ai/package.json`.
   clear. If starting fresh or no version is pinned, assume the current line
   (AI SDK 7) and use `ai-sdk-7`.
 
-Before searching docs, check if `node_modules/ai/docs/` exists. If not, install
-**only** the `ai` package using the project's package manager (e.g., `bun add ai`).
+Check installed docs before fetching online. If dependencies are not installed,
+restore the existing lockfile with the project's package manager when installation
+is needed. Do not add or upgrade `ai` merely to read documentation.
 
-Do not install other packages at this stage. Provider packages (e.g., `@ai-sdk/openai`) and client packages (e.g., `@ai-sdk/react`) should be installed later when needed based on user requirements.
-
-### Monorepo path note
-
-In Bun / pnpm / Yarn workspace monorepos, dependencies are usually **not** hoisted to the repo root — they live inside each app's `node_modules/`. If `node_modules/ai/docs/` doesn't exist at the working directory, check workspace locations before assuming docs are missing:
-
-- `apps/*/node_modules/ai/docs/` (e.g. `apps/web/node_modules/ai/docs/`)
-- `packages/*/node_modules/ai/docs/`
-
-Glob from the repo root: `apps/*/node_modules/ai/docs/` or `**/node_modules/ai/docs/`. Substitute the resolved path everywhere this skill says `node_modules/ai/docs/` or `node_modules/ai/src/`. The same applies to provider docs at `node_modules/@ai-sdk/<provider>/docs/`.
+In a monorepo, resolve `ai` from the relevant app/workspace. Hoisting and
+`node_modules` layout depend on package-manager configuration; Yarn PnP may not
+have `node_modules`. Check app-local paths or use the version-matched online docs.
 
 ## Critical: Do Not Trust Internal Knowledge
 
-Everything you know about the AI SDK is outdated or wrong. Your training data contains obsolete APIs, deprecated patterns, and incorrect usage.
+AI SDK APIs differ between major versions. Verify the installed API before applying remembered patterns.
 
 **When working with the AI SDK:**
 
-1. Ensure `ai` package is installed (see Prerequisites)
+1. Identify the project dependency version and available docs (see Prerequisites)
 2. Identify the installed major version and use `ai-sdk-7` or `ai-sdk-6` for deep version-specific work
 3. Search `node_modules/ai/docs/` and `node_modules/ai/src/` for current APIs
 4. If not found locally, search ai-sdk.dev documentation (instructions below)

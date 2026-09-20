@@ -47,20 +47,15 @@ sizing infrastructure.
 
 ## Cold-Start Optimization
 
-HNSW indexes load into memory on first query. This can take 30-60+ seconds for large indexes.
+A cold query may incur disk reads for the index pages it visits. It does not
+load the entire HNSW index by definition. Measure cold and warm runs separately.
 
-### Preload Index
+### Warm-up options
 
-```sql
--- Force index scan on startup
-SELECT COUNT(*) FROM (
-    SELECT 1 FROM documents
-    ORDER BY embedding <=> '[0,0,...,0]'::vector(1536)
-    LIMIT 1
-) t;
-```
-
-Add to application startup or cron job.
+A representative query warms only its visited pages; it cannot guarantee that
+the full index is resident. If deliberate relation warming is justified, inspect
+the index size and available memory before using PostgreSQL's `pg_prewarm`
+extension. Do not use a zero vector for cosine warm-up queries.
 
 ### HNSW Parameter Tuning
 
