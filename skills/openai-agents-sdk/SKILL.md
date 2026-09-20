@@ -17,8 +17,11 @@ uv add openai-agents        # or `pip install openai-agents` outside a uv projec
 
 ### Environment Variables
 
+Set both in the process environment before running the example; replace the placeholders:
+
 ```bash
-OPENAI_API_KEY=sk-...
+export OPENAI_API_KEY="sk-..."
+export OPENAI_MODEL="your-verified-model-id"
 ```
 
 Using Azure or another provider instead? See [agents.md](references/agents.md#other-providers-litellm) — don't hardcode provider env vars here, they vary and go stale.

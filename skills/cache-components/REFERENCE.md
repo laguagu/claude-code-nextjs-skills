@@ -72,8 +72,9 @@ async function HeavyComputation() {
 Unlike `'use cache'`, the private variant **lets you access runtime request APIs**
 (`cookies()`, `headers()`, `searchParams`) inside a cached scope. Its results are
 **never stored on the server** — they are cached only in the **browser's memory**
-and **do not persist across page reloads**. This describes cache storage, not all server processing or logging. It does
-not establish compliance with a data-handling policy.
+and **do not persist across page reloads**. This describes cache storage, not
+all server processing or logging. It does not establish compliance with a
+data-handling policy.
 
 ```tsx
 import { cookies } from 'next/headers'
@@ -88,10 +89,10 @@ async function UserComplianceData() {
 }
 ```
 
-**When to use**: Reach for `'use cache: private'` only when (a) you want to cache a
-function that already accesses runtime data and refactoring to pass values as
-arguments is impractical, and its experimental limitations fit the application. Prefer `'use cache'` with parameterized arguments for
-most cases.
+**When to use**: Consider `'use cache: private'` when a function accesses runtime
+data, refactoring to pass values as arguments is impractical, and its
+experimental limitations fit the application. Prefer `'use cache'` with
+parameterized arguments for most cases.
 
 ### Understanding Cache Handlers
 
