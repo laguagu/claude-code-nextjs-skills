@@ -1,38 +1,42 @@
 __pycache__/
 
-# Personal skills (linked from .agents/skills, not for public repo)
+# Skills that do not ship. Publication is gated by the allowlist in the local
+# agents-setup (publish-skills.txt), so none of these are linked here; this
+# list is the second guard, and scripts/check-private-skill-refs.sh reads it
+# to catch dead pointers to them. `svgl` is private too but is left out: its
+# name matches every svgl.app URL and would fail the check.
+
+# CSC, Rahti and other platform-specific skills
+skills/csc-allas/
 skills/csc-lumi/
 skills/csc-rahti/
 skills/csc-roihu/
-skills/mcp-eval/
-skills/turborepo/
-
-# Meta-skills (personal tooling, not for public repo)
-skills/improving-skills/
-skills/skill-finder/
-skills/go-ui/
-
-# Personal design/image skills (linked via sync-skills.cmd, not for public repo)
-skills/design-taste-frontend/
-skills/media-gen/
-
-# Vercel-platform and Haaga-Helia specific skills (not for public repo)
-skills/ai-governance-capture/
-skills/vercel-error-triage/
+skills/rahti-audit/
 skills/vercel-optimize/
 
-# Machine- and environment-specific tooling. These audit or drive *this* setup
-# (Windows junction layout, local package managers, the gaik/fair Rahti
-# namespaces, this account's Claude Code spend), so they are not useful to
-# anyone cloning this repo.
-skills/coding-agent-usage-logger/
+# Personal tooling and meta-skills
 skills/dev-toolchain/
-skills/rahti-audit/
+skills/env/
+skills/go-ui/
+skills/improving-skills/
+skills/project-docs/
+skills/skill-finder/
+skills/slack-message/
 skills/ui-signature/
 
+# Third-party or narrow skills kept out of this collection
+skills/design-taste-frontend/
+skills/excalidraw-diagram/
+skills/jev-builder/
+skills/mcp-eval/
+skills/media-gen/
+skills/paradedb-skill/
+skills/turborepo/
+skills/typesafe-ai/
+
 # The private-skill reference check and its hook. They exist only because
-# `skills/` is a junction to a larger local collection on this machine — a
-# clone has no junction, no private skills, and so cannot make the mistake
-# they catch. Same rule as the tooling above.
+# `skills/` holds junctions into a larger local collection on this machine — a
+# clone has no junctions, no private skills, and so cannot make the mistake
+# they catch.
 /scripts/
 /.githooks/
