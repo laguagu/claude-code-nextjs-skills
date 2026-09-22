@@ -16,7 +16,9 @@ description: |
   corpus, per-language indexing, query translation
 
   For general Postgres schema, index, RLS or query tuning unrelated to
-  retrieval, use supabase-postgres-best-practices instead.
+  retrieval, use supabase-postgres-best-practices instead. For gaik's
+  PgVectorStore, FinnishTextProcessor or RelevanceGate, use
+  searching-documents from the gaik-toolkit plugin.
 ---
 
 # PostgreSQL Semantic Search

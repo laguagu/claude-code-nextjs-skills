@@ -184,7 +184,7 @@ import {
   SourcesContent,
   Source,
 } from '@/components/ai-elements/sources';
-import { Loader } from '@/components/ai-elements/loader';
+import { Spinner } from '@/components/ui/spinner';
 import { useState } from 'react';
 
 export default function ChatPage() {
@@ -271,7 +271,7 @@ export default function ChatPage() {
               })()}
             </div>
           ))}
-          {status === 'submitted' && <Loader />}
+          {status === 'submitted' && <Spinner />}
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
@@ -415,7 +415,7 @@ import {
   ToolInput,
   ToolOutput,
 } from '@/components/ai-elements/tool';
-import { Loader } from '@/components/ai-elements/loader';
+import { Spinner } from '@/components/ui/spinner';
 import { useState } from 'react';
 
 export default function AgentPage() {
@@ -471,7 +471,7 @@ export default function AgentPage() {
               })}
             </div>
           ))}
-          {status === 'submitted' && <Loader />}
+          {status === 'submitted' && <Spinner />}
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>

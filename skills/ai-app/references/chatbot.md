@@ -50,7 +50,7 @@ import {
   PromptInputSubmit,
   type PromptInputMessage,
 } from '@/components/ai-elements/prompt-input';
-import { Loader } from '@/components/ai-elements/loader';
+import { Spinner } from '@/components/ui/spinner';
 import { useState } from 'react';
 
 export default function ChatPage() {
@@ -82,7 +82,7 @@ export default function ChatPage() {
               )}
             </div>
           ))}
-          {status === 'submitted' && <Loader />}
+          {status === 'submitted' && <Spinner />}
         </ConversationContent>
       </Conversation>
 
@@ -191,7 +191,7 @@ import {
   SourcesContent,
   Source,
 } from '@/components/ai-elements/sources';
-import { Loader } from '@/components/ai-elements/loader';
+import { Spinner } from '@/components/ui/spinner';
 import { CopyIcon, RefreshCcwIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -286,7 +286,7 @@ export default function ChatPage() {
               </div>
             );
           })}
-          {status === 'submitted' && <Loader />}
+          {status === 'submitted' && <Spinner />}
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
@@ -385,7 +385,7 @@ import { ToolLoopAgent, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
 export const searchAgent = new ToolLoopAgent({
-  model: openai('gpt-5.6'),
+  model: openai('gpt-5.6-terra'),
   instructions: 'Search the web and provide accurate information with sources.',
   tools: {
     web_search: openai.tools.webSearch({
@@ -520,7 +520,7 @@ export function useSuggestions(
 
 ```tsx
 import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion';
-import { Loader } from '@/components/ai-elements/loader';
+import { Spinner } from '@/components/ui/spinner';
 import { useSuggestions } from '@/hooks/use-suggestions';
 
 // Inside your chat component:
@@ -540,7 +540,7 @@ const handleSuggestionClick = (suggestion: string) => {
   <div className="pt-2">
     {isLoadingSuggestions ? (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Loader size={12} />
+        <Spinner className="size-3" />
         <span>Loading suggestions…</span>
       </div>
     ) : (
@@ -561,8 +561,8 @@ const handleSuggestionClick = (suggestion: string) => {
 ## Component Reference
 
 For detailed component documentation, see `/ai-elements` skill:
-- [Conversation](../../ai-elements/references/chatbot.md#conversation)
-- [Message](../../ai-elements/references/chatbot.md#message)
-- [PromptInput](../../ai-elements/references/chatbot.md#promptinput)
-- [Reasoning](../../ai-elements/references/chatbot.md#reasoning)
-- [Sources](../../ai-elements/references/chatbot.md#sources)
+- [Conversation](../../ai-elements/references/conversation.md)
+- [Message](../../ai-elements/references/message.md)
+- [PromptInput](../../ai-elements/references/prompt-input.md)
+- [Reasoning](../../ai-elements/references/reasoning.md)
+- [Sources](../../ai-elements/references/sources.md)

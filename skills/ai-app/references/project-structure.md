@@ -20,8 +20,7 @@ my-ai-app/
 │   │   ├── prompt-input.tsx
 │   │   ├── reasoning.tsx
 │   │   ├── sources.tsx
-│   │   ├── tool.tsx
-│   │   └── loader.tsx
+│   │   └── tool.tsx
 │   └── ui/                      # shadcn/ui components
 │       ├── button.tsx
 │       ├── input.tsx

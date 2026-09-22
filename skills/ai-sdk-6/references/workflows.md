@@ -82,7 +82,7 @@ async function handleCustomerQuery(query: string) {
     model:
       classification.complexity === "simple"
         ? openai("gpt-5.6-luna")
-        : openai("gpt-5.6"),
+        : openai("gpt-5.6-terra"),
     system: {
       general: "You handle general inquiries.",
       refund: "You specialize in refund requests.",

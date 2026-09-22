@@ -1,6 +1,6 @@
 # AI SDK Skill
 
-Official Vercel AI SDK skill from [skills.sh/vercel/ai/ai-sdk](https://skills.sh/vercel/ai/ai-sdk).
+Version router based on the official `use-ai-sdk` skill in [vercel/ai](https://github.com/vercel/ai/tree/main/skills/use-ai-sdk), rewritten to route work to `ai-sdk-6` or `ai-sdk-7`.
 
 Helps answer questions about the AI SDK and build AI-powered features using `generateText`, `streamText`, `useChat`, tool calling, structured output, and more.
 

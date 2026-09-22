@@ -34,9 +34,9 @@ Inspect the available tool schema; namespace prefixes depend on the client.
 | Reproduce a flow | `navigate_page`, `click`, `fill`, `press_key`, `wait_for` |
 | Console failures | `list_console_messages`, `get_console_message` |
 | HTTP failures/payloads | `list_network_requests`, `get_network_request` |
-| Computed styles | `evaluate_script` with DOM reads and `getComputedStyle` |
+| Styles | `get_css_styles` (matched rules, cascade, CSS variables); `evaluate_script` with `getComputedStyle` for final values |
 | Visual evidence | `take_screenshot`, `resize_page` |
-| Performance | `performance_start_trace`, `performance_stop_trace`, `performance_analyze_insight` |
+| Performance | `performance_start_trace`, `performance_stop_trace`, `performance_analyze_insight`, `lighthouse_audit` |
 
 ## Workflow
 

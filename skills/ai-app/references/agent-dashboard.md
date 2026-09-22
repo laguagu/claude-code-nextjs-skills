@@ -116,7 +116,7 @@ import {
   ReasoningTrigger,
   ReasoningContent,
 } from '@/components/ai-elements/reasoning';
-import { Loader } from '@/components/ai-elements/loader';
+import { Spinner } from '@/components/ui/spinner';
 import { useState } from 'react';
 
 export default function AgentDashboard() {
@@ -201,7 +201,7 @@ export default function AgentDashboard() {
                 })}
               </div>
             ))}
-            {status === 'submitted' && <Loader />}
+            {status === 'submitted' && <Spinner />}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
@@ -472,4 +472,4 @@ See [Human-in-the-Loop Cookbook](https://ai-sdk.dev/cookbook/next/human-in-the-l
 For more details, see:
 - `/ai-sdk-6` skill → [agents.md](../../ai-sdk-6/references/agents.md) - Full agent API
 - `/ai-sdk-6` skill → [tools.md](../../ai-sdk-6/references/tools.md) - Tool definitions
-- `/ai-elements` skill → [chatbot.md](../../ai-elements/references/chatbot.md) - Tool component
+- `/ai-elements` skill → [tool.md](../../ai-elements/references/tool.md) - Tool component

@@ -1,6 +1,6 @@
 ---
 name: cache-components
-description: "Expert guidance for Next.js Cache Components and Partial Prerendering (PPR). Use when implementing 'use cache' directive, configuring cache lifetimes with cacheLife(), tagging cached data with cacheTag(), invalidating caches with updateTag()/revalidateTag(), optimizing static vs dynamic content boundaries, evaluating experimental 'use cache: private', pass-through/interleaving patterns, GET Route Handler caching, debugging cache issues, and reviewing Cache Component implementations."
+description: "Expert guidance for Next.js Cache Components and Partial Prerendering (PPR). Use when implementing 'use cache' directive, configuring cache lifetimes with cacheLife(), tagging cached data with cacheTag(), invalidating caches with updateTag()/revalidateTag(), optimizing static vs dynamic content boundaries, instant navigation validation, 'use cache: private', pass-through/interleaving patterns, GET Route Handler caching, debugging cache issues, and reviewing Cache Component implementations."
 metadata:
   version: "1.0"
 ---
@@ -35,8 +35,18 @@ Cache Components represents a shift from **segment configuration** to **composit
 - Put uncached I/O and request-time access below Suspense. User-specific results
   can be cached with correctly scoped keys, but sensitive data may need to stay
   uncached under the application's policy.
-- `use cache: private` is experimental. It is not a compliance guarantee; check
-  its current limitations before using it.
+- `use cache: private` was experimental through Next.js 16.2 and is part of
+  Cache Components from 16.3. It is not a compliance guarantee; check the
+  installed version's docs before using it.
+
+## Instant navigations (Next.js 16.3+)
+
+`export const instant` in a layout or page asks Next.js to validate that
+navigations into the segment show UI immediately; `false` opts a segment out.
+It requires `cacheComponents`. Read `node_modules/next/dist/docs/` for the
+installed version's `instant` reference and instant-navigation guide. The
+official workflow skills for adopting and optimizing this live in
+[vercel/next.js `skills/`](https://github.com/vercel/next.js/tree/canary/skills).
 
 ## Quick Start
 
@@ -334,7 +344,7 @@ When generating Cache Component code:
 4. **Tag meaningfully** - Use semantic tags that match your invalidation needs
 5. **Extract runtime data** - Move `cookies()`/`headers()` outside cached scope
 6. **Wrap dynamic content** - Use `<Suspense>` for non-cached async components
-7. **Keep sensitive data uncached when required** - Evaluate experimental private caching separately; it does not establish compliance.
+7. **Keep sensitive data uncached when required** - Evaluate `'use cache: private'` separately; it does not establish compliance.
 
 ## Review Checklist
 

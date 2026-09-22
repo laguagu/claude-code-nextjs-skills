@@ -1,6 +1,6 @@
 ---
 name: shadcn
-description: Manages shadcn components and projects — adding, searching, fixing, debugging, styling, and composing UI. Provides project context, component docs, and usage examples. Applies when working with shadcn/ui, component registries, presets, --preset codes, or any project with a components.json file. Also triggers for "shadcn init", "create an app with --preset", or "switch to --preset".
+description: Manages shadcn components and projects — adding, searching, fixing, debugging, styling, and composing UI, including chat interfaces. Provides project context, component docs, and usage examples. Applies when working with shadcn/ui, component registries, presets, --preset codes, or any project with a components.json file. Also triggers for "shadcn init", "create an app with --preset", or "switch to --preset".
 allowed-tools: Bash(npx shadcn@latest *) Bash(pnpm dlx shadcn@latest *) Bash(bunx --bun shadcn@latest *)
 ---
 
@@ -62,7 +62,9 @@ Use these as defaults for this design system; preserve explicit project requirem
 - **Use existing components before custom markup.** Check if a component exists before writing a styled `div`.
 - **Callouts use `Alert`.** Don't build custom styled divs.
 - **Empty states use `Empty`.** Don't build custom empty state markup.
-- **Toast via `sonner`.** Use `toast()` from `sonner`.
+- **Toast follows the project base.** Use `toast` from the `toast` component for
+  Base UI projects. Use `toast()` from `sonner` for Radix and React Aria
+  projects.
 - **Use `Separator`** instead of `<hr>` or `<div className="border-t">`.
 - **Use `Skeleton`** for loading placeholders. No custom `animate-pulse` divs.
 - **Use `Badge`** instead of custom styled spans.
@@ -72,6 +74,12 @@ Use these as defaults for this design system; preserve explicit project requirem
 - **Icons in `Button` use `data-icon`.** `data-icon="inline-start"` or `data-icon="inline-end"` on the icon.
 - **No sizing classes on icons inside components.** Components handle icon sizing via CSS. No `size-4` or `w-4 h-4`.
 - **Pass icons as objects, not string keys.** `icon={CheckIcon}`, not a string lookup.
+
+### Chat & Messaging → [chat.md](./rules/chat.md)
+
+- **Chat UI composes the chat primitives.** Conversations use `MessageScroller`, rows use `Message`, surfaces use `Bubble`. Never hand-rolled bubble `div`s or a raw scroll container.
+- **`MessageScroller` owns scroll behavior.** Streaming follow, anchoring, and jump-to-latest (`MessageScrollerButton`) are built in. Don't write a `useStickToBottom`/`ResizeObserver` hook.
+- **Attachments use `Attachment`; system notes and dividers use `Marker`.** Not `Item` cards or `Separator` + a label.
 
 ### CLI
 
@@ -127,13 +135,14 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 | Data display               | `Table`, `Card`, `Badge`, `Avatar`                                                                  |
 | Navigation                 | `Sidebar`, `NavigationMenu`, `Breadcrumb`, `Tabs`, `Pagination`                                     |
 | Overlays                   | `Dialog` (modal), `Sheet` (side panel), `Drawer` (bottom sheet), `AlertDialog` (confirmation)       |
-| Feedback                   | `sonner` (toast), `Alert`, `Progress`, `Skeleton`, `Spinner`                                        |
+| Feedback                   | `toast` (Base UI), `sonner` (Radix/Aria), `Alert`, `Progress`, `Skeleton`, `Spinner`                 |
 | Command palette            | `Command` inside `Dialog`                                                                           |
 | Charts                     | `Chart` (wraps Recharts)                                                                            |
 | Layout                     | `Card`, `Separator`, `Resizable`, `ScrollArea`, `Accordion`, `Collapsible`                          |
 | Empty states               | `Empty`                                                                                             |
 | Menus                      | `DropdownMenu`, `ContextMenu`, `Menubar`                                                            |
 | Tooltips/info              | `Tooltip`, `HoverCard`, `Popover`                                                                   |
+| Chat / conversation UI     | `MessageScroller`, `Message`, `Bubble`, `Attachment`, `Marker`                                      |
 
 ## Key Fields
 
@@ -225,22 +234,28 @@ npx shadcn@latest preset resolve --json
 # Add components.
 npx shadcn@latest add button card dialog
 npx shadcn@latest add @magicui/shimmer-button
+npx shadcn@latest add owner/repo/item
 npx shadcn@latest add --all
 
 # Preview changes before adding/updating.
 npx shadcn@latest add button --dry-run
 npx shadcn@latest add button --diff button.tsx
 npx shadcn@latest add @acme/form --view button.tsx
+npx shadcn@latest add owner/repo/item --dry-run
 
 # Search registries.
 npx shadcn@latest search @shadcn -q "sidebar"
 npx shadcn@latest search @tailark -q "stats"
+npx shadcn@latest search owner/repo -q "login"
+npx shadcn@latest search                          # all configured registries
+npx shadcn@latest search @shadcn -q "menu" -t ui  # filter by item type
 
 # Get component docs and example URLs.
 npx shadcn@latest docs button dialog select
 
 # View registry item details (for items not yet installed).
 npx shadcn@latest view @shadcn/button
+npx shadcn@latest view owner/repo/item
 ```
 
 **Named presets:** `nova`, `vega`, `maia`, `lyra`, `mira`, `luma`
@@ -251,8 +266,10 @@ npx shadcn@latest view @shadcn/button
 
 - [rules/forms.md](./rules/forms.md) — FieldGroup, Field, InputGroup, ToggleGroup, FieldSet, validation states
 - [rules/composition.md](./rules/composition.md) — Groups, overlays, Card, Tabs, Avatar, Alert, Empty, Toast, Separator, Skeleton, Badge, Button loading
+- [rules/chat.md](./rules/chat.md) — MessageScroller, Message, Bubble, Attachment, Marker; streaming, anchoring, jump-to-latest
 - [rules/icons.md](./rules/icons.md) — data-icon, icon sizing, passing icons as objects
 - [rules/styling.md](./rules/styling.md) — Semantic colors, variants, className, spacing, size, truncate, dark mode, cn(), z-index
 - [rules/base-vs-radix.md](./rules/base-vs-radix.md) — asChild vs render, Select, ToggleGroup, Slider, Accordion
 - [cli.md](./cli.md) — Commands, flags, presets, templates
+- [registry.md](./registry.md) — Authoring source registries, `include`, item definitions, dependencies, GitHub registry rules
 - [customization.md](./customization.md) — Theming, CSS variables, extending components

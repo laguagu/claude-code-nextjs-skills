@@ -29,7 +29,7 @@ export function Chat() {
 | Status | Description | UI Pattern |
 |--------|-------------|------------|
 | `ready` | Ready for input | Enable submit |
-| `submitted` | Request sent | Show Loader |
+| `submitted` | Request sent | Show a `Spinner` or `Shimmer` |
 | `streaming` | Receiving response | Show streaming indicators |
 | `error` | Request failed | Show error, enable retry |
 

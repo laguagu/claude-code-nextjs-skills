@@ -22,7 +22,8 @@ Add the following component to your frontend:
 "use client";
 
 import {
-  Input,
+  PromptInput,
+  type PromptInputMessage,
   PromptInputTextarea,
   PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
@@ -40,10 +41,9 @@ const SuggestionDemo = () => {
   const [input, setInput] = useState("");
   const { sendMessage, status } = useChat();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      sendMessage({ text: input });
+  const handleSubmit = (message: PromptInputMessage) => {
+    if (message.text.trim()) {
+      sendMessage({ text: message.text });
       setInput("");
     }
   };
@@ -65,7 +65,7 @@ const SuggestionDemo = () => {
               />
             ))}
           </Suggestions>
-          <Input
+          <PromptInput
             onSubmit={handleSubmit}
             className="mt-4 w-full max-w-2xl mx-auto relative"
           >
@@ -80,7 +80,7 @@ const SuggestionDemo = () => {
               disabled={!input.trim()}
               className="absolute bottom-1 right-1"
             />
-          </Input>
+          </PromptInput>
         </div>
       </div>
     </div>
@@ -113,14 +113,14 @@ Display AI-generated follow-up suggestions after the last assistant message:
 
 ```tsx
 import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion';
-import { Loader } from '@/components/ai-elements/loader';
+import { Spinner } from '@/components/ui/spinner';
 
 // After your message list in ConversationContent:
 {!isGenerating && (isLoadingSuggestions || suggestions.length > 0) && (
   <div className="pt-2">
     {isLoadingSuggestions ? (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Loader size={12} />
+        <Spinner className="size-3" />
         <span>Loading suggestions…</span>
       </div>
     ) : (

@@ -5,7 +5,9 @@ description: Next.js App Router best practices covering file conventions, RSC bo
 
 # Next.js Best Practices
 
-Apply these rules when writing or reviewing Next.js code.
+Apply these rules when writing or reviewing Next.js code. Next.js ships
+version-matched docs in `node_modules/next/dist/docs/`; when they disagree with
+this skill, the installed docs win.
 
 > **Cache Components patterns**: When the project has `cacheComponents: true` in `next.config.ts`,
 > use the separate `cache-components` skill for `'use cache'`, `cacheLife()`, `cacheTag()`,

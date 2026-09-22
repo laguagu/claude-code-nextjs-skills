@@ -1,7 +1,6 @@
 "use client";
 
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
-
 import {
   PromptInput,
   PromptInputButton,
@@ -32,7 +31,7 @@ const suggestions: { key: string; value: string }[] = [
 ];
 
 const models = [
-  { id: "gpt-5.6", name: "GPT-5.6" },
+  { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
   { id: "gpt-5.6-luna", name: "GPT-5.6 Luna" },
   { id: "claude-opus-5", name: "Claude Opus 5" },
   { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
@@ -125,9 +124,9 @@ const Example = () => {
                 <PromptInputSelectValue />
               </PromptInputSelectTrigger>
               <PromptInputSelectContent>
-                {models.map((model) => (
-                  <PromptInputSelectItem key={model.id} value={model.id}>
-                    {model.name}
+                {models.map((m) => (
+                  <PromptInputSelectItem key={m.id} value={m.id}>
+                    {m.name}
                   </PromptInputSelectItem>
                 ))}
               </PromptInputSelectContent>
