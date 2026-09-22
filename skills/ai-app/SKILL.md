@@ -26,10 +26,12 @@ Scaffold an AI web app, then use the version-specific SDK and UI references.
    ```
 
 4. Select the SDK major before installing compatible provider and React
-   packages. The bundled templates target **AI SDK 6**: `ai@6`,
-   `@ai-sdk/react@3`, and provider packages compatible with v6 (for example
-   `@ai-sdk/anthropic@3`). For v7, use `ai-sdk-7` and its migration guidance;
-   do not copy v6 response methods into v7 code.
+   packages. A new app starts on **AI SDK 7** (`ai@7`, `@ai-sdk/react@4`,
+   providers such as `@ai-sdk/anthropic@4`). The bundled templates are still
+   written for **AI SDK 6** (`ai@6`, `@ai-sdk/react@3`, `@ai-sdk/anthropic@3`):
+   in a v7 app, adapt them with `ai-sdk-7`'s migration checklist (or run
+   `npx @ai-sdk/codemod v7` after copying them) and typecheck; do not copy v6
+   response methods into v7 code unchanged.
 5. Add only the AI Elements components the app needs. Inspect their installed
    source for props; registry components can evolve independently of the SDK.
 6. Configure the selected provider's server-side environment variables and a
