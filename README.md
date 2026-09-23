@@ -120,9 +120,8 @@ custom rule `Always use bun, not npm`; [CLAUDE.md](CLAUDE.md) references it.
 In Claude Code, run `/plugin marketplace update laguagu`, then
 `/plugin update claude-code-nextjs-skills@laguagu`.
 
-Maintainers: edit shared skills in `~/.agents/skills/`; this checkout links there.
-Git publishes regular files. Compare upstream updates before merging so local
-customizations and licenses survive. Validate skills with
+Maintainers: compare upstream updates before merging so local customizations and
+licenses survive. Validate skills with
 `uvx --from skills-ref agentskills validate <skill-folder>` and manifests with
 `claude plugin validate .claude-plugin/plugin.json` and
 `claude plugin validate .claude-plugin/marketplace.json`.
