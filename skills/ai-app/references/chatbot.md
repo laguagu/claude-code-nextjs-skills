@@ -457,7 +457,7 @@ export async function POST(req: Request) {
     await req.json();
 
   const { output } = await generateText({
-    model: openai('gpt-5.6-luna'),
+    model: openai('gpt-6-luna'),
     output: Output.array({
       schema: z.string().describe('A follow-up question'),
     }),

@@ -35,7 +35,7 @@ from agents import Agent, ModelSettings
 from agents.extensions.models.litellm_model import LitellmModel
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "azure")  # this project's own convention, not SDK-mandated
-MODEL = os.getenv("MODEL", "gpt-5.6-sol")  # Azure: the deployment name, not the catalog ID
+MODEL = os.getenv("MODEL", "gpt-6-sol")  # Azure: the deployment name, not the catalog ID
 
 def get_model() -> Union[str, LitellmModel]:
     """Get model based on provider."""
@@ -115,7 +115,7 @@ def dynamic_instructions(
 agent = Agent(
     name="DynamicBot",
     instructions=dynamic_instructions,  # Function instead of string
-    model="gpt-5.6-sol",
+    model="gpt-6-sol",
 )
 
 result = await Runner.run(
@@ -138,7 +138,7 @@ def load_prompt(filename: str) -> str:
 agent = Agent(
     name="Planner",
     instructions=load_prompt("planner.md"),
-    model="gpt-5.6-sol",
+    model="gpt-6-sol",
 )
 ```
 

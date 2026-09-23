@@ -28,8 +28,8 @@ const models = [
   {
     chef: "OpenAI",
     chefSlug: "openai",
-    id: "gpt-5.6-luna",
-    name: "GPT-5.6 Luna",
+    id: "gpt-6-luna",
+    name: "GPT-6 Luna",
     providers: ["openai", "azure"],
   },
   {

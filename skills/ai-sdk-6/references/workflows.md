@@ -81,7 +81,7 @@ async function handleCustomerQuery(query: string) {
   const { text: response } = await generateText({
     model:
       classification.complexity === "simple"
-        ? openai("gpt-5.6-luna")
+        ? openai("gpt-6-luna")
         : openai("gpt-5.6-terra"),
     system: {
       general: "You handle general inquiries.",
