@@ -385,7 +385,7 @@ import { ToolLoopAgent, stepCountIs } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
 export const searchAgent = new ToolLoopAgent({
-  model: openai('gpt-5.6-terra'),
+  model: openai('gpt-6-sol'),
   instructions: 'Search the web and provide accurate information with sources.',
   tools: {
     web_search: openai.tools.webSearch({

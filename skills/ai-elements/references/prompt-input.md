@@ -87,7 +87,7 @@ const PromptInputAttachmentsDisplay = () => {
 };
 
 const models = [
-  { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
+  { id: "gpt-6-sol", name: "GPT-6 Sol" },
   { id: "claude-opus-5", name: "Claude Opus 5" },
 ];
 

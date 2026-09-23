@@ -89,7 +89,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
-    model: "openai/gpt-5.6-terra",
+    model: "openai/gpt-6-sol",
     messages,
     tools: {
       runCode: tool({

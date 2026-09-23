@@ -157,7 +157,7 @@ export async function POST(req: Request) {
   const { prompt } = await req.json();
 
   const result = streamObject({
-    model: "openai/gpt-5.6-terra",
+    model: "openai/gpt-6-sol",
     schema: tasksSchema,
     prompt: `You are an AI assistant that generates realistic development task workflows. Generate a set of tasks that would occur during ${prompt}.
 
