@@ -1,6 +1,6 @@
 ---
 name: go
-description: Opens the running app in a browser and verifies that recent UI changes actually work. Use for any quick smoke test of recent work — "go", "test in browser", "testaa selaimessa", "make sure it works", "varmista että toimii", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For design critique, use go-ui or web-design-guidelines.
+description: Opens the running app in a browser and verifies that recent UI changes actually work. Use for any quick smoke test of recent work — "go", "test in browser", "check in browser", "make sure it works", "verify it works", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For design critique, use go-ui or web-design-guidelines.
 ---
 
 # /go — Browser check
