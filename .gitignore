@@ -31,3 +31,4 @@ skills/vercel-optimize/
 # holds only the published skills, so it does not need them.
 /scripts/
 /.githooks/
+skills/search-console/
