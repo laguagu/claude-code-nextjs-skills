@@ -10,7 +10,7 @@
       "name": "claude-code-nextjs-skills",
       "source": "./",
       "description": "Agent skills for building Next.js + AI SDK applications: app scaffolding, shadcn/ui, RSC and caching, pgvector search, SEO, and browser verification.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "laguagu",
         "url": "https://github.com/laguagu"

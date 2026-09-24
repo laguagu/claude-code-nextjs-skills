@@ -162,6 +162,20 @@ export const config = {
 }
 ```
 
+## Design-system lint (@shadcn/lint)
+
+Principle 4 is checkable. `@shadcn/lint` (ESLint or Oxlint plugin, Tailwind v4)
+flags restyled components (`<Button className="px-8 bg-blue-600">`), raw palette
+colors, arbitrary values, inline styles and classes Tailwind cannot generate —
+and each error names the variant, size or theme token to use instead, read from
+`components.json`, the component files and `globals.css`.
+
+When the project has it configured, run the lint after UI changes and fix every
+finding before calling the view done. Suggest adding it to new projects and to
+existing ones where agent-written UI keeps drifting off the theme; setup and a
+tested config are in
+[references/shadcn-platform.md](references/shadcn-platform.md#design-system-lint).
+
 ## Dev Tools (next-devtools-mcp)
 
 Next.js 16+ ships an MCP endpoint at `/_next/mcp` that exposes the dev server's
@@ -216,7 +230,7 @@ Details and the full class tables: [references/shadcn-platform.md](references/sh
 
 - **Architecture**: [references/architecture.md](references/architecture.md) - Components, routing, Suspense, data patterns, AI directory structure
 - **Styling**: [references/styling.md](references/styling.md) - Themes, fonts, radius, animations, CSS variables
-- **shadcn Platform**: [references/shadcn-platform.md](references/shadcn-platform.md) - Base UI vs Radix vs React Aria, CLI verbs, typeset, shimmer, scroll-fade, RTL, package imports
+- **shadcn Platform**: [references/shadcn-platform.md](references/shadcn-platform.md) - Base UI vs Radix vs React Aria, CLI verbs, typeset, shimmer, scroll-fade, RTL, package imports, @shadcn/lint
 - **Sidebar**: [references/sidebar.md](references/sidebar.md) - shadcn sidebar with nested layouts, blocks, RTL
 - **Project Setup**: [references/project-setup.md](references/project-setup.md) - bun commands, presets
 - **Official shadcn skill**: `bunx --bun skills add shadcn/ui` - live project config + CLI/registry reference. Install alongside this skill; it covers CLI mechanics, this one covers conventions.

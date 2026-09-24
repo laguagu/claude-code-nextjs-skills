@@ -22,7 +22,7 @@ activate from your request.
 | Skill | Description |
 |-------|-------------|
 | [ai-app](skills/ai-app/) | Full-stack AI app (chatbots, agents, dashboards) |
-| [nextjs-shadcn](skills/nextjs-shadcn/) | Next.js 16 + shadcn/ui + bun |
+| [nextjs-shadcn](skills/nextjs-shadcn/) | Next.js 16 + shadcn/ui + bun, design-system lint via [@shadcn/lint](https://github.com/shadcn-ui/lint) |
 | [nextjs-chatbot](skills/nextjs-chatbot/) | Web chatbot patterns (HITL, persistence, streaming) |
 
 ### 🎨 UI & Design

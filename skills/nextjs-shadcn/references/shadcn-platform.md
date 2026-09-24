@@ -248,6 +248,72 @@ whichever alias style is configured.
 **Default to `@/` for new projects.** In an existing project, read
 `components.json` and follow what is already there — never mix both styles.
 
+## Design-system lint
+
+[`@shadcn/lint`](https://github.com/shadcn-ui/lint) is an agent-first linter for
+Tailwind v4 design systems. It discovers components, variants, sizes and theme
+tokens from `components.json`, so a shadcn project needs no extra settings.
+
+| Rule | Catches |
+|------|---------|
+| `no-restyle` | `className` that overrides a component's color, shape, spacing, typography or effects |
+| `no-raw-colors` | Tailwind palette colors (`bg-pink-500`) instead of theme tokens |
+| `no-arbitrary-values` | `p-[13px]` — suggests the on-scale equivalent |
+| `no-inline-styles` | `style={{ ... }}` and `<style>` elements |
+| `no-unknown-classes` | Classes Tailwind cannot generate (`rounded-huge`) |
+| `require-static-classes` | Component classes the linter cannot read (`` `bg-${color}` ``) |
+
+Use the linter already in the project. With none, Oxlint is faster:
+
+```bash
+bun add -d @shadcn/lint oxlint
+```
+
+```json filename=".oxlintrc.json"
+{
+  "jsPlugins": ["@shadcn/lint"],
+  "rules": {
+    "shadcn/no-restyle": ["error", { "allow": ["layout"] }],
+    "shadcn/no-raw-colors": "error",
+    "shadcn/no-arbitrary-values": "error",
+    "shadcn/no-inline-styles": "error",
+    "shadcn/require-static-classes": "error",
+    "shadcn/no-unknown-classes": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["components/ui/**"],
+      "rules": {
+        "shadcn/no-restyle": "off",
+        "shadcn/no-arbitrary-values": "off",
+        "shadcn/require-static-classes": "off"
+      }
+    }
+  ]
+}
+```
+
+The `components/ui/**` override is required: the shadcn components themselves
+use arbitrary values such as `rounded-[min(var(--radius-md),10px)]` and would
+otherwise fail. Adjust the path to the project's `ui` alias.
+
+For ESLint, register it in the existing flat config instead:
+`import { plugin as shadcn } from "@shadcn/lint"`, then `plugins: { shadcn }`
+and the same rules, followed by the same `files: ["components/ui/**"]` override.
+
+- `allow: ["layout"]` keeps margin, width and positioning free on components;
+  per-component exceptions go in `contracts`, e.g.
+  `{ "pattern": "^Button$", "allow": ["w-full", "mt-*"] }`.
+- In an existing project start at `warn` with `--max-warnings <current count>`
+  and tighten over time rather than fixing hundreds of findings at once.
+- A `no-raw-colors` "nearest token" is the closest color, not the right
+  meaning: `text-gray-600` may suggest `text-chart-3`, where the intent is
+  `text-muted-foreground`. Pick by role.
+
+Rule options, contracts and custom messages:
+[docs/rules.md](https://github.com/shadcn-ui/lint/blob/main/docs/rules.md),
+[docs/design-systems.md](https://github.com/shadcn-ui/lint/blob/main/docs/design-systems.md).
+
 ## Registries
 
 Beyond `@shadcn`, the CLI resolves namespaced registries (`@acme/button`),
