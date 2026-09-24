@@ -72,9 +72,8 @@ Only reach for a package when the project needs dozens of icons from one set:
 
 Still the best source for product and company logos in colour, with light/dark variants.
 
-Register the svgl registry once in `components.json`, then add logos by name — svgl's
-docs are explicit that the full `https://svgl.app/r/<name>.json` URL is *not* passed to
-the CLI:
+Register the svgl registry once in `components.json`, then add logos by name through
+the `@svgl` namespace, as svgl's docs show:
 
 ```jsonc
 // components.json
@@ -93,6 +92,13 @@ Resolve the exact name before installing:
 - `https://api.svgl.app?search=<query>` — search
 - `https://api.svgl.app/categories` then `https://api.svgl.app/category/<category>` — browse
 - `https://api.svgl.app/svg/<name>.svg` — raw markup
+
+`<name>` is the lowercased title (`OpenAI` → `openai`). `search` matches brand names
+only, so a concept ("LLM logos", "databases") goes through categories: show the
+candidates and install the ones the user confirms. Take the category spelling from
+`/categories` — `AI` resolves only in uppercase (`/category/ai` is a 404). Each entry's
+`route` is either a URL or a `{light, dark}` pair, and some entries carry a separate
+`wordmark`; pick the variant that suits the surface the logo lands on.
 
 svgl is **software and brand logos only**. Its categories are Software, Framework, AI,
 Library, Payment, Design and similar — there are no flags, no file types, no UI glyphs.

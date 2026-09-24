@@ -1,14 +1,14 @@
 ---
 name: go
-description: Opens the running app in a browser and verifies recent UI changes actually work. Use whenever the user wants a quick smoke test or sanity check of recent work, or says "go", "open in browser", "check in browser", "test your work", "make sure it works", "smoke test", "verify", "did it actually work", "make sure the form/page works", "check the form submits", "works on mobile" — even when they don't explicitly ask for browser testing. Also activates implicitly when the user appends "...and make sure it works" to a UI request. For design critique, use web-design-guidelines or frontend-design.
+description: Opens the running app in a browser and verifies that recent UI changes actually work. Use for any quick smoke test of recent work — "go", "test in browser", "testaa selaimessa", "make sure it works", "varmista että toimii", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For design critique, use go-ui or web-design-guidelines.
 ---
 
 # /go — Browser check
 
-Verify your work in the browser instead of trusting that code compiles. Use whatever browser tools the environment offers (Chrome extension, next-devtools MCP, chrome-devtools MCP, Playwright — whichever is reachable). If `chrome-devtools` MCP is available and you need console errors, network status, or computed styles to confirm the fix, prefer it over a blind reload. If login is needed, credentials usually live in `.env.local` or the project's secrets manager.
+Verify the work in a real browser instead of trusting that it compiles. Use whichever browser tooling is available and fits the check best.
 
-Two things are easy to miss:
-- **Functional verification** — did the page actually return what was expected? Searching for "X" should show results containing X, not just render without errors.
-- **Console and network** — JS errors and 4xx/5xx are silent killers.
+Easy to miss:
+- **Functional result** — the page does what was intended, not just renders. A search for "X" shows results about X.
+- **Console and network** — JS errors and failed requests (4xx/5xx) break things silently.
 
-If something is broken, fix → reload → verify again. Don't thrash on the same issue — ask for direction instead.
+If login is needed, look for test credentials in the project's env files or secrets manager. If something is broken, fix and verify again; when the same issue keeps failing, ask for direction.
