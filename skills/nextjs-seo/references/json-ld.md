@@ -7,7 +7,7 @@ Structured data helps search engines understand your content and enables rich re
 - [Implementation Pattern](#implementation-pattern)
 - [Common Schemas](#common-schemas) — WebSite, Organization, WebApplication, FAQPage, Product, Article, BreadcrumbList
 - [Deprecated / no longer rich-result-eligible](#deprecated--no-longer-rich-result-eligible)
-- [Which schema types still drive rich results (2026)](#which-schema-types-still-drive-rich-results-2026)
+- [Which schema types still drive rich results](#which-schema-types-still-drive-rich-results)
 - [@graph multi-entity pattern](#graph-multi-entity-pattern)
 - [Structured data for AI search](#structured-data-for-ai-search)
 - [Usage in Next.js](#usage-in-nextjs)
@@ -160,7 +160,7 @@ const productSchema = {
     url: 'https://your-site.com/product',
     priceCurrency: 'EUR',
     price: '99.99',
-    priceValidUntil: '2026-12-31', // use a real future date
+    priceValidUntil: 'YYYY-MM-DD', // a real future date
     availability: 'https://schema.org/InStock',
     itemCondition: 'https://schema.org/NewCondition',
   },
@@ -177,7 +177,7 @@ const productSchema = {
 Google treats `Product` markup as two distinct experiences:
 
 - **(a) Product snippet** — for editorial / non-purchase pages (reviews, roundups, comparisons). Supports review features (`aggregateRating` / `review`) and pros & cons via `positiveNotes` / `negativeNotes`. No price required.
-- **(b) Merchant listing experience** — for pages where the product is purchasable. Needs `offers` with `price` + `priceCurrency` + `availability`, and benefits from `shippingDetails` and `hasMerchantReturnPolicy` for richer shopping results.
+- **(b) Merchant listing experience** — for pages where the product is purchasable. Requires `name`, `image` and `offers` with `price` + `priceCurrency`; `availability`, `shippingDetails` and `hasMerchantReturnPolicy` are recommended (shipping and returns can be declared once under `Organization` or in Merchant Center). Pros & cons are only shown for editorial review pages, not merchant pages.
 
 For products with variants, use `ProductGroup` with `hasVariant`, `variesBy`, and a stable `productGroupID`:
 
@@ -257,19 +257,19 @@ Do **not** implement these for SERP rich results — Google no longer renders th
 
 - **FAQ** — removed for all sites as of 2026-05-07.
 - **HowTo** — deprecated September 2023.
-- The 6 features Google retired in 2025 (Book Actions was initially on this list but was un-deprecated in June 2025 — it remains limited to large book providers):
+- The 6 features Google retired in 2025 (Book Actions was announced with them in June 2025, but the deprecation was withdrawn in November 2025; it stays limited to large book providers):
   - Course Info
-  - Claim Review / Fact Check
+  - Claim Review / Fact Check (still used by Fact Check Explorer)
   - Estimated Salary
   - Learning Video
   - Special Announcement
   - Vehicle Listing
-- **Practice Problems** — deprecated June 2025; support fully removed January 2026.
+- **Practice Problems** — deprecated November 2025; removed from Search Console and the Rich Results Test in January 2026.
 - **Dataset** markup is only used by [Dataset Search](https://datasetsearch.research.google.com/), not Google Search results (clarified November 2025).
 
 You may still emit some of these as machine-readable signals (e.g. for AI / LLM extraction), but expect zero visible SERP enhancement from Google.
 
-## Which schema types still drive rich results (2026)
+## Which schema types still drive rich results
 
 Google's [Search Gallery](https://developers.google.com/search/docs/appearance/structured-data/search-gallery) is the source of truth for which structured-data types are currently eligible for rich results — check it before investing in any schema. High-value types for typical Next.js sites:
 

@@ -2,7 +2,7 @@
 
 ## Contents
 
-- [Sitemap Configuration](#sitemap-configuration) — basic, dynamic, image, video, multiple, localized sitemaps
+- [Sitemap Configuration](#sitemap-configuration) — basic, dynamic, image, video, multiple, localized sitemaps + hreflang rules
 - [Robots.txt Configuration](#robotstxt-configuration)
 - [Static file conventions](#static-file-conventions)
 - [Sitemap Best Practices](#sitemap-best-practices)
@@ -90,6 +90,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
           title: 'Video Title',
           thumbnail_loc: 'https://your-site.com/thumbnail.jpg',
           description: 'Video description',
+          // Google requires content_loc or player_loc; Next.js's own example omits it
+          content_loc: 'https://your-site.com/video.mp4',
         },
       ],
     },
@@ -130,28 +132,36 @@ export default async function sitemap(props: {
 > served at `/.../sitemap/[id].xml` relative to the file's route segment — so a
 > root `app/sitemap.ts` with `generateSitemaps` yields `/sitemap/0.xml`, while
 > `app/products/sitemap.ts` yields `/products/sitemap/0.xml`.
+>
+> Next.js does **not** generate a sitemap index for `generateSitemaps`. List each
+> child in `robots.ts` (`sitemap` accepts an array) or submit them individually.
 
-### Localized Sitemap
+### Localized Sitemap and hreflang
 
 ```typescript
 // app/sitemap.ts
 import type { MetadataRoute } from 'next';
 
+const languages = {
+  en: 'https://your-site.com/en',
+  fi: 'https://your-site.com/fi',
+  'x-default': 'https://your-site.com/en',
+};
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: 'https://your-site.com',
-      alternates: {
-        languages: {
-          en: 'https://your-site.com/en',
-          fi: 'https://your-site.com/fi',
-          sv: 'https://your-site.com/sv',
-        },
-      },
-    },
-  ];
+  // One entry per language version; each lists every version, itself included
+  return [languages.en, languages.fi].map((url) => ({
+    url,
+    alternates: { languages },
+  }));
 }
 ```
+
+Google's hreflang rules apply to both `alternates.languages` in metadata and the
+sitemap: each version lists itself and every other version (tags without return
+links are ignored), URLs are absolute, codes are ISO 639-1 language with an
+optional ISO 3166-1 alpha-2 region (`en`, `en-GB`), and `x-default` marks the
+fallback. Google detects page language from content, not from hreflang or `lang`.
 
 ## Robots.txt Configuration
 
@@ -195,7 +205,7 @@ export default function robots(): MetadataRoute.Robots {
         // group only when no group matches, and Google states specific and `*`
         // groups are never combined — so repeat every disallow here
         disallow: ['/api/', '/admin/'],
-        crawlDelay: 2, // optional; Googlebot ignores crawl-delay, Bing/Yandex honor it
+        crawlDelay: 2, // optional; Google and Yandex ignore crawl-delay, Bing honors it
       },
       {
         userAgent: 'GPTBot',
@@ -215,7 +225,7 @@ export default function robots(): MetadataRoute.Robots {
 > **AI crawlers**: Blanket-blocking `GPTBot` only opts out of **training** — it
 > does not block citation/search bots. Citation bots (`OAI-SearchBot`,
 > `PerplexityBot`) should usually stay **allowed** so your content can be cited.
-> AI crawler control (training vs search/citation bots, the full 2026 user-agent
+> AI crawler control (training vs search/citation bots, the current user-agent
 > list, and a recommended pattern) lives in [ai-search.md](ai-search.md).
 
 ### Environment-Based Robots
@@ -289,10 +299,10 @@ Sitemap: https://your-site.com/sitemap.xml
 | Guideline | Recommendation |
 |-----------|----------------|
 | Max URLs per sitemap | 50,000 |
-| Max file size | 50 MB |
+| Max file size | 50 MB uncompressed |
 | Update frequency | Match actual content changes |
 | Priority values | Omit; Google ignores them |
-| Include only | Canonical, indexable, 200-status pages |
+| Include only | Absolute URLs of canonical, indexable, 200-status pages |
 
 ## Robots.txt Best Practices
 
@@ -306,6 +316,6 @@ Sitemap: https://your-site.com/sitemap.xml
 Per-rule fields: `userAgent`, `allow`, `disallow`, `crawlDelay?: number`.
 Top-level fields: `sitemap`, `host`.
 
-- `crawlDelay?: number` — seconds between requests. **Googlebot ignores
-  crawl-delay; Bing/Yandex honor it.**
+- `crawlDelay?: number` — seconds between requests. **Google ignores it, and
+  Yandex has ignored it since 2018; Bing honors it.**
 - `host` — non-standard, ignored by Google (see `host` caveat above).

@@ -43,7 +43,7 @@ blanket allow/block list.
 |--------|----------|--------|--------------------------|
 | OpenAI | GPTBot | OAI-SearchBot | ChatGPT-User |
 | Anthropic | ClaudeBot | Claude-SearchBot | Claude-User |
-| Perplexity | Verify current policy | PerplexityBot | Perplexity-User |
+| Perplexity | None (PerplexityBot is not used for training) | PerplexityBot | Perplexity-User |
 
 Google Search and its AI features use Googlebot controls. `Google-Extended`
 has no separate HTTP user agent: it is a robots product token controlling both
@@ -53,7 +53,10 @@ promise that blocking it has no effect on all AI referral channels.
 
 Blocking a search crawler can prevent direct content retrieval; it does not
 prove that a URL or brand can never be mentioned through other sources.
-User-initiated fetchers may treat robots differently; follow each vendor's docs.
+User-initiated fetchers differ: OpenAI says robots.txt "may not apply" to
+ChatGPT-User, Perplexity-User generally ignores it, and Anthropic says all three
+of its bots honor it. Each vendor's settings are independent, so allowing
+OAI-SearchBot while disallowing GPTBot is a valid policy.
 
 robots.txt is voluntary and is not authorization or access control. Inspect
 hosting firewall rules separately when diagnosing denied public crawls. A

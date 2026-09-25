@@ -5,8 +5,6 @@ description: Next.js App Router SEO optimization and auditing. Use when implemen
 
 # Next.js SEO Optimization
 
-Comprehensive SEO guide for Next.js App Router applications.
-
 ## Start with evidence and useful content
 
 Read the installed Next.js version and relevant `node_modules/next/dist/docs/`
@@ -48,9 +46,9 @@ Run this checklist for any Next.js project:
 ```typescript
 import type { Metadata, Viewport } from 'next';
 
-// Viewport must be a separate export — `themeColor`, `colorScheme`, and
-// `viewport` inside the `metadata` object are deprecated (since v14: still
-// emitted with a warning today, not guaranteed to stay).
+// Viewport must be a separate export. `themeColor`, `colorScheme` and
+// `viewport` inside `metadata` are dropped: Next.js 16 emits no tag, only an
+// "Unsupported metadata" build warning.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -133,10 +131,8 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: ['/api/', '/admin/'],
-        // Do NOT disallow /_next/ — crawlers need render-critical CSS/JS
-        // Do NOT add bot-specific rules (Googlebot, Bingbot) unless overriding wildcard —
-        // and if you do, repeat all disallows: named groups don't inherit `*` rules
-        // (RFC 9309 §2.2.1; Google never merges a specific group with `*`)
+        // Never disallow /_next/: crawlers need render-critical CSS/JS.
+        // A named group (Googlebot, OAI-SearchBot…) ignores these rules; see mistake 11.
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
@@ -155,8 +151,8 @@ Same `MetadataRoute` family as sitemap/robots, placed at the root of `app/`. **N
 Three ways to set social images — prefer the file conventions over hand-syncing URLs in the metadata object:
 
 1. **External URL in metadata** (the `openGraph.images` / `twitter.images` examples above) — fine for externally hosted images.
-2. **Static file convention (recommended default):** drop `opengraph-image.(png|jpg|gif)` and/or `twitter-image.*` into a route segment (`app/opengraph-image.png` for the root, `app/blog/opengraph-image.png` for `/blog`). Next.js auto-emits `og:image`/`twitter:image` + `:type/:width/:height`. A deeper, more specific image overrides one above it. Add alt text with a sibling `opengraph-image.alt.txt`. Build fails if the file exceeds 8 MB (OG) / 5 MB (Twitter).
-3. **Dynamic generation with `ImageResponse`** (per-page/per-post images): an `opengraph-image.tsx` in the route segment exporting `alt`, `size`, `contentType` and a default `Image({ params })` (params is a Promise in v16) that returns `new ImageResponse(<jsx/>, { ...size })`. Renders via Satori — **flexbox only, no `display: grid`**; statically optimized at build time unless it reads request-time data. Full example, fonts, `generateImageMetadata` and the favicon/`icon.tsx`/`apple-icon` conventions: [references/metadata-api.md](references/metadata-api.md).
+2. **Static file convention (recommended default):** drop `opengraph-image.(jpg|jpeg|png|gif)` and/or `twitter-image.*` into a route segment (`app/opengraph-image.png` for the root, `app/blog/opengraph-image.png` for `/blog`). Next.js auto-emits `og:image`/`twitter:image` + `:type/:width/:height`. A deeper, more specific image overrides one above it. Add alt text with a sibling `opengraph-image.alt.txt`. Build fails if the file exceeds 8 MB (OG) / 5 MB (Twitter).
+3. **Dynamic generation with `ImageResponse`** (per-page/per-post images): an `opengraph-image.tsx` in the route segment exporting `alt`, `size`, `contentType` and a default `Image({ params })` (params is a Promise in v16) that returns `new ImageResponse(<jsx/>, { ...size })`. Renders via Satori — **flexbox only, no `display: grid`**, 500 KB bundle cap (JSX, fonts, images), fonts `ttf`/`otf`/`woff` only; statically optimized at build time unless it reads request-time data. Full example, fonts, `generateImageMetadata` and the favicon/`icon.tsx`/`apple-icon` conventions: [references/metadata-api.md](references/metadata-api.md).
 
 ## Key Principles
 
@@ -185,8 +181,8 @@ marketing and legal pages also need timely publication and invalidation.
 **Key rules:**
 - `"use cache"` must be the first statement in the function body (or at the top of the file for file-level caching)
 - No `cookies()`/`headers()`/runtime `searchParams` inside a plain `"use cache"` scope. Keep public content separate from personalized data; do not accidentally cache private information for all users. Check the installed docs before using experimental private caching.
-- Invalidate with `updateTag("hero")` inside a Server Action (read-your-writes; it throws outside one), or `revalidateTag("hero", "max")` from a Route Handler / webhook (pass the profile — the one-argument form is legacy behaviour) — prefer these over `export const revalidate`
-- Choose cache lifetimes from actual freshness requirements, not an SEO preference for long caches. Verify `next build`, the served content and publish-time invalidation. Legacy route options such as `revalidate` are disabled with Cache Components; without it, follow the installed version's supported cache model.
+- Invalidate with `updateTag("hero")` inside a Server Action (read-your-writes; it throws outside one), or `revalidateTag("hero", "max")` from a Route Handler / webhook (the one-argument form is deprecated)
+- Route segment exports `revalidate`, `dynamic` and `fetchCache` error with Cache Components enabled; without it, follow the installed version's cache model. Verify `next build`, the served content and publish-time invalidation.
 - A database read does not by itself make a sitemap update after deployment. Configure and verify its refresh/invalidation path. Metadata can be static or runtime-dependent; inspect the route rather than assuming.
 
 ### Rendering Strategy for SEO
@@ -205,9 +201,9 @@ be server-prerendered; `"use client"` does not mean its content is absent from H
 
 | Metric | Target | Impact |
 |--------|--------|--------|
-| LCP (Largest Contentful Paint) | < 2.5s | Loading speed |
-| INP (Interaction to Next Paint) | < 200ms | Interactivity |
-| CLS (Cumulative Layout Shift) | < 0.1 | Visual stability |
+| LCP (Largest Contentful Paint) | ≤ 2.5s | Loading speed |
+| INP (Interaction to Next Paint) | ≤ 200ms | Interactivity |
+| CLS (Cumulative Layout Shift) | ≤ 0.1 | Visual stability |
 
 - Use the 75th percentile of field measurements, segmented by device. Evaluate
   each metric separately; this does not mean the same 75% of visits pass all
@@ -232,11 +228,11 @@ be server-prerendered; `"use client"` does not mean its content is absent from H
 2. **Missing canonical URLs** - Set a self-referencing `alternates.canonical` when duplicate/parameterized URLs are a risk; it's a hint, not a requirement — Google may pick its own canonical
 3. **Using CSR for SEO pages** - Use SSG/SSR for indexable content
 4. **Blocking `/_next/` in robots.txt** - Crawlers need render-critical CSS/JS; never disallow `/_next/`
-5. **Missing metadataBase** - Required for relative URLs in metadata
-6. **Viewport in metadata** - Must be a separate export
+5. **Missing metadataBase** - Not a build error: relative OG/Twitter image URLs fall back to the Vercel deployment URL or `http://localhost:3000` with only a warning, and relative canonical/hreflang URLs stay relative (Google requires absolute hreflang URLs)
+6. **Viewport in metadata** - `themeColor`/`colorScheme`/`viewport` in `metadata` are ignored; use `export const viewport`
 7. **Mixing metadata object and generateMetadata** - Use one or the other in the same route segment
 8. **Duplicating icons in metadata + file conventions** - Prefer `favicon.ico`/`icon.*`/`opengraph-image.*` file conventions; they auto-emit tags and override the metadata object
-9. **Blanket-blocking AI crawlers** - `GPTBot disallow: /` blocks training but leaves you in AI search; don't accidentally block citation bots (OAI-SearchBot, PerplexityBot). See [references/ai-search.md](references/ai-search.md)
+9. **Blanket-blocking AI crawlers** - `GPTBot disallow: /` blocks training but leaves you in AI search; don't accidentally block search bots (OAI-SearchBot, Claude-SearchBot, PerplexityBot). See [references/ai-search.md](references/ai-search.md)
 10. **Adding the `keywords` meta tag for Google** - Google ignores it entirely (no indexing or ranking effect); it's noise, not a signal
 11. **Assuming named robots.txt groups inherit `*` rules** - Per RFC 9309 §2.2.1 the `*` group applies only when no group matches, and Google never merges a specific group with `*`. A `{ userAgent: 'OAI-SearchBot', allow: '/' }` group drops the wildcard's `/api/`/`/admin/` disallows — repeat them in every named group
 12. **Trusting browser view for bot metadata** - Check status, headers and the complete production response for Googlebot and a relevant HTML-limited bot. Streaming may place metadata outside the initial head. A spoofed User-Agent tests response behavior, not Google's actual crawl access or indexing; use URL Inspection and verified bot logs where available.

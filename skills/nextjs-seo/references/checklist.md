@@ -42,11 +42,10 @@ do not manufacture failures because a small site lacks every item below.
 
 ### Core Web Vitals
 
-- [ ] LCP (Largest Contentful Paint) < 2.5s
-- [ ] INP (Interaction to Next Paint) < 200ms
-- [ ] INP optimized (INP replaced FID in March 2024)
-- [ ] CLS (Cumulative Layout Shift) < 0.1
-- [ ] CWV checked on FIELD data (PageSpeed Insights / Search Console CrUX, 75th percentile) — not just Lighthouse (Lighthouse can't measure INP)
+- [ ] LCP (Largest Contentful Paint) ≤ 2.5s
+- [ ] INP (Interaction to Next Paint) ≤ 200ms (INP replaced FID in March 2024)
+- [ ] CLS (Cumulative Layout Shift) ≤ 0.1
+- [ ] CWV checked on FIELD data (PageSpeed Insights / Search Console CrUX, 75th percentile) — not just Lighthouse (a page-load run can't measure INP; TBT is only a lab proxy)
 - [ ] Mobile parity — same content/metadata/structured-data on mobile (mobile-first indexing complete since July 2024)
 
 ## Important (Should Have)
@@ -97,7 +96,7 @@ do not manufacture failures because a small site lacks every item below.
 
 ### International (if applicable)
 
-- [ ] `hreflang` tags for language versions
+- [ ] `hreflang`: every version lists itself and all others, absolute URLs, `x-default` fallback
 - [ ] Localized sitemaps
 - [ ] Language-specific metadata
 

@@ -12,7 +12,7 @@ Complete guide for implementing SEO metadata in Next.js App Router.
 - OG / Twitter images: file conventions + `ImageResponse` + `generateImageMetadata`
 - Web App Manifest & icon file conventions
 - generateMetadata with Cache Components
-- Open Graph image sizes / Twitter card types
+- Social image sizes
 - Streaming Metadata
 - Best Practices
 
@@ -122,9 +122,10 @@ export const metadata: Metadata = {
   // Canonical and alternates
   alternates: {
     canonical: '/',
-    languages: {
+    languages: {                     // hreflang rules: sitemap-robots.md
       'en-US': '/en-US',
       'fi-FI': '/fi-FI',
+      'x-default': '/en-US',
     },
     media: { 'only screen and (max-width: 600px)': 'https://m.your-site.com' },
     types: { 'application/rss+xml': 'https://your-site.com/rss' }, // advertise feeds
@@ -291,7 +292,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 ```
 
 - Default export should return a `Response` — `ImageResponse` satisfies this.
-- **Satori rendering:** flexbox + a subset of CSS only; `display: grid` is unsupported. Load local images via `readFile` (base64 data URI) under the Node.js runtime.
+- **Satori rendering:** flexbox + a subset of CSS only; `display: grid` is unsupported. Load local images via `readFile` (base64 data URI or `ArrayBuffer`) under the Node.js runtime.
+- **Limits:** 500 KB total bundle (JSX, CSS, fonts, images); fonts must be `ttf`, `otf` or `woff` (no `woff2`).
 - **Caching:** these are special Route Handlers, **statically optimized** (built once, cached) unless they read request-time APIs or uncached data; they accept the same route segment config as pages.
 - **Multiple images per route:** export `generateImageMetadata()` returning an array of `{ id (required), alt?, size?, contentType? }`; the default `Image({ id, params })` receives both as Promises (v16).
 
@@ -328,28 +330,16 @@ export default function manifest(): MetadataRoute.Manifest {
 
 ## generateMetadata with Cache Components
 
-When `cacheComponents` is enabled, a `generateMetadata` that reads runtime data (cookies/headers/searchParams or uncached fetches) while the rest of the page is prerenderable raises an error requiring an explicit choice:
+When `cacheComponents` is enabled, a `generateMetadata` that reads runtime data (`cookies()`, `headers()`, `params`, `searchParams`) or fetches uncached data while the rest of the page is prerenderable raises a build error requiring an explicit choice:
 
 - **External (non-runtime) data:** add `"use cache"` inside `generateMetadata` (with `cacheTag` for invalidation).
 - **Genuine runtime data:** signal intent with a `DynamicMarker` component (`await connection()`) inside a `<Suspense>` boundary so the page can still prerender a static shell.
 
-## Open Graph Image Sizes
+## Social Image Sizes
 
-| Platform | Recommended Size |
-|----------|------------------|
-| Facebook | 1200 x 630 px |
-| Twitter (large) | 1200 x 628 px |
-| Twitter (summary) | 512 x 512 px |
-| LinkedIn | 1200 x 627 px |
-
-## Twitter Card Types
-
-| Card Type | Image Size | Use Case |
-|-----------|------------|----------|
-| `summary` | 1:1 (min 144x144) | Square logos, icons |
-| `summary_large_image` | 2:1 (min 300x157) | Articles, products |
-| `player` | Video embed | Video content |
-| `app` | App store link | Mobile apps |
+- **Open Graph:** 1200×630 (1.91:1) recommended, 8 MB max (Meta docs). LinkedIn reads the same `og:image`.
+- **X `summary_large_image`:** 2:1, min 300×157, max 4096×4096, under 5 MB. A 1200×630 OG image is cropped slightly.
+- **X `summary`:** 1:1, min 144×144 — for logos and icons.
 
 ## Streaming Metadata
 
@@ -387,19 +377,20 @@ Streaming metadata is an advanced feature — **the default is correct for almos
 >
 > ```bash
 > curl -sA "Googlebot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"|name="description"'
-> curl -sA "GPTBot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"'
+> curl -sA "Twitterbot" https://your-site.com/some-page | grep -E '<title>|og:image'
+> curl -sA "OAI-SearchBot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"'
 > ```
 
-Use OAI-SearchBot for an OpenAI search-access check; GPTBot tests the separate
-training policy. Include an HTML-limited bot such as Twitterbot for share
-previews. A spoofed User-Agent is not verified bot identity or an indexing test.
+Twitterbot is on the HTML-limited list, so its tags must be in `<head>`. For an
+OpenAI check use OAI-SearchBot (search); GPTBot only reflects the training policy.
+A spoofed User-Agent tests response behavior, not verified bot identity or indexing.
 
 ## Best Practices
 
-1. **Always set metadataBase** - Required for relative URLs. URL composition: a missing `metadataBase` + a relative URL = **build error**; an absolute URL in any field **ignores** `metadataBase`. OG/Twitter image URLs must resolve to absolute URLs.
+1. **Always set metadataBase** - Without it, relative OG/Twitter image URLs fall back to `VERCEL_PROJECT_PRODUCTION_URL` (the preview URL on Vercel previews) or `http://localhost:3000` with only a warning, and relative canonical/hreflang URLs stay relative (Google requires absolute hreflang URLs). An absolute URL in any field **ignores** `metadataBase`.
 2. **Use title templates** - Consistent branding across pages
 3. **Write unique descriptions** - Each page needs unique description
 4. **Use consistent canonical signals** - Canonicals are hints, not a guarantee; avoid inheriting the homepage canonical on child pages
 5. **Test with validators** - Use the Facebook Sharing Debugger; for X, preview in the post composer or use a third-party OG preview tool (e.g. opengraph.xyz)
 6. **Don't mix static and dynamic** - Use either `metadata` object or `generateMetadata` in the **same route segment** (a layout can use static metadata while its child page uses `generateMetadata`)
-7. **`themeColor`/`colorScheme`/`viewport` are deprecated inside `metadata`** - use the separate `export const viewport` (see above)
+7. **`themeColor`/`colorScheme`/`viewport` inside `metadata` are ignored** (Next.js 16 emits no tag, only an "Unsupported metadata" warning) - use the separate `export const viewport` (see above)

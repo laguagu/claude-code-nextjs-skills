@@ -54,6 +54,21 @@ agent = Agent(
 )
 ```
 
+LiteLLM validates params against its own model map, which lags new releases:
+with `azure/gpt-6-sol`, any `ModelSettings(reasoning=...)` raises
+`UnsupportedParamsError: azure does not support parameters: ['reasoning_effort']`.
+Allow it explicitly so the value still reaches Azure — not `litellm.drop_params=True`,
+which silently discards the effort:
+
+```python
+from openai.types.shared.reasoning import Reasoning
+
+model_settings=ModelSettings(
+    reasoning=Reasoning(effort="low"),
+    extra_args={"allowed_openai_params": ["reasoning_effort"]},
+)
+```
+
 ### LiteLLM proxy
 
 Run a LiteLLM proxy server and point the SDK at it through a custom `ModelProvider`, authenticating with `LITELLM_API_KEY` (LiteLLM's own key, not the underlying provider's) against `LITELLM_BASE_URL`. Useful for centralized key management/routing across many providers. See LiteLLM's [OpenAI Agents SDK tutorial](https://docs.litellm.ai/docs/tutorials/openai_agents_sdk) for the full setup — it's a different wiring than direct instantiation above, not an alternative env var naming for the same thing.
@@ -96,6 +111,10 @@ set_default_openai_client(client, use_for_tracing=False)
 set_default_openai_api("chat_completions")  # only if the deployment lacks the Responses API
 set_tracing_disabled(True)                  # or keep OPENAI_API_KEY set for the trace uploader
 ```
+
+Azure deployment names are free-form (`gpt-5.5-deployment` serving `gpt-5.5`), so
+list them instead of guessing: `GET {endpoint}/openai/deployments?api-version=2023-03-15-preview`
+with the `api-key` header returns every deployment id and its model.
 
 `use_for_tracing=False` matters: trace uploads go to OpenAI's platform and need a
 real `OPENAI_API_KEY`; with an Azure-only setup either disable tracing or route

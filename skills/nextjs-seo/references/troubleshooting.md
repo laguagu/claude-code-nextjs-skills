@@ -40,7 +40,7 @@
 1. Check whether the page answers a distinct need; improve usefulness without adding filler or chasing a word count
 2. Check for duplicate content issues
 3. Ensure canonical URLs are correct
-4. Improve E-E-A-T signals (Experience, Expertise, Authoritativeness, Trust)
+4. Show first-hand experience and trustworthy sourcing (Google: E-E-A-T itself isn't a specific ranking factor)
 
 ### "URL is not on Google"
 
@@ -92,13 +92,11 @@ export default function robots(): MetadataRoute.Robots {
 
 ### Pages Report
 
-Navigate to: **Indexing > Pages**
-
-| Status | Meaning | Action |
-|--------|---------|--------|
-| Not indexed | Various reasons | Check specific reason |
-| Indexed | In Google | Monitor |
-| Error | Technical issue | Fix immediately |
+Navigate to: **Indexing > Pages**. URLs are split into **Indexed** and **Not
+indexed**, each not-indexed group with a reason (e.g. "URL marked 'noindex'",
+"Duplicate, Google chose different canonical than user"). Many reasons are
+intended; act only on reasons that affect URLs you want indexed, then use
+**Validate fix**.
 
 ## Common Technical Issues
 

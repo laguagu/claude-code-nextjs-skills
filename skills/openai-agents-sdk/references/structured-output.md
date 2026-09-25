@@ -32,7 +32,8 @@ agent = Agent(
     model=get_model(),  # defined in agents.md (LiteLLM/Azure switch)
     model_settings=ModelSettings(
         max_tokens=64000,
-        # Reasoning effort: "none", "low", "medium", "high", "xhigh", "max"
+        # Allowed efforts differ per model and the API 400s on the rest:
+        # gpt-6-sol/-luna reject "minimal", gpt-6-astra also rejects "none"
         reasoning=Reasoning(effort="low"),
     ),
     # strict_json_schema=True forces LLM to return valid JSON
@@ -81,9 +82,9 @@ agent = Agent(
     model="gpt-6-sol",
     model_settings=ModelSettings(
         max_tokens=32000,
-        temperature=0.7,
         tool_choice="required",  # Force tool usage
-        reasoning=Reasoning(effort="medium"),  # GPT-5 reasoning
+        # No temperature/top_p here: GPT-6 rejects them unless effort is "none"
+        reasoning=Reasoning(effort="medium"),
     ),
 )
 ```
@@ -93,10 +94,10 @@ agent = Agent(
 | Option | Description |
 |--------|-------------|
 | `max_tokens` | Maximum tokens in response |
-| `temperature` | Randomness (0.0-2.0) |
+| `temperature` | Randomness (0.0-2.0); reasoning models reject it (GPT-6: allowed only with effort `none`) |
 | `top_p` | Nucleus sampling |
 | `tool_choice` | "auto", "required", "none" |
-| `reasoning` | Reasoning effort for GPT-5 models |
+| `reasoning` | Reasoning effort for reasoning models (values are model-specific) |
 | `presence_penalty` | Penalize repeated topics |
 | `frequency_penalty` | Penalize repeated tokens |
 
