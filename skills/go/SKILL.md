@@ -11,4 +11,6 @@ Easy to miss:
 - **Functional result** — the page does what was intended, not just renders. A search for "X" shows results about X.
 - **Console and network** — JS errors and failed requests (4xx/5xx) break things silently.
 
-If login is needed, look for test credentials in the project's env files or secrets manager. If something is broken, fix and verify again; when the same issue keeps failing, ask for direction.
+A login wall is not a reason to stop. Use test credentials from the project's env files or secrets manager, or a browser where the user is already signed in; that also covers SSO, OAuth and MFA. On a deployed site that session is the user's real account, so check without changing data.
+
+If something is broken, fix and verify again; when the same issue keeps failing, ask for direction.
