@@ -365,6 +365,7 @@ For ParadeDB-specific questions, always apply the Documentation Fetch Policy in 
 ### Reranker providers
 - [Cohere Rerank](https://docs.cohere.com/docs/rerank)
 - [Voyage Rerank](https://docs.voyageai.com/reference/reranker-api)
+- [Jina Reranker](https://jina.ai/reranker/)
 - [Zerank](https://docs.zeroentropy.dev)
 - [Sentence Transformers](https://www.sbert.net/docs/cross_encoder/usage/usage.html) - self-hosted cross-encoders
 

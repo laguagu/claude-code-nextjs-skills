@@ -142,15 +142,17 @@ import heroImage from './hero.png'
 />
 ```
 
-## Priority Loading
+## Preloading the LCP image
 
-Use `priority` for above-the-fold images (LCP):
+`priority` is deprecated since Next.js 16. For the one above-the-fold LCP image
+use `preload`, or `loading="eager"` / `fetchPriority="high"`, which the docs
+prefer in most cases:
 
 ```tsx
 // Hero image - loads immediately
-<Image src="/hero.png" alt="Hero" fill priority />
+<Image src="/hero.png" alt="Hero" fill preload />
 
-// Below-fold images - lazy loaded by default (no priority needed)
+// Below-fold images - lazy loaded by default
 <Image src="/card.png" alt="Card" width={400} height={300} />
 ```
 

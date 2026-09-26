@@ -36,9 +36,14 @@ Rerankers fall into two broad families:
 
 - **API-based** (managed service) — high quality, no infra, pay per query.
   Pick when results must be precise and the latency budget allows it.
-- **Self-hosted** (cross-encoder behind your own service) — privacy,
-  predictable cost at volume, no vendor lock-in. Pick when you have infra
-  and want control.
+- **Self-hosted** (cross-encoder, listwise or LLM-based reranker behind your
+  own service) — privacy, predictable cost at volume, no vendor lock-in. Pick
+  when you have infra and want control.
+
+A general judgment model can also score each query–candidate pair against
+relevance criteria written in plain language (e.g. TypeSafe Jev:
+<https://docs.typesafe.ai/cookbooks/rerank_typesafe>). It makes one call per pair,
+so cap the shortlist, and benchmark it like any other reranker.
 
 Ask the user's preference. Check the provider's docs for the current
 recommended model — never hard-code a model version guessed from training
@@ -159,4 +164,6 @@ shape (they update these as models rotate). The stable entry points:
 
 - Cohere — <https://docs.cohere.com/docs/rerank>
 - Voyage — <https://docs.voyageai.com/reference/reranker-api>
+- Jina — <https://jina.ai/reranker/>
+- ZeroEntropy (zerank) — <https://docs.zeroentropy.dev>
 - HuggingFace (open-weight rerankers) — <https://huggingface.co/models?other=reranker>

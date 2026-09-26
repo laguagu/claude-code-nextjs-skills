@@ -1,6 +1,6 @@
 ---
 name: ai-sdk-6
-description: Vercel AI SDK v6 development. Use when building AI agents, chatbots, tool integrations, streaming apps, or structured output with the ai package. Covers ToolLoopAgent, useChat, generateText, streamText, tool approval, smoothStream, provider tools, MCP integration, and Output patterns.
+description: Vercel AI SDK v6 development, for projects already on ai@6. Use when building or maintaining AI agents, chatbots, tool integrations, streaming apps, or structured output in a v6 codebase. New projects and ai@7 code use ai-sdk-7; an unknown version goes through ai-sdk. Covers ToolLoopAgent, useChat, generateText, streamText, tool approval, smoothStream, provider tools, MCP integration, and Output patterns.
 ---
 
 # Vercel AI SDK v6 Development Guide

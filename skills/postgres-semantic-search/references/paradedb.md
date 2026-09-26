@@ -4,7 +4,7 @@
 
 - [Documentation Fetch Policy](#documentation-fetch-policy) — **read first**
 - [Why ParadeDB?](#why-paradedb)
-- [Installation](#installation) — Docker, Neon, self-hosted
+- [Installation](#installation) — Docker, self-hosted (not Neon)
 - [ParadeDB Index](#paradedb-index) — formerly the BM25 index; tokenizers, stemmers, JSON fields
 - [Search Operators](#search-operators)
 - [BM25 Scoring](#bm25-scoring)
@@ -89,13 +89,11 @@ docker run -d --name paradedb \
 docker exec -it paradedb psql -U myuser -d mydatabase -W
 ```
 
-### Neon (AWS regions, PostgreSQL 17+)
+### Neon
 
-```sql
-CREATE EXTENSION pg_search;
-```
-
-> **Note:** pg_search is deprecated for **new** Neon projects as of 2026-03-19 (existing projects keep working). See https://neon.com/docs/extensions/pg_search.
+pg_search is no longer available on Neon: new projects lost it on 2026-03-19 and
+existing projects on 2026-09-21. For BM25 on Neon use Neon's `lakebase_text`
+index, or run ParadeDB elsewhere. See https://neon.com/docs/extensions/pg_search.
 
 ### Self-hosted Postgres
 
@@ -293,11 +291,12 @@ WHERE content &&& 'postgresql'
 ORDER BY pdb.score(id) DESC;
 ```
 
-> **Legacy v1 API:** the `@@@` operator with `paradedb.boolean()`,
-> `paradedb.match()`, `paradedb.phrase()`, `paradedb.score()` and
-> `paradedb.snippet()` predates pg_search 0.20.0, where the v2 operator API
-> (`|||`, `&&&`, `###`, `===`, `pdb.*`) became the default. `@@@` still parses,
-> but write new code in v2. When you need a v1 construct that has no obvious v2
+> **Legacy v1 API:** the `paradedb.boolean()`, `paradedb.match()`,
+> `paradedb.phrase()`, `paradedb.score()` and `paradedb.snippet()` functions
+> predate pg_search 0.20.0, where the v2 operator API (`|||`, `&&&`, `###`,
+> `===`, `pdb.*`) became the default. Write new code in v2. `@@@` itself is
+> current: use it with a `pdb.*` builder (`pdb.parse()`, `pdb.regex()`,
+> `pdb.all()`) when a query needs options, parser syntax or a query object. When you need a v1 construct that has no obvious v2
 > form, fetch the live docs rather than guessing — the mapping has changed
 > across releases.
 

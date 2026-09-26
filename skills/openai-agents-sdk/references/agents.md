@@ -15,8 +15,12 @@ The minimal `Agent` + `Runner` example lives in SKILL.md (Quick Reference → Ba
 Agent) and is not repeated here. Two things that example does not show:
 
 - **Omitting `model=` is a choice, not a safe default.** The SDK ships its own
-  default model and settings, which can change between releases. Set the model
-  explicitly in production code so an upstream change cannot swap tiers silently.
+  default model and settings, which can change between releases (0.22.x:
+  `gpt-5.6-luna`, overridable with the `OPENAI_DEFAULT_MODEL` env var). Set the
+  model explicitly in production code so an upstream change cannot swap tiers silently.
+- **Tuned default settings apply only to the GPT-5 family.** Other IDs, including
+  `gpt-6-*`, get a plain `ModelSettings()` and run at the API's default reasoning
+  effort, so set `reasoning` explicitly.
 - **Use a configured, verified model ID.** Check the provider's current model
   catalog and deployment configuration; aliases and available tiers can change.
 
@@ -54,9 +58,10 @@ agent = Agent(
 )
 ```
 
-LiteLLM validates params against its own model map, which lags new releases:
-with `azure/gpt-6-sol`, any `ModelSettings(reasoning=...)` raises
-`UnsupportedParamsError: azure does not support parameters: ['reasoning_effort']`.
+LiteLLM validates params against its own model map, which lags new releases.
+Before LiteLLM 1.101.0 — and on later versions when the Azure deployment name
+does not contain `gpt-6` (e.g. `azure/my-deploy`) — any `ModelSettings(reasoning=...)`
+raises `UnsupportedParamsError: azure does not support parameters: ['reasoning_effort']`.
 Allow it explicitly so the value still reaches Azure — not `litellm.drop_params=True`,
 which silently discards the effort:
 
@@ -111,6 +116,11 @@ set_default_openai_client(client, use_for_tracing=False)
 set_default_openai_api("chat_completions")  # only if the deployment lacks the Responses API
 set_tracing_disabled(True)                  # or keep OPENAI_API_KEY set for the trace uploader
 ```
+
+GPT-6 Sol and Luna allow function calling on Chat Completions only with
+reasoning effort `none` (Option A, Option B's `chat_completions`, and LiteLLM
+all go through Chat Completions). An agent that needs tools *and* reasoning
+should use the Responses API. Check the model page for other models.
 
 Azure deployment names are free-form (`gpt-5.5-deployment` serving `gpt-5.5`), so
 list them instead of guessing: `GET {endpoint}/openai/deployments?api-version=2023-03-15-preview`

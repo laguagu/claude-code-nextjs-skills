@@ -21,7 +21,7 @@ Set both in the process environment before running the example; replace the plac
 
 ```bash
 export OPENAI_API_KEY="sk-..."
-export OPENAI_MODEL="your-verified-model-id"
+export OPENAI_MODEL="your-verified-model-id"  # this example's own variable; the SDK itself reads OPENAI_DEFAULT_MODEL
 ```
 
 Using Azure or another provider instead? See [agents.md](references/agents.md#other-providers-litellm) — don't hardcode provider env vars here, they vary and go stale.

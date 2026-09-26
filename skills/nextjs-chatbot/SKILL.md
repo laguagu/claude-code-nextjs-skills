@@ -100,7 +100,7 @@ a typo. Check `package.json` and translate back:
 | `onEnd` (on the stream) | `onFinish` — the client `useChat` `onFinish` is a different, live callback and keeps its name in both |
 | `telemetry` | `experimental_telemetry` |
 | `reasoning: "low"` | `providerOptions: { openai: { reasoningEffort: "low" } }` |
-| agent-level `toolApproval: { myTool: "user-approval" }` | `needsApproval: true` on the `tool()` — one of the quiet ones: left on a v7 tool it is simply ignored and the tool executes without asking |
+| agent-level `toolApproval: { myTool: "user-approval" }` | `needsApproval: true` on the `tool()` — one of the quiet ones: v6 has no `toolApproval`, so v7-style code on a v6 project executes the tool without asking (v7 still honours a leftover `needsApproval` as a deprecated fallback) |
 
 Use `/ai-sdk-6` for the rest; `/ai-sdk` if you don't know the version yet.
 

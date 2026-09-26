@@ -33,8 +33,8 @@ from agents.sandbox.sandboxes.unix_local import UnixLocalSandboxClient
 agent = SandboxAgent(
     name="Workspace agent",
     instructions="Work inside the mounted workspace.",
-    default_manifest=Manifest(entries=[LocalDir(...)]),   # see docs for LocalDir args
-    default_capabilities=Capabilities.default(),         # add Skills(...) if the workspace ships skills
+    default_manifest=Manifest(entries={"docs": LocalDir(...)}),  # path -> entry; see docs for LocalDir args
+    capabilities=Capabilities.default(),  # the default; pass your own list to add Skills(...)
 )
 
 result = await Runner.run(

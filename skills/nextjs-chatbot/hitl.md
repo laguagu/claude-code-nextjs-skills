@@ -15,8 +15,9 @@ user approve/deny step. The AI SDK tracks the state; you wire up the UI.
 ## Where approval is configured (v7)
 
 **Approval is an agent setting, not a tool setting.** `needsApproval: true` on
-`tool()` is the v6 API and does nothing in v7 — the tool just executes. Use
-`toolApproval` on the agent:
+`tool()` is the v6 API; v7 deprecates it and honours it only as a compatibility
+fallback. Use `toolApproval` on the agent (on v6 it does not exist, and the tool
+executes without asking):
 
 ```ts
 const agent = new ToolLoopAgent({

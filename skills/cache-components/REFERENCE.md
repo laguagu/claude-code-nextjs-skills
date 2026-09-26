@@ -715,6 +715,10 @@ export default function Page() {
 
 ### When to Use `connection()`
 
+On Next.js 16.3+, prefer `await io()` (from `next/cache`) to keep non-deterministic
+values (`Math.random()`, `Date.now()`, `crypto.randomUUID()`) out of the static shell;
+use `connection()` only when rendering must wait for a real request.
+
 | Scenario                                                  | Use `connection()`? |
 | --------------------------------------------------------- | ------------------- |
 | Need unique values per request (`crypto.randomUUID()`)    | ✅ Yes              |

@@ -4,6 +4,7 @@ Comprehensive reference synthesized from:
 - [agentskills.io/skill-creation/best-practices](https://agentskills.io/skill-creation/best-practices)
 - [Anthropic platform docs](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
 - [agentskills.io/specification](https://agentskills.io/specification)
+- [Claude Code best practices](https://code.claude.com/docs/en/best-practices)
 
 Read this file when writing or reviewing a skill's content quality.
 
@@ -234,6 +235,10 @@ Run with: `uv run scripts/extract.py`
 | Over-explaining basics | Wastes tokens | Trust the agent's knowledge |
 | First-person descriptions | Discovery problems | Always third person |
 | Overly rigid MUSTs | Less effective | Explain the reasoning instead |
+| Thinking directives ("think carefully", "think step by step") | Current models reason before acting; the line only costs tokens | Cut it; state the goal and the non-obvious checks |
+| Workflow without a finish line | The agent stops when the work merely looks done | Say what done means and give a check it can run (tests, build, screenshot); ask for the evidence in the report |
+| Must-happen-every-time rule written as prose | Skill text is advisory | Use a hook or script; in Claude Code, set `disable-model-invocation: true` on side-effect workflows only the user should start |
+| Restating or contradicting a sibling skill | When both load, the agent gets two answers | Give the topic one owner; point to it from the other skill |
 | Prescribing technique to a trained agent | Restates the model's training, adds noise, and the model may follow it literally even when wrong | Specify *intent* (scope, output, success criteria) — let the model choose technique |
 
 ## Pre-publish checklist
@@ -260,4 +265,6 @@ Run with: `uv run scripts/extract.py`
 ### Testing
 - [ ] 2–3 realistic test prompts
 - [ ] Tested with real usage scenarios
+- [ ] Tested on the models it will run on — a smaller model may need more detail, a larger one is hurt by over-explaining
+- [ ] Watched which files the agent actually reads; removed or re-signposted the ones it ignores
 - [ ] Description triggers correctly (not too narrow/broad)

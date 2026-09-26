@@ -3,9 +3,9 @@
 
 -- API VERSION: these functions use the v2 operator API, the default since
 -- pg_search 0.20.0: `|||` (any term), `&&&` (all terms), `###` (phrase),
--- `===` (exact), `pdb.score()`, `pdb.snippet()`. The legacy `@@@` +
--- `paradedb.*` builder functions still parse but should not be used in new
--- code. Requires pgvector installed first (pg_search 0.25.0+ depends on it).
+-- `===` (exact), `pdb.score()`, `pdb.snippet()`. The legacy `paradedb.*`
+-- builder functions still parse but should not be used in new code (`@@@`
+-- with `pdb.*` builders is current). Requires pgvector installed first (pg_search 0.25.0+ depends on it).
 
 -- ===========================================
 -- 1. SETUP BM25 INDEX

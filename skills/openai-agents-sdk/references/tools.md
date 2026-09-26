@@ -74,7 +74,7 @@ Hosted tools (run on OpenAI's servers):
 - `HostedMCPTool` - remote MCP server tools
 - `ImageGenerationTool` - image generation
 - `ToolSearchTool` - on-demand tool discovery for large tool sets
-- `ProgrammaticToolCallingTool` - the model calls tools from code it writes
+- `ProgrammaticToolCallingTool` - the model calls tools from code it writes. Responses models only, at most one per agent; a tool is callable from that code only if it opts in with `allowed_callers=["programmatic"]` (or `["direct", "programmatic"]`) — omitting it allows direct calls only
 - `ShellTool` - shell execution in a hosted container (also has a local mode)
 
 Local runtime tools (execute on your machine):

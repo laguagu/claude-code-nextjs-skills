@@ -96,7 +96,7 @@ See [image.md](./image.md) for:
 - Remote images configuration
 - Responsive `sizes` attribute
 - Blur placeholders
-- Priority loading for LCP
+- `preload` / `fetchPriority` for the LCP image (`priority` is deprecated)
 
 ## Font Optimization
 
@@ -133,7 +133,7 @@ See [hydration-error.md](./hydration-error.md) for:
 ## Suspense Boundaries
 
 See [suspense-boundaries.md](./suspense-boundaries.md) for:
-- CSR bailout with `useSearchParams` (only this hook requires a boundary)
+- CSR bailout with `useSearchParams` (also `usePathname`/`useParams` under `cacheComponents`)
 - Forcing dynamic rendering with `connection()` instead
 
 ## Parallel & Intercepting Routes

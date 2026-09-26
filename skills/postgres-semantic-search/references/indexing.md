@@ -27,8 +27,8 @@ Best for most production workloads.
 
 | Parameter | Default | Range | Description |
 |-----------|---------|-------|-------------|
-| `m` | 16 | 4-64 | Connections per layer. Higher = better recall, larger index |
-| `ef_construction` | 64 | 4-400 | Build-time quality. Higher = better index, slower build |
+| `m` | 16 | 2-100 | Connections per layer. Higher = better recall, larger index |
+| `ef_construction` | 64 | 4-1000 | Build-time quality. Higher = better index, slower build |
 | `ef_search` | 40 | 1-1000 | Query-time depth. Higher = better recall, slower queries |
 
 ### Recommended Settings

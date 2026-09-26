@@ -18,7 +18,7 @@ export HCLOUD_TOKEN="…"           # CI/scripts: most commands read this automa
 
 `hcloud context create` is the one common case that still prompts even with the env var set — pass `--token-from-env` to skip the prompt in non-interactive sessions.
 
-Health check: `hcloud datacenter list`.
+Health check: `hcloud server list`.
 
 ## Mental model
 

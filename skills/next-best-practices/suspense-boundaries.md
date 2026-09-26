@@ -1,8 +1,9 @@
 # Suspense Boundaries
 
-`useSearchParams` is the one client hook that causes a CSR bailout without a
-Suspense boundary. Other navigation hooks (`usePathname`, `useParams`,
-`useRouter`) do **not** require one.
+`useSearchParams` needs a Suspense boundary in prerendered routes.
+`usePathname` and `useParams` do not — except with `cacheComponents`, where they
+suspend (and the build fails without a boundary) in dynamic routes whose params
+`generateStaticParams` does not cover. `useRouter` never needs one.
 
 ## useSearchParams
 
@@ -47,7 +48,8 @@ export default function Page() {
 If you intend the route to be dynamic anyway, call
 [`connection()`](https://nextjs.org/docs/app/api-reference/functions/connection)
 in a Server Component before rendering the hook's consumer. This opts the
-subtree out of prerendering, so no Suspense boundary is needed:
+subtree out of prerendering, so no Suspense boundary is needed (without
+`cacheComponents` only; with it, `connection()` must itself be inside Suspense):
 
 ```tsx
 import { connection } from 'next/server'
@@ -64,6 +66,6 @@ export default async function Page() {
 | Hook | Suspense Required |
 |------|-------------------|
 | `useSearchParams()` | Yes (static routes) |
-| `usePathname()` | No |
-| `useParams()` | No |
+| `usePathname()` | No (Yes with `cacheComponents` + params not in `generateStaticParams`) |
+| `useParams()` | No (Yes with `cacheComponents` + params not in `generateStaticParams`) |
 | `useRouter()` | No |
