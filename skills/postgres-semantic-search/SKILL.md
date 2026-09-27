@@ -236,16 +236,20 @@ Swedish, German or Turkish text, or on a table that has a tsvector GIN index.
 
 ## Re-ranking (Optional)
 
-Two-stage retrieval improves precision: fast recall → precise rerank with a
-cross-encoder. Use when results need higher precision and you have <50
-candidates after initial retrieval.
+A reranker reads query and candidate together and reorders the head of a good
+first stage. Rules measured on Finnish search ([reranking.md](references/reranking.md)
+has the numbers, model and latency comparison):
 
-**Key rule**: rerankers must be wrapped so a failure (missing key, HTTP error,
-timeout) returns `null` and the caller falls back to original retrieval order
-— never let a reranker outage break search.
-
-For provider comparison, generic `Promise<T | null>` wrapper, and self-hosted
-options, see [reranking.md](references/reranking.md).
+- **With a cross-encoder, rerank the top ~10 of a ~30-candidate shortlist, not
+  all 30.** Reordering all 30 helped long questions but pushed the right result
+  down for one-to-three-word topical queries; top-10 depth removed that harm.
+- **Fail open.** A missing key, HTTP error or timeout returns `null` and search
+  keeps the retrieval order. Add a short per-backend timeout, a cooldown after a
+  failure and a short score cache.
+- **Make it a runtime admin setting, default off**, and A/B it on both a long and
+  a short eval set before turning it on.
+- **A 500M+ cross-encoder is not interactive on a small CPU pod**: use a small
+  model, a GPU, or a hosted reranker.
 
 ## Multilingual / non-English content
 
@@ -267,7 +271,7 @@ anything that is not English prose.
 - [hybrid-search.md](references/hybrid-search.md) - FTS, BM25, RRF algorithms
 - [performance.md](references/performance.md) - Cold-start, memory, HNSW vs IVFFlat
 - [evaluation.md](references/evaluation.md) - Eval-set construction, Hit@K / MRR, adoption thresholds, reranker/expansion benchmarking
-- [reranking.md](references/reranking.md) - Two-stage retrieval, graceful fallback, when rerankers regress
+- [reranking.md](references/reranking.md) - Rerank depth, measured model and CPU/GPU latency comparison, fail-open rules, judgment-question wording, shortlist ceiling
 - [multilingual.md](references/multilingual.md) - FTS configs and unaccent rules, invisible characters, prefix tsquery, query translation, per-language indexing, cross-language RRF
 
 ## Scripts
@@ -365,8 +369,10 @@ For ParadeDB-specific questions, always apply the Documentation Fetch Policy in 
 ### Reranker providers
 - [Cohere Rerank](https://docs.cohere.com/docs/rerank)
 - [Voyage Rerank](https://docs.voyageai.com/reference/reranker-api)
-- [Jina Reranker](https://jina.ai/reranker/)
-- [Zerank](https://docs.zeroentropy.dev)
+- [ZeroEntropy zerank](https://docs.zeroentropy.dev)
+- [Jina Reranker](https://jina.ai/reranker/) - hosted API; the open v2/v3 weights are CC-BY-NC-4.0 (no commercial self-hosting without a licence)
+- Open Apache-2.0 weights: [bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3), [Qwen3-Reranker 0.6B / 4B / 8B](https://huggingface.co/Qwen/Qwen3-Reranker-0.6B)
+- [TypeSafe Jev](https://docs.typesafe.ai/cookbooks/rerank_typesafe) - hosted typed-judgment reranking from a plain-language relevance question
 - [Sentence Transformers](https://www.sbert.net/docs/cross_encoder/usage/usage.html) - self-hosted cross-encoders
 
 ### Hosting / extensions

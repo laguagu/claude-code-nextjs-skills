@@ -6,7 +6,7 @@
 - [Keyword Search Options](#keyword-search-options) — FTS, query parsers, custom configs, BM25
 - [Result Fusion Methods](#result-fusion-methods) — RRF, linear weighting
 - [Ready-to-Use Functions](#ready-to-use-functions)
-- [Chunk-Based Search (RAG)](#chunk-based-search-rag)
+- [Chunk-Based Search (RAG)](#chunk-based-search-rag) — contextual prefixes, time-coded transcripts
 - [Best Practices](#best-practices)
 - [Choosing Search Method](#choosing-search-method)
 - [ParadeDB (Full-Featured Alternative)](#paradedb-full-featured-alternative)
@@ -333,6 +333,21 @@ Caveats:
 - Do **not** include the prefix in the FTS `tsv` column — it inflates false
   positives on common document-title keywords. Embed with context, index
   FTS on raw chunk text.
+
+### Time-coded transcripts (video, audio)
+
+Speech transcripts need the right source *and* the right moment. Measured on a
+Finnish lecture-transcript search corpus (70 natural-language questions and 15
+one-to-three-word terms):
+
+- **Chunk length barely matters for finding the right video.** Windows from 20 to
+  150 s found it about equally often; do not spend tuning effort there.
+- **Find the moment with a second, fine-grained search.** After segment search
+  picks a segment, score the subtitle cues inside it (± a few seconds) against the
+  query and seek to the best cue. That landed on the moment better than shrinking
+  the chunks did. Fall back to the segment start when no cue matches.
+- **Put the video title in the reranker input** with the segment text
+  ([reranking.md](reranking.md#judgment-models-the-question-is-part-of-the-model)).
 
 ## Best Practices
 

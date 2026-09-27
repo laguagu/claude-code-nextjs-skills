@@ -39,7 +39,10 @@ other. Measured examples from a single codebase:
 
 - dropping an over-common word from a short query's keyword text helped the
   short set and *hurt* the long one;
-- a cross-encoder reranker did the reverse.
+- a cross-encoder reranker did the reverse: reordering all 30 candidates lifted
+  the long questions and dropped the short terms' Hit@1 from 0.933 to 0.600.
+  Reranking only the top 10 fixed the short set at a small cost on the long one
+  ([reranking.md](reranking.md#rerank-the-head-not-the-whole-shortlist)).
 
 Either set alone would have given the wrong answer once. So keep two:
 
@@ -121,6 +124,12 @@ missed document, the retrieval win is a regression.
 
 Run a judged answer-quality pass before adopting any change that alters how
 much text reaches the model — top-k, chunk size, reranking depth.
+
+When a model judges whether a cited passage supports a claim, ask one demanding
+yes/no question ("does the passage fully support the claim?") that lists what
+must match: numbers, conditions, actors, *may* versus *must*. On Finnish legal
+passages (public MuPLeR-fi) that reached 88.1 % balanced accuracy on subtly wrong
+claims; a three-way supports / contradicts / unrelated question scored 81.8 %.
 
 ### 3. An offline sweep predicts ordering, not production numbers
 
