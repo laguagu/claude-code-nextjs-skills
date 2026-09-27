@@ -1,344 +1,161 @@
--- Hybrid Search with pg_search BM25 + RRF
--- Requires: CREATE EXTENSION pg_search;
+-- Hybrid search: ParadeDB BM25 (pg_search) + pgvector, fused with weighted
+-- reciprocal rank fusion. Requires pgvector, then pg_search (0.25+ depends on
+-- pgvector's type), and a ParadeDB index on each searched table:
+--
+--   CREATE INDEX documents_search_idx ON documents
+--   USING paradedb (id, title, content) WITH (key_field = 'id');
+--   CREATE INDEX chunks_search_idx ON chunks
+--   USING paradedb (id, content) WITH (key_field = 'id');
+--
+-- Syntax is pg_search's v2 API (||| match any term, pdb.score, pdb.snippet).
+-- ParadeDB moves quickly: check https://www.paradedb.com/docs/llms.txt before
+-- extending these. The vector arm here uses pgvector's own index; a vector
+-- column placed inside the ParadeDB index is searched by ParadeDB instead.
+-- hnsw.ef_search is not set here (default 40); the caller owns it.
 
--- API VERSION: these functions use the v2 operator API, the default since
--- pg_search 0.20.0: `|||` (any term), `&&&` (all terms), `###` (phrase),
--- `===` (exact), `pdb.score()`, `pdb.snippet()`. The legacy `paradedb.*`
--- builder functions still parse but should not be used in new code (`@@@`
--- with `pdb.*` builders is current). Requires pgvector installed first (pg_search 0.25.0+ depends on it).
-
--- ===========================================
--- 1. SETUP BM25 INDEX
--- ===========================================
-
--- Create BM25 index on documents table
--- Run this AFTER creating the documents table
-
-/*
--- Native BM25 index syntax (CALL paradedb.create_bm25 has been removed from pg_search)
-CREATE INDEX documents_bm25_idx ON documents
-USING paradedb (id, content, title)
-WITH (key_field = 'id');
-*/
-
--- ===========================================
--- 2. HYBRID SEARCH (BM25 + Vector + RRF)
--- ===========================================
+-- Earlier versions had other signatures; beside the new ones every call
+-- would be ambiguous.
+DROP FUNCTION IF EXISTS hybrid_search_bm25(vector, text, integer, integer);
+DROP FUNCTION IF EXISTS hybrid_search_bm25_highlighted(vector, text, integer, integer);
+DROP FUNCTION IF EXISTS hybrid_search_chunks_bm25(vector, text, integer, integer);
 
 CREATE OR REPLACE FUNCTION hybrid_search_bm25(
     query_embedding vector(1536),
     query_text TEXT,
     match_count INT DEFAULT 10,
-    rrf_k INT DEFAULT 60
+    rrf_k INT DEFAULT 60,
+    vector_weight FLOAT DEFAULT 1.0,
+    keyword_weight FLOAT DEFAULT 1.0
 )
 RETURNS TABLE (
-    id INTEGER,
-    title TEXT,
-    content TEXT,
-    metadata JSONB,
-    vector_rank INTEGER,
-    bm25_rank INTEGER,
-    bm25_score FLOAT,
-    rrf_score FLOAT
+    id INTEGER, title TEXT, content TEXT, metadata JSONB,
+    snippet TEXT,                       -- NULL when only the vector arm found the row
+    vector_rank INTEGER, bm25_rank INTEGER, rrf_score FLOAT
 )
-LANGUAGE plpgsql
-STABLE
+LANGUAGE plpgsql STABLE
 AS $$
 DECLARE
-    v_has_embedding BOOLEAN := query_embedding IS NOT NULL;
     v_has_text BOOLEAN := query_text IS NOT NULL AND length(trim(query_text)) > 0;
 BEGIN
-    IF NOT v_has_embedding AND NOT v_has_text THEN
-        RETURN;
-    END IF;
-
     RETURN QUERY
-    WITH vector_search AS (
-        SELECT
-            d.id,
-            d.title,
-            d.content,
-            d.metadata,
-    -- Ranks over the whole arm: the window runs before the LIMIT. A cheaper
-    -- shape is in references/hybrid-search.md -> RRF.
-            ROW_NUMBER() OVER (ORDER BY d.embedding <=> query_embedding)::INTEGER AS rank
-        FROM documents d
-        WHERE v_has_embedding
-          AND d.embedding IS NOT NULL
-        ORDER BY d.embedding <=> query_embedding
-        LIMIT match_count * 3
+    WITH vector_arm AS (
+        SELECT t.id, ROW_NUMBER() OVER (ORDER BY t.distance)::INTEGER AS rnk
+        FROM (
+            SELECT d.id, d.embedding <=> query_embedding AS distance
+            FROM documents d
+            WHERE query_embedding IS NOT NULL AND d.embedding IS NOT NULL
+            ORDER BY distance
+            LIMIT match_count * 3
+        ) t
     ),
-    bm25_search AS (
-        -- pg_search BM25 search, v2 operator API (||| = match any term)
-        SELECT
-            d.id,
-            d.title,
-            d.content,
-            d.metadata,
-            pdb.score(d.id)::FLOAT AS bm25_score,
-            ROW_NUMBER() OVER (ORDER BY pdb.score(d.id) DESC)::INTEGER AS rank
-        FROM documents d
-        WHERE v_has_text
-          AND d.content ||| query_text
-        ORDER BY pdb.score(d.id) DESC
-        LIMIT match_count * 3
+    bm25_arm AS (
+        SELECT t.id, t.snip,
+               ROW_NUMBER() OVER (ORDER BY t.score DESC, t.id)::INTEGER AS rnk
+        FROM (
+            SELECT d.id,
+                   pdb.score(d.id) AS score,
+                   pdb.snippet(d.content, start_tag => '<mark>', end_tag => '</mark>') AS snip
+            FROM documents d
+            WHERE v_has_text AND d.content ||| query_text
+            ORDER BY pdb.score(d.id) DESC, d.id
+            LIMIT match_count * 3
+        ) t
     ),
-    rrf_scores AS (
-        SELECT
-            COALESCE(v.id, b.id) AS id,
-            COALESCE(v.title, b.title) AS title,
-            COALESCE(v.content, b.content) AS content,
-            COALESCE(v.metadata, b.metadata) AS metadata,
-            v.rank AS vector_rank,
-            b.rank AS bm25_rank,
-            b.bm25_score,
-            (
-                COALESCE(1.0 / (rrf_k + v.rank), 0.0) +
-                COALESCE(1.0 / (rrf_k + b.rank), 0.0)
-            )::FLOAT AS rrf_score
-        FROM vector_search v
-        FULL OUTER JOIN bm25_search b ON v.id = b.id
+    fused AS (
+        SELECT COALESCE(v.id, b.id) AS doc_id,
+               b.snip,
+               v.rnk AS v_rank,
+               b.rnk AS b_rank,
+               (COALESCE(vector_weight / (rrf_k + v.rnk), 0)
+                + COALESCE(keyword_weight / (rrf_k + b.rnk), 0))::FLOAT AS score
+        FROM vector_arm v
+        FULL OUTER JOIN bm25_arm b ON v.id = b.id
     )
-    SELECT
-        r.id,
-        r.title,
-        r.content,
-        r.metadata,
-        r.vector_rank,
-        r.bm25_rank,
-        r.bm25_score,
-        r.rrf_score
-    FROM rrf_scores r
-    ORDER BY r.rrf_score DESC
+    SELECT d.id, d.title, d.content, d.metadata, f.snip, f.v_rank, f.b_rank, f.score
+    FROM fused f
+    JOIN documents d ON d.id = f.doc_id
+    ORDER BY f.score DESC, d.id
     LIMIT match_count;
 END;
 $$;
 
--- ===========================================
--- 3. BM25 WITH SNIPPET HIGHLIGHTING
--- ===========================================
-
-CREATE OR REPLACE FUNCTION hybrid_search_bm25_highlighted(
-    query_embedding vector(1536),
-    query_text TEXT,
-    match_count INT DEFAULT 10,
-    rrf_k INT DEFAULT 60
-)
-RETURNS TABLE (
-    id INTEGER,
-    title TEXT,
-    content TEXT,
-    snippet TEXT,
-    metadata JSONB,
-    vector_rank INTEGER,
-    bm25_rank INTEGER,
-    rrf_score FLOAT
-)
-LANGUAGE plpgsql
-STABLE
-AS $$
-DECLARE
-    v_has_embedding BOOLEAN := query_embedding IS NOT NULL;
-    v_has_text BOOLEAN := query_text IS NOT NULL AND length(trim(query_text)) > 0;
-BEGIN
-    IF NOT v_has_embedding AND NOT v_has_text THEN
-        RETURN;
-    END IF;
-
-    RETURN QUERY
-    WITH vector_search AS (
-        SELECT
-            d.id,
-            d.title,
-            d.content,
-            d.metadata,
-            ROW_NUMBER() OVER (ORDER BY d.embedding <=> query_embedding)::INTEGER AS rank,
-            NULL::TEXT AS snippet
-        FROM documents d
-        WHERE v_has_embedding
-          AND d.embedding IS NOT NULL
-        ORDER BY d.embedding <=> query_embedding
-        LIMIT match_count * 3
-    ),
-    bm25_search AS (
-        SELECT
-            d.id,
-            d.title,
-            d.content,
-            d.metadata,
-            ROW_NUMBER() OVER (ORDER BY pdb.score(d.id) DESC)::INTEGER AS rank,
-            pdb.snippet(d.content, start_tag => '<mark>', end_tag => '</mark>') AS snippet
-        FROM documents d
-        WHERE v_has_text
-          AND d.content ||| query_text
-        ORDER BY pdb.score(d.id) DESC
-        LIMIT match_count * 3
-    ),
-    combined AS (
-        SELECT
-            COALESCE(v.id, b.id) AS id,
-            COALESCE(v.title, b.title) AS title,
-            COALESCE(v.content, b.content) AS content,
-            COALESCE(b.snippet, substring(COALESCE(v.content, b.content) from 1 for 200) || '...') AS snippet,
-            COALESCE(v.metadata, b.metadata) AS metadata,
-            v.rank AS vector_rank,
-            b.rank AS bm25_rank,
-            (
-                COALESCE(1.0 / (rrf_k + v.rank), 0.0) +
-                COALESCE(1.0 / (rrf_k + b.rank), 0.0)
-            )::FLOAT AS rrf_score
-        FROM vector_search v
-        FULL OUTER JOIN bm25_search b ON v.id = b.id
-    )
-    SELECT
-        c.id,
-        c.title,
-        c.content,
-        c.snippet,
-        c.metadata,
-        c.vector_rank,
-        c.bm25_rank,
-        c.rrf_score
-    FROM combined c
-    ORDER BY c.rrf_score DESC
-    LIMIT match_count;
-END;
-$$;
-
--- ===========================================
--- 4. CHUNK-BASED HYBRID SEARCH (RAG)
--- ===========================================
-
--- For RAG systems with chunked documents
+-- Chunks, one row per document: each arm keeps its best chunk per document
+-- among its own candidates, then the arms are fused by document.
 CREATE OR REPLACE FUNCTION hybrid_search_chunks_bm25(
     query_embedding vector(1536),
     query_text TEXT,
     match_count INT DEFAULT 10,
-    rrf_k INT DEFAULT 60
+    rrf_k INT DEFAULT 60,
+    vector_weight FLOAT DEFAULT 1.0,
+    keyword_weight FLOAT DEFAULT 1.0
 )
 RETURNS TABLE (
-    chunk_id INTEGER,
-    document_id INTEGER,
-    document_title TEXT,
-    chunk_content TEXT,
-    snippet TEXT,
-    vector_rank INTEGER,
-    bm25_rank INTEGER,
-    rrf_score FLOAT
+    chunk_id INTEGER, document_id INTEGER, document_title TEXT,
+    chunk_content TEXT, snippet TEXT,
+    vector_rank INTEGER, bm25_rank INTEGER, rrf_score FLOAT
 )
-LANGUAGE plpgsql
-STABLE
+LANGUAGE plpgsql STABLE
 AS $$
 DECLARE
-    v_has_embedding BOOLEAN := query_embedding IS NOT NULL;
     v_has_text BOOLEAN := query_text IS NOT NULL AND length(trim(query_text)) > 0;
 BEGIN
-    IF NOT v_has_embedding AND NOT v_has_text THEN
-        RETURN;
-    END IF;
-
     RETURN QUERY
-    WITH vector_search AS (
-        SELECT
-            c.id AS chunk_id,
-            c.document_id,
-            d.title AS document_title,
-            c.content AS chunk_content,
-            ROW_NUMBER() OVER (ORDER BY c.embedding <=> query_embedding)::INTEGER AS rank,
-            -- Deduplicate by document, keep best chunk
-            ROW_NUMBER() OVER (PARTITION BY c.document_id ORDER BY c.embedding <=> query_embedding) AS doc_rank
-        FROM chunks c
-        JOIN documents d ON d.id = c.document_id
-        WHERE v_has_embedding
-          AND c.embedding IS NOT NULL
-        ORDER BY c.embedding <=> query_embedding
-        LIMIT match_count * 5
+    WITH vector_best AS (
+        SELECT DISTINCT ON (t.doc_id) t.cid, t.doc_id, t.distance
+        FROM (
+            SELECT c.id AS cid, c.document_id AS doc_id,
+                   c.embedding <=> query_embedding AS distance
+            FROM chunks c
+            WHERE query_embedding IS NOT NULL AND c.embedding IS NOT NULL
+            ORDER BY distance
+            LIMIT match_count * 5
+        ) t
+        ORDER BY t.doc_id, t.distance
     ),
-    bm25_search AS (
-        SELECT
-            c.id AS chunk_id,
-            c.document_id,
-            d.title AS document_title,
-            c.content AS chunk_content,
-            pdb.snippet(c.content, start_tag => '<mark>', end_tag => '</mark>') AS snippet,
-            ROW_NUMBER() OVER (ORDER BY pdb.score(c.id) DESC)::INTEGER AS rank,
-            ROW_NUMBER() OVER (PARTITION BY c.document_id ORDER BY pdb.score(c.id) DESC) AS doc_rank
-        FROM chunks c
-        JOIN documents d ON d.id = c.document_id
-        WHERE v_has_text
-          AND c.content ||| query_text
-        ORDER BY pdb.score(c.id) DESC
-        LIMIT match_count * 5
+    vector_arm AS (
+        SELECT vb.cid, vb.doc_id,
+               ROW_NUMBER() OVER (ORDER BY vb.distance)::INTEGER AS rnk
+        FROM vector_best vb
     ),
-    -- Keep only best chunk per document
-    vector_dedup AS (
-        SELECT * FROM vector_search WHERE doc_rank = 1
+    bm25_best AS (
+        SELECT DISTINCT ON (t.doc_id) t.cid, t.doc_id, t.score, t.snip
+        FROM (
+            SELECT c.id AS cid, c.document_id AS doc_id,
+                   pdb.score(c.id) AS score,
+                   pdb.snippet(c.content, start_tag => '<mark>', end_tag => '</mark>') AS snip
+            FROM chunks c
+            WHERE v_has_text AND c.content ||| query_text
+            ORDER BY pdb.score(c.id) DESC, c.id
+            LIMIT match_count * 5
+        ) t
+        ORDER BY t.doc_id, t.score DESC
     ),
-    bm25_dedup AS (
-        SELECT * FROM bm25_search WHERE doc_rank = 1
+    bm25_arm AS (
+        SELECT bb.cid, bb.doc_id, bb.snip,
+               ROW_NUMBER() OVER (ORDER BY bb.score DESC, bb.doc_id)::INTEGER AS rnk
+        FROM bm25_best bb
     ),
-    combined AS (
-        SELECT
-            COALESCE(v.chunk_id, b.chunk_id) AS chunk_id,
-            COALESCE(v.document_id, b.document_id) AS document_id,
-            COALESCE(v.document_title, b.document_title) AS document_title,
-            COALESCE(v.chunk_content, b.chunk_content) AS chunk_content,
-            COALESCE(b.snippet, substring(COALESCE(v.chunk_content, b.chunk_content) from 1 for 200) || '...') AS snippet,
-            v.rank AS vector_rank,
-            b.rank AS bm25_rank,
-            (
-                COALESCE(1.0 / (rrf_k + v.rank), 0.0) +
-                COALESCE(1.0 / (rrf_k + b.rank), 0.0)
-            )::FLOAT AS rrf_score
-        FROM vector_dedup v
-        FULL OUTER JOIN bm25_dedup b ON v.document_id = b.document_id
+    fused AS (
+        SELECT COALESCE(v.doc_id, b.doc_id) AS doc_id,
+               COALESCE(b.cid, v.cid) AS cid,   -- prefer the chunk the snippet came from
+               b.snip,
+               v.rnk AS v_rank,
+               b.rnk AS b_rank,
+               (COALESCE(vector_weight / (rrf_k + v.rnk), 0)
+                + COALESCE(keyword_weight / (rrf_k + b.rnk), 0))::FLOAT AS score
+        FROM vector_arm v
+        FULL OUTER JOIN bm25_arm b ON v.doc_id = b.doc_id
     )
-    SELECT
-        c.chunk_id,
-        c.document_id,
-        c.document_title,
-        c.chunk_content,
-        c.snippet,
-        c.vector_rank,
-        c.bm25_rank,
-        c.rrf_score
-    FROM combined c
-    ORDER BY c.rrf_score DESC
+    SELECT c.id, f.doc_id, d.title, c.content, f.snip, f.v_rank, f.b_rank, f.score
+    FROM fused f
+    JOIN chunks c ON c.id = f.cid
+    JOIN documents d ON d.id = f.doc_id
+    ORDER BY f.score DESC, f.doc_id
     LIMIT match_count;
 END;
 $$;
 
--- ===========================================
--- 5. USAGE EXAMPLES
--- ===========================================
-
 /*
--- First, create BM25 index
-CREATE INDEX documents_bm25_idx ON documents
-USING paradedb (id, content)
-WITH (key_field = 'id');
-
--- Basic hybrid search
-SELECT * FROM hybrid_search_bm25(
-    '[0.1, 0.2, ...]'::vector(1536),
-    'search query',
-    10,
-    60
-);
-
--- With snippet highlighting
-SELECT * FROM hybrid_search_bm25_highlighted(
-    '[0.1, 0.2, ...]'::vector(1536),
-    'search query',
-    10,
-    60
-);
-
--- Chunk-based for RAG
-SELECT * FROM hybrid_search_chunks_bm25(
-    '[0.1, 0.2, ...]'::vector(1536),
-    'search query',
-    10,
-    60
-);
+SELECT * FROM hybrid_search_bm25('[0.1, 0.2, ...]'::vector(1536), 'search query');
+SELECT * FROM hybrid_search_chunks_bm25($1, $2, 10, 60, vector_weight => 2.0);
 */

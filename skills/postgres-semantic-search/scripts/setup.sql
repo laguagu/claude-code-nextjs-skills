@@ -1,151 +1,36 @@
--- PostgreSQL Semantic Search Setup
--- Run this first on a new database
+-- Extensions and the example schema every other script assumes.
+-- Rename tables/columns and change vector(1536) to your model's dimension
+-- count in all scripts at once; the functions hard-code both.
 
--- ===========================================
--- DOCKER QUICK START
--- ===========================================
---
--- # pgvector with PostgreSQL 17
--- docker run -d --name pgvector-db \
---   -e POSTGRES_PASSWORD=postgres \
---   -p 5432:5432 \
---   pgvector/pgvector:pg17
---
--- # Or PostgreSQL 18 (latest)
--- docker run -d --name pgvector-db \
---   -e POSTGRES_PASSWORD=postgres \
---   -p 5432:5432 \
---   pgvector/pgvector:pg18
---
--- # ParadeDB (includes pgvector + pg_search + BM25)
--- docker run -d --name paradedb \
---   -e POSTGRES_PASSWORD=postgres \
---   -p 5432:5432 \
---   paradedb/paradedb:latest
---
--- Connect: psql postgresql://postgres:postgres@localhost:5432/postgres
+CREATE EXTENSION IF NOT EXISTS vector;    -- pgvector
+CREATE EXTENSION IF NOT EXISTS pg_trgm;   -- fuzzy_search.sql, trigram indexes
+-- CREATE EXTENSION IF NOT EXISTS unaccent;   -- only for a custom FTS config, see references/keyword-search.md
+-- CREATE EXTENSION IF NOT EXISTS pg_search;  -- hybrid_search_bm25.sql (ParadeDB); needs pgvector first
 
--- ===========================================
--- 1. REQUIRED EXTENSIONS
--- ===========================================
-
--- pgvector: Vector similarity search
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- pg_trgm: Trigram similarity, fuzzy search, LIKE/ILIKE optimization
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
--- unaccent: Language-agnostic text normalization (for FTS)
-CREATE EXTENSION IF NOT EXISTS unaccent;
-
--- fuzzystrmatch (optional): Levenshtein distance, Soundex, Metaphone
--- CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
-
--- pg_search (optional): BM25 ranking - uncomment if available
--- CREATE EXTENSION IF NOT EXISTS pg_search;
-
--- ===========================================
--- 2. EXAMPLE TABLE STRUCTURE
--- ===========================================
-
--- Documents table with vector embedding
 CREATE TABLE IF NOT EXISTS documents (
     id SERIAL PRIMARY KEY,
     title TEXT,
     content TEXT NOT NULL,
-    metadata JSONB DEFAULT '{}'::JSONB,
-
-    -- Vector embedding (choose one based on your model)
-    -- Set N to your model's dimension count (1536 is common; check provider docs)
-    embedding vector(1536),
-
-    -- For 2000 < N <= 4000 dims, use halfvec so HNSW can index it:
-    -- embedding halfvec(3072),
-
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
+    -- N <= 2000: vector(N). 2000 < N <= 4000: halfvec(N), or keep vector(N)
+    -- and index a halfvec cast (references/pgvector.md). NULLs are not indexed.
+    embedding vector(1536)
 );
 
--- Chunks table (for RAG with large documents)
 CREATE TABLE IF NOT EXISTS chunks (
     id SERIAL PRIMARY KEY,
-    document_id INTEGER REFERENCES documents(id) ON DELETE CASCADE,
+    document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
     chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
     embedding vector(1536),
-    metadata JSONB DEFAULT '{}'::JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
+    UNIQUE (document_id, chunk_index)
 );
 
--- ===========================================
--- 3. AUTOMATIC TIMESTAMP UPDATE
--- ===========================================
+-- Bulk loads: insert first, then build the vector index (indexes.sql).
+-- An IVFFlat index built on an empty or tiny table picks bad lists and
+-- silently returns too few rows.
 
-CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Apply trigger to documents table
-DROP TRIGGER IF EXISTS documents_updated_at ON documents;
-CREATE TRIGGER documents_updated_at
-    BEFORE UPDATE ON documents
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at();
-
--- ===========================================
--- 4. VERIFY SETUP
--- ===========================================
-
--- Check installed extensions
 SELECT extname, extversion
 FROM pg_extension
 WHERE extname IN ('vector', 'pg_trgm', 'unaccent', 'pg_search');
-
--- Check pgvector version (should be 0.8.x for latest features)
--- SELECT vector_version();
-
--- ===========================================
--- 5. POST-BULK INSERT MAINTENANCE
--- ===========================================
-
--- IMPORTANT: Run after bulk inserts for best performance
--- VACUUM reclaims space, ANALYZE updates statistics
-
--- After inserting documents:
--- VACUUM ANALYZE documents;
-
--- After inserting chunks:
--- VACUUM ANALYZE chunks;
-
--- For large imports, consider:
--- 1. Insert data without indexes
--- 2. Create indexes after insert
--- 3. Run VACUUM ANALYZE
-
--- Example bulk import pattern:
-/*
--- 1. Drop indexes temporarily
-DROP INDEX IF EXISTS documents_embedding_hnsw_idx;
-
--- 2. Bulk insert (COPY is fastest)
-COPY documents (content, embedding)
-FROM '/path/to/data.csv' WITH (FORMAT csv);
-
--- Or batch INSERT
-INSERT INTO documents (content, embedding)
-VALUES
-    ('text1', '[0.1, 0.2, ...]'::vector),
-    ('text2', '[0.3, 0.4, ...]'::vector),
-    ...;
-
--- 3. Recreate index
-CREATE INDEX documents_embedding_hnsw_idx
-ON documents USING hnsw (embedding vector_cosine_ops);
-
--- 4. Update statistics
-VACUUM ANALYZE documents;
-*/

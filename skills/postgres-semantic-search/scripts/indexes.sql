@@ -1,197 +1,44 @@
--- Index Creation Scripts
--- Optimized indexes for semantic and hybrid search
+-- Indexes for the example schema. Build vector indexes after bulk loads.
+-- Parameters are pgvector defaults unless a comment says otherwise; tune
+-- against exact search on your own queries (references/pgvector.md).
+-- Trigram indexes live in fuzzy_search.sql, ParadeDB indexes in
+-- hybrid_search_bm25.sql.
 
--- ===========================================
--- 1. VECTOR INDEXES (HNSW - Recommended)
--- ===========================================
-
--- HNSW with Cosine similarity (most common for text embeddings)
+-- Vector: HNSW, cosine. The operator class must match the query operator
+-- (<=> cosine_ops, <-> l2_ops, <#> ip_ops) or the index is not used.
 CREATE INDEX IF NOT EXISTS documents_embedding_hnsw_idx
-ON documents USING hnsw (embedding vector_cosine_ops)
-WITH (m = 16, ef_construction = 200);
+ON documents USING hnsw (embedding vector_cosine_ops);
 
--- HNSW with L2 distance (Euclidean)
--- CREATE INDEX IF NOT EXISTS documents_embedding_hnsw_l2_idx
--- ON documents USING hnsw (embedding vector_l2_ops)
--- WITH (m = 16, ef_construction = 200);
-
--- HNSW with Inner Product (for normalized vectors)
--- CREATE INDEX IF NOT EXISTS documents_embedding_hnsw_ip_idx
--- ON documents USING hnsw (embedding vector_ip_ops)
--- WITH (m = 16, ef_construction = 200);
-
--- ===========================================
--- 2. HNSW FOR HALFVEC (3072 dimensions)
--- ===========================================
-
--- Optimized for 3072-dim embeddings (halfvec keeps them under HNSW's limit)
--- Use when storage is important (50% memory savings)
-
-/*
-CREATE INDEX IF NOT EXISTS documents_embedding_halfvec_idx
-ON documents USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops)
-WITH (m = 24, ef_construction = 100);
-
--- Set query-time search depth (session GUC, applies to all HNSW indexes)
-SET hnsw.ef_search = 80;
-*/
-
--- ===========================================
--- 3. IVFFLAT INDEXES (Large datasets)
--- ===========================================
-
--- Use for datasets > 1M vectors where HNSW memory is prohibitive
--- lists = sqrt(rows) or rows/1000
-
-/*
-CREATE INDEX IF NOT EXISTS documents_embedding_ivfflat_idx
-ON documents USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-
--- Set probes for query time (higher = better recall, slower)
-SET ivfflat.probes = 10;
-*/
-
--- ===========================================
--- 4. CHUNKS TABLE INDEXES
--- ===========================================
-
--- Vector index for chunks
 CREATE INDEX IF NOT EXISTS chunks_embedding_hnsw_idx
-ON chunks USING hnsw (embedding vector_cosine_ops)
-WITH (m = 16, ef_construction = 200);
+ON chunks USING hnsw (embedding vector_cosine_ops);
 
--- B-tree index for document_id lookups
-CREATE INDEX IF NOT EXISTS chunks_document_id_idx
-ON chunks (document_id);
+-- 2000 < N <= 4000: keep vector(N) and index a halfvec cast. Queries must use
+-- the identical expression: ORDER BY embedding::halfvec(3072) <=> $1::halfvec(3072)
+-- CREATE INDEX ON documents USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops);
 
--- ===========================================
--- 5. FULL-TEXT SEARCH INDEXES (GIN)
--- ===========================================
+-- IVFFlat: less memory and faster builds than HNSW, lower recall at equal speed.
+-- Build only once the table holds representative data. Starting points from
+-- pgvector: lists = rows / 1000 up to 1M rows, sqrt(rows) above; probes = sqrt(lists).
+-- CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
--- GIN index for PostgreSQL FTS (built-in)
+-- A few fixed filter values: one partial index per value beats filtering a
+-- shared index. Many values or per-tenant isolation: partition instead.
+-- CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops)
+-- WHERE (metadata->>'category') = 'news';
+
+-- Full-text search. The expression must match the query's to_tsvector call
+-- exactly, config included. A stored tsvector column is simpler to keep in sync:
+--   ALTER TABLE documents ADD COLUMN tsv tsvector GENERATED ALWAYS AS
+--     (setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
+--      setweight(to_tsvector('simple', content), 'B')) STORED;
+--   CREATE INDEX ON documents USING gin (tsv);
 CREATE INDEX IF NOT EXISTS documents_content_fts_idx
-ON documents USING GIN (to_tsvector('simple', content));
+ON documents USING gin (to_tsvector('simple', content));
 
--- With language-specific stemming
--- CREATE INDEX IF NOT EXISTS documents_content_fts_english_idx
--- ON documents USING GIN (to_tsvector('english', content));
-
--- CREATE INDEX IF NOT EXISTS documents_content_fts_finnish_idx
--- ON documents USING GIN (to_tsvector('finnish', content));
-
--- Chunks FTS index
 CREATE INDEX IF NOT EXISTS chunks_content_fts_idx
-ON chunks USING GIN (to_tsvector('simple', content));
+ON chunks USING gin (to_tsvector('simple', content));
 
--- ===========================================
--- 6. TRIGRAM INDEXES (pg_trgm - fuzzy search & LIKE/ILIKE)
--- ===========================================
-
--- GIN trigram indexes enable fast:
---   - Fuzzy search with % operator (similarity)
---   - LIKE/ILIKE pattern matching (no more seq scans!)
---   - Word similarity with <% operator
-
--- Requires: CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
-CREATE INDEX IF NOT EXISTS documents_title_trgm_idx
-ON documents USING gin (title gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS documents_content_trgm_idx
-ON documents USING gin (content gin_trgm_ops);
-
--- B-tree for fast prefix search (autocomplete)
-CREATE INDEX IF NOT EXISTS documents_title_prefix_idx
-ON documents (title text_pattern_ops);
-
--- GiST alternative (supports ORDER BY similarity, KNN)
--- CREATE INDEX IF NOT EXISTS documents_title_trgm_gist_idx
--- ON documents USING gist (title gist_trgm_ops);
-
--- ===========================================
--- 7. METADATA INDEXES (GIN for JSONB)
--- (Renumbered: sections 8-12 follow below)
--- ===========================================
-
--- GIN index for JSONB metadata queries
+-- Metadata filters (@> containment). Chunk lookups by document use the
+-- UNIQUE (document_id, chunk_index) index from setup.sql.
 CREATE INDEX IF NOT EXISTS documents_metadata_gin_idx
-ON documents USING GIN (metadata);
-
-CREATE INDEX IF NOT EXISTS chunks_metadata_gin_idx
-ON chunks USING GIN (metadata);
-
--- ===========================================
--- 7. PARTIAL INDEXES (Category-specific)
--- ===========================================
-
--- Example: Index only for specific category
--- Useful when queries often filter by category
-
-/*
-CREATE INDEX IF NOT EXISTS documents_embedding_category_news_idx
-ON documents USING hnsw (embedding vector_cosine_ops)
-WHERE metadata->>'category' = 'news';
-
-CREATE INDEX IF NOT EXISTS documents_embedding_category_legal_idx
-ON documents USING hnsw (embedding vector_cosine_ops)
-WHERE metadata->>'category' = 'legal';
-*/
-
--- ===========================================
--- 8. ARRAY COLUMN INDEXES
--- ===========================================
-
--- If you have array columns for filtering (tags, categories, etc.)
-
-/*
--- Tags array
-ALTER TABLE documents ADD COLUMN tags TEXT[];
-
-CREATE INDEX IF NOT EXISTS documents_tags_gin_idx
-ON documents USING GIN (tags);
-
--- Usage: WHERE tags && ARRAY['tag1', 'tag2']
-*/
-
--- ===========================================
--- 9. QUERY-TIME SETTINGS
--- ===========================================
-
--- HNSW search depth (higher = better recall, slower)
--- SET hnsw.ef_search = 100;
-
--- IVFFlat probes (higher = better recall, slower)
--- SET ivfflat.probes = 10;
-
--- Work memory for complex queries
--- SET work_mem = '256MB';
-
--- ===========================================
--- 10. INDEX MAINTENANCE
--- ===========================================
-
--- Reindex if performance degrades
--- REINDEX INDEX documents_embedding_hnsw_idx;
-
--- Analyze table for query planner
--- ANALYZE documents;
-
--- Check index size
--- SELECT pg_size_pretty(pg_relation_size('documents_embedding_hnsw_idx'));
-
--- ===========================================
--- 11. VERIFY INDEXES
--- ===========================================
-
--- List all indexes on documents table
-SELECT
-    indexname,
-    indexdef
-FROM pg_indexes
-WHERE tablename = 'documents'
-ORDER BY indexname;
-
--- Check if index is being used (run EXPLAIN on your queries)
--- EXPLAIN (ANALYZE, BUFFERS)
--- SELECT * FROM documents ORDER BY embedding <=> '[...]'::vector LIMIT 10;
+ON documents USING gin (metadata);
