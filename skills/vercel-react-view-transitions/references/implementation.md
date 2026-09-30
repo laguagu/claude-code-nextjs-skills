@@ -9,7 +9,6 @@
 - [Step 5: Add Suspense Reveals](#step-5-add-suspense-reveals)
 - [Step 6: Add Shared Element Transitions](#step-6-add-shared-element-transitions)
 - [Step 7: Verify Each Navigation Path](#step-7-verify-each-navigation-path)
-- [Common Mistakes](#common-mistakes)
 
 Follow these steps in order when adding view transitions to an app. Each step builds on the previous one.
 

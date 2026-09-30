@@ -32,8 +32,9 @@ answer once. Keep both:
 - **Long set**: sample chunks with enough real text (a few hundred
   characters), from documents still in use, and have a cheap model write one
   natural question each chunk answers. Store question, expected document and
-  expected chunk. Choose set size for the effect and coverage you need; a fixed question
-  count cannot by itself establish statistical reliability.
+  expected chunk. Size it for the effect you need to detect: at 50 questions and
+  a ~50 % hit rate the standard error is about 7 points, so small deltas need
+  hundreds of questions or the paired comparison below.
 - **Bias**: a question generated from a chunk is unusually close to that chunk
   in embedding space. Vector and RRF baselines look better than in production,
   and rerankers and query rewriters look worse, because they reshuffle a

@@ -1,23 +1,40 @@
-# History ownership and sessions
+# Sessions and history ownership
 
-Choose one conversation-history owner: application-managed input, an SDK session
-or provider-managed Responses conversation state. Combining owners can duplicate
-history or replay already-executed operations.
+Choose one history owner per conversation:
 
-Use the installed session implementations for the actual storage/runtime.
-SQLite fits local/single-instance storage; a supported SQL/Redis store may fit
-distributed persistence. Session IDs need server-side ownership checks and
-appropriate tenant scoping. A database row is not automatically durable workflow
-state.
+| Owner | Next turn passes | Scope |
+| --- | --- | --- |
+| App: `result.to_input_list()` | that list plus the new user message | Any provider |
+| SDK session | the same `session=` | Client-side store |
+| `conversation_id` | the same ID plus only the new turn | OpenAI Responses |
+| `previous_response_id` | `result.last_response_id` plus only the new turn | OpenAI Responses |
 
-Persist replay-valid SDK input/items, including required tool-call/result and
-reasoning context. Compaction, branching and encryption wrappers have their own
-semantics; read the relevant adapter before introducing them.
+`session=` with `conversation_id`/`previous_response_id`/`auto_previous_response_id`
+raises `UserError`. Mixing app-managed and server history duplicates context.
 
-An encrypted session does not encrypt provider requests or trace uploads.
-Define deletion/retention across application history, hosted conversation state,
-logs and backups when those are in scope.
+| Store | Import | Extra |
+| --- | --- | --- |
+| `SQLiteSession(id, db_path=...)` | `agents` | none; in-memory without `db_path` |
+| `SQLAlchemySession.from_url(id, url="postgresql+asyncpg://...", create_tables=True)` | `agents.extensions.memory` | `sqlalchemy` |
+| `RedisSession.from_url(id, url=...)` | `agents.extensions.memory` | `redis` |
+| `AsyncSQLiteSession`, `AdvancedSQLiteSession`, `MongoDBSession`, `DaprSession` | `agents.extensions.memory` | per backend |
+| `EncryptedSession(session_id=, underlying_session=, encryption_key=, ttl=)` | `agents.extensions.memory` | `encrypt` |
+| `OpenAIConversationsSession(conversation_id=...)` | `agents` | none |
+| `OpenAIResponsesCompactionSession(session_id=, underlying_session=)` | `agents` | none |
 
-Read [sessions](https://openai.github.io/openai-agents-python/sessions/)
-and [running agents](https://openai.github.io/openai-agents-python/running_agents/)
-for compatible history/resume examples.
+- 0.22.3 with SQLAlchemy 2.1: the `sqlalchemy` extra omits `greenlet`, so
+  importing `SQLAlchemySession` fails. Add `sqlalchemy[asyncio]`.
+- `EncryptedSession` defaults to `ttl=600`: items older than ten minutes are
+  silently skipped. It encrypts at rest only, not provider requests or traces.
+- A session ID selects history; it does not authenticate. Check ownership
+  server-side and scope IDs per tenant. `SQLiteSession` does not detect edited or
+  replayed rows.
+- Auto-compaction keeps a streamed run open until it finishes. For low latency
+  pass `should_trigger_compaction=lambda _: False` and call `run_compaction()`
+  between turns.
+- Persist replay-valid items, including tool call/result pairs and reasoning.
+
+Define deletion and retention across app history, hosted conversation state,
+logs and backups when in scope. Official docs:
+[sessions](https://openai.github.io/openai-agents-python/sessions/),
+[running agents](https://openai.github.io/openai-agents-python/running_agents/).

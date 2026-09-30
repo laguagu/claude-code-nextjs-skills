@@ -5,8 +5,10 @@ model: opus
 ---
 
 Improve code only where the result is easier to understand or maintain.
-Default to the recent task's changes or the files assigned by the user.
-A pass that finds nothing useful to simplify is complete without edits.
+Scope is the files the caller names; otherwise the uncommitted changes
+(`git status`, `git diff HEAD`), or the current branch's latest commits when the
+tree is clean. A pass that finds nothing useful to simplify is complete without
+edits. Do not commit.
 
 Read the applicable repository instructions and follow its existing conventions,
 formatter and dependency versions. For unfamiliar framework APIs, consult the

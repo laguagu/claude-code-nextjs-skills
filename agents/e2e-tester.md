@@ -10,16 +10,21 @@ does not establish that the flow works.
 
 ## Scope and tools
 
-Use the requested URL or discover the local target from the project. Prioritize
-the user's flows, changed areas and their likely regressions. Expand to other
-critical flows when the request calls for a full-app pass or evidence reveals a
-related risk.
+Use the requested URL or discover the local target from the project. If no
+server is running, start the project's dev server and stop what you started
+when done; a target you cannot find or start is an environment blocker to
+report. Prioritize the user's flows, changed areas and their likely
+regressions. Expand to other critical flows when the request calls for a
+full-app pass or evidence reveals a related risk.
 
 Follow repository instructions and use available browser tools that fit the
 check. Automation helps reproduce a flow; DOM, console and network inspection
-help explain a failure. Read framework or component guidance only when needed
-for diagnosis or a fix, using the installed version's docs or current primary
-sources.
+help explain a failure. The `chrome-devtools` skill covers DevTools MCP setup
+and tool names. In a Next.js 16+ app, the `next-devtools` MCP (`nextjs_index`,
+`nextjs_call`) reads live runtime errors, routes and logs from the dev server.
+Read framework or component guidance only when needed for diagnosis or a fix,
+preferring the installed version's docs (for Next.js,
+`node_modules/next/dist/docs/`) over web sources.
 
 Use test accounts and suitable test data for writes. In a live user account,
 keep checks read-only unless the requested action authorizes a state change.
@@ -42,6 +47,8 @@ Retest the failing flow and adjacent behavior after a meaningful fix. Preserve
 other contributors' edits. An unavailable dependency or an unverified fix is a
 limitation, not a passing test.
 
-Report the tested environment and flows, verified failures, fixes and retest
-results. Distinguish code defects, environment blockers and product or design
-questions. Keep the report concise and name meaningful untested areas.
+Start the report with a verdict: pass, pass with issues, or fail. Then give the
+tested environment and flows, verified failures with reproduction steps, fixes
+with file paths, and retest results. Distinguish code defects, environment
+blockers and product or design questions. Keep the report concise and name
+meaningful untested areas.

@@ -1,21 +1,29 @@
-# Delegation and history
+# Handoffs and delegation
 
-A handoff changes the active agent, which continues the conversation. An
-agent-as-tool returns a result to the manager. Either can be model-selected;
-handoff versus tool is a control-flow decision, not a deterministic-routing
-guarantee.
+A handoff makes the specialist the active agent; it continues the conversation
+and produces the final output (`result.last_agent`). `agent.as_tool()` returns
+the child's output to the manager. Both are model-selected; use ordinary code
+for deterministic routing.
 
-Use the installed handoff API for declared input, hooks and filtering. Preserve
-the current `HandoffInputData` fields when changing history (for example with a
-dataclass replacement) rather than reconstructing the structure field by field.
+- `Agent(handoffs=[billing])` or `handoff(billing, input_filter=..., on_handoff=...,
+  input_type=...)`. The model sees a tool named `transfer_to_<agent_name>`
+  (`transfer_to_billing_agent`).
+- The receiving agent sees the full conversation by default. Narrow it with
+  `input_filter` per handoff or `RunConfig.handoff_input_filter`.
+  `agents.extensions.handoff_filters.remove_all_tools` drops tool items, not tool
+  content already copied into messages. `RunConfig.nest_handoff_history` is an
+  opt-in beta and does not redact.
+- A filter takes and returns `HandoffInputData`. Return
+  `dataclasses.replace(data, input_history=...)` so fields added by newer SDKs
+  survive; keep tool call/result pairs intact.
+- `input_type` is model-written metadata (reason, priority) passed to
+  `on_handoff`; it does not replace the conversation the specialist receives.
+  Authorize parsed values in `on_handoff` and raise to stop: the transfer
+  proceeds once it returns.
+- The specialist's input guardrails do not run; tool guardrails and approvals on
+  its tools do.
+- Streaming emits `handoff_requested`, then `handoff_occured` (sic) and an
+  `agent_updated_stream_event`, not `tool_called`.
 
-Filter only what the specialist should not receive. Keep tool-call/result and
-provider protocol context valid. Use built-in filters when they meet the
-contract and inspect their effect on the actual conversation.
-
-Local run context is separate from model-visible history. Authorization,
-guardrail coverage and tool permissions need checking in the receiving path too.
-
-Read [handoff docs](https://openai.github.io/openai-agents-python/handoffs/)
-and [orchestration docs](https://openai.github.io/openai-agents-python/multi_agent/)
-for compatible implementations.
+Official docs: [handoffs](https://openai.github.io/openai-agents-python/handoffs/),
+[orchestration](https://openai.github.io/openai-agents-python/multi_agent/).

@@ -65,7 +65,7 @@ Based on the user interview, fill in these components:
 Reference: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices — the full checklist lives in `references/best-practices.md`; read it before writing or reviewing skill content. The four principles that matter most while drafting:
 
 - **Claude is already very smart.** Add what the agent lacks: local decisions, non-obvious contracts and useful source routes. Keep a short resource map or exact schema when it prevents a real mistake; avoid duplicating the codebase or teaching routine discovery.
-- **Concise is key.** Cut repetition and basics while preserving the task's useful knowledge and finish line.
+- **Concise is key.** Cut repetition and basics while preserving the task's useful knowledge and finish line. A three-line snippet or an exact name beats a paragraph of abstract prose.
 - **Match freedom to fragility.** Text guidelines where many approaches work; exact scripts where consistency is critical. Most skills land in between.
 - **Descriptions in third person.** "Processes Excel files", not "I can help you process Excel files" — the description is injected into the system prompt, and mixed point-of-view hurts discovery.
 
@@ -89,12 +89,10 @@ Skills use a three-level loading system:
 2. **SKILL.md body** - In context whenever skill triggers (<500 lines ideal)
 3. **Bundled resources** - As needed; loaded text and script results still use context
 
-These word counts are approximate and you can feel free to go longer if needed.
-
 **Key patterns:**
 - Aim for a concise core; 500 lines is a recommendation, not a format limit. Link separate topics with when-to-read guidance, after removing duplication.
 - Reference files clearly from SKILL.md with guidance on when to read them
-- For large reference files (>300 lines), include a table of contents
+- For reference files over 100 lines, include a table of contents
 
 **Domain organization**: When a skill supports multiple domains/frameworks, organize by variant:
 ```
@@ -135,7 +133,7 @@ Output: feat(auth): implement JWT-based authentication
 
 #### Gotchas Section
 
-Include non-obvious pitfalls when they prevent a plausible mistake: environment quirks, implicit assumptions or behavior the agent cannot infer from the code. Do not add a Gotchas section merely to repeat the main instructions.
+Gotchas are the highest-value content: facts that defy reasonable assumptions, such as environment quirks, renamed APIs, implicit assumptions or behavior the agent cannot infer from the code. Do not add a Gotchas section merely to repeat the main instructions.
 
 #### Pre-publish Checklist
 

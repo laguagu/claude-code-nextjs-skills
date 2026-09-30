@@ -47,10 +47,11 @@ passing in many segments, and a cross-encoder scores "mentions X" rather than
 brought every model's terms back to 0.87–1.00, at a cost of up to 7 points on
 the questions for the strongest models.
 
-The top 5 removed the rest. On the transcript search, six rerankers, from a
-small CPU cross-encoder to Qwen3-Reranker-8B, put all 15 terms first at 5; at
-10, four of them still lost one or two. Long questions scored better at 5 for
-four of the six, and a CPU reranker's added time fell to less than half.
+Reranking only the top 5 removed the remaining losses. On the transcript
+search, six rerankers, from a small CPU cross-encoder to Qwen3-Reranker-8B, put
+all 15 terms first at 5; at 10, four of them still lost one or two. Long
+questions scored better at 5 for four of the six, and a CPU reranker's added
+time fell to less than half.
 Include depth 5 as a candidate for similar short-query workloads, and choose
 from target-corpus measurements.
 

@@ -6,43 +6,78 @@ description: OpenAI Agents SDK (Python) development. Use when building AI agents
 # OpenAI Agents SDK for Python
 
 Use this skill for `openai-agents` / `agents`, not the TypeScript SDK.
-Resolve the installed package and its provider integrations before implementing
-an API. Current [SDK documentation](https://openai.github.io/openai-agents-python/)
-and a matching source tag take precedence over static examples.
+
+## Sources, in order
+
+1. The installed package matches the project and needs no network:
+   `python -c "import agents; print(agents.__version__, agents.__file__)"`, then
+   read that source, `help(agents.Runner.run)` and `agents.__all__`.
+2. The official docs (https://openai.github.io/openai-agents-python/). Breaking
+   changes per minor version: `/release/`. Examples: `examples/` in
+   https://github.com/openai/openai-agents-python at the installed version's tag.
+3. The facts below, checked against 0.22.3 (2026-09). Sources 1 and 2 win when
+   they disagree.
+
+## Minimal run
+
+```python
+from agents import Agent, Runner, function_tool
+
+@function_tool
+def order_status(order_id: str) -> str:
+    """Return the status of an order."""
+    ...
+
+agent = Agent(name="Support", instructions="...", model="<configured model>", tools=[order_status])
+result = await Runner.run(agent, "Where is order 42?")
+print(result.final_output)
+```
+
+## Gotchas (0.22.x)
+
+| Area | Fact |
+| --- | --- |
+| Default model | Omitting `model` uses the SDK default (`gpt-5.6-luna` since 0.20; `OPENAI_DEFAULT_MODEL` overrides). Only `gpt-5*` names get tuned `ModelSettings`; any other name, such as a custom Azure deployment name, gets bare `ModelSettings()`. |
+| `run_sync` | Raises `RuntimeError` inside a running event loop (async handlers, notebooks). Use `await Runner.run(...)`. |
+| Tool exceptions | Do not raise: the model gets "An error occurred while running the tool… Error: <message>". `failure_error_function=None` re-raises; a custom function controls the text. |
+| Input guardrails | Run in parallel with the agent by default, so tools can run before a tripwire. `@input_guardrail(run_in_parallel=False)` blocks first. Only the first agent's input and the final agent's output guardrails run. |
+| History owner | `session=` combined with `conversation_id`/`previous_response_id`/`auto_previous_response_id` raises `UserError`, as do output guardrails with server-managed history on Responses models. |
+| Streaming | Drain `result.stream_events()` to the end: session writes, approvals and `final_output` settle after the last token. Errors raise from the loop. |
+| Tracing | On by default; uploads model and tool inputs/outputs to OpenAI. Without an OpenAI key (Azure, LiteLLM) uploads fail with 401: `set_tracing_disabled(True)` or `OPENAI_AGENTS_DISABLE_TRACING=1`. |
+| LiteLLM | `openai-agents` needs `openai>=3`; LiteLLM 1.84+ pins `openai<3`, so the resolver lands on 1.83.x. An Azure deployment name LiteLLM does not recognize rejects `reasoning_effort` unless allowed explicitly ([agents.md](references/agents.md)). |
+| `@tool` | `from agents.decorators import tool` (0.19+) is an alias of `function_tool`; current docs use it. |
 
 ## Integration decisions
 
 - Keep the project's provider, model and storage unless the task requires a
-  change. Verify model IDs/capabilities in provider configuration or live docs.
-  SDK model/settings defaults may change; configure product-critical choices
-  explicitly.
-- Use native provider/client support when it fits. LiteLLM/Any-LLM are optional
-  integrations with their own compatibility and settings behavior.
+  change. Configure product-critical model and settings explicitly.
+- Use native provider/client support when it fits; LiteLLM/Any-LLM are beta
+  adapters.
 - Choose handoffs when a specialist takes over, or `agent.as_tool()` when the
-  manager should continue after delegated work. A fixed pipeline does not need
-  extra agents merely to implement ordinary control flow.
-- Authorize side effects in tools. Agent instructions, output schemas and
-  guardrails do not replace authorization or idempotency.
+  manager should continue after delegated work. A fixed pipeline needs ordinary
+  code, not extra agents.
+- Authorize side effects in tools. Instructions, output schemas and guardrails
+  do not replace authorization or idempotency.
 - Decide history ownership, approval/resume and tracing data policy before
   exposing a multi-turn agent to untrusted clients.
 
 ## Read for the feature
 
-- [Agents/providers](references/agents.md): model defaults, Azure and adapters.
-- [Tools](references/tools.md): local/hosted execution and delegation.
-- [Structured output](references/structured-output.md): schema and capability constraints.
-- [Streaming](references/streaming.md): event types, failures and guardrails.
-- [Handoffs](references/handoffs.md): control transfer and filtering.
-- [Guardrails](references/guardrails.md): execution timing and coverage.
-- [Sessions](references/sessions.md): history ownership and persistence.
+- [Agents/providers](references/agents.md): default model, Azure, LiteLLM.
+- [Tools](references/tools.md): function/hosted tools, errors, approvals.
+- [Structured output](references/structured-output.md): strict schemas, model settings.
+- [Streaming](references/streaming.md): event types, cancellation, failures.
+- [Handoffs](references/handoffs.md): control transfer and history filtering.
+- [Guardrails](references/guardrails.md): timing, coverage, tripwires.
+- [Sessions](references/sessions.md): history owners and stores.
 - [Orchestration/tracing](references/patterns.md): run limits and observability.
-- [Sandbox](references/sandbox.md): beta workspace execution and resume state.
+- [Sandbox](references/sandbox.md): beta workspace execution.
 
-Use the Developer Docs MCP if available for current OpenAI API/provider behavior;
-use the Python SDK's own reference for SDK signatures. Read selected
-[official examples](https://github.com/openai/openai-agents-python/tree/main/examples)
-from a compatible tag, not a copied catalog of demos.
+## Done
 
-Verify changed tools, multi-turn history, approval/denial and failure recovery.
-Run the project's checks; report missing provider access separately from verified
-SDK behavior.
+Test orchestration offline with `agents.testing` (0.21+): `ScriptedModel`,
+`assistant_message`, `function_call(name, args, call_id=...)`,
+`model.assert_complete()` and `RunConfig(tracing_disabled=True)`. Cover changed
+tools, multi-turn history, approval/denial, guardrail tripwires and failure
+recovery, then run the project's checks. Report missing provider access
+separately from verified SDK behavior.

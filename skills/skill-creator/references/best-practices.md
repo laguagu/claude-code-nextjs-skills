@@ -78,7 +78,7 @@ When evaluating trigger behavior, use representative should-trigger and should-n
 
 | Level | What loads | When | Budget |
 |-------|-----------|------|--------|
-| L1 Metadata | name + description | Client discovery/selection | Client-dependent |
+| L1 Metadata | name + description | At startup, all skills | ~100 tokens (spec); clients may shorten listings |
 | L2 Instructions | Full SKILL.md body | When triggered | Concise core; 500 lines is a recommendation |
 | L3 Resources | references/, scripts/, assets/ | On demand | Loaded text and results still use context |
 
@@ -228,6 +228,7 @@ Run with: `uv run scripts/extract.py`
 | Deeply nested refs (A→B→C) | Agent partially reads, misses info | One level deep only |
 | Windows paths (`\`) | Breaks on Unix systems | Always use `/` |
 | Volatile claims without a current source | Become stale | Link current docs; retain needed version bounds or dated observations |
+| Pointer-only skill (links, no facts) | Fails without web access (sandboxes, API code execution); the agent guesses renamed APIs | Local, version-matched sources first (installed package, `--help`, bundled docs), key gotchas inline, web docs as fallback |
 | Inconsistent terminology | Confuses agent | Pick one term per concept |
 | Too many options | Agent can't choose | Provide default + escape hatch |
 | Magic constants | Nobody knows why | Document every value |
@@ -250,7 +251,7 @@ Run with: `uv run scripts/extract.py`
 - [ ] Separate references only where the task needs them
 - [ ] Necessary version boundaries/dates have an appropriate scope and source
 - [ ] Consistent terminology
-- [ ] Examples only when they clarify a non-obvious contract or required output
+- [ ] Examples are concrete, not abstract: a short snippet or exact name over a paragraph of prose
 - [ ] File references one level deep
 - [ ] Progressive disclosure used appropriately
 

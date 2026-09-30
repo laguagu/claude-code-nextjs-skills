@@ -1,24 +1,50 @@
-# Tool execution boundaries
+# Tools
 
-Use typed function tools for application operations; keep tenant/role checks,
-input validation and idempotency in the executor. Model input/context is not
-authorization. Tool errors returned to the model or UI need the app's safe
-formatting policy.
+Keep tenant/role checks, input validation and idempotency in the tool executor.
+Model input and run context are not authorization.
 
-Hosted tools run under provider contracts; local tools execute in the app's
-runtime or sandbox. Confirm installed tool types and endpoint support in
-[tools docs](https://openai.github.io/openai-agents-python/tools/). Do not assume
-function-tool guardrails cover hosted shell, computer, MCP or patch tools.
+- `@function_tool` (alias `@tool` from `agents.decorators`) builds the schema from
+  type hints and the docstring. `timeout=`, `needs_approval=`, guardrails and
+  `failure_error_function=` are decorator arguments.
+- A raising tool does not end the run: the default error function sends the
+  exception message to the model. Pass a custom `failure_error_function` to keep
+  internal details out, or `None` to re-raise.
+- `ModelSettings(tool_choice="required")` forces a call; `Agent.reset_tool_choice`
+  (default `True`) resets it after a tool call so the loop can finish.
+  `tool_use_behavior="stop_on_first_tool"` or `StopAtTools([...])` makes a tool's
+  result the final output.
 
-Use `agent.as_tool()` when the manager consumes a child result and retains
-control. Use a handoff when the specialist should become the active agent.
-Tool execution limits and cancellation apply to real side effects too.
+Hosted tools run on OpenAI through the Responses API: `WebSearchTool`,
+`FileSearchTool`, `CodeInterpreterTool`, `HostedMCPTool`, `ImageGenerationTool`,
+`ToolSearchTool`. Local runtime tools execute in your process or sandbox:
+`ComputerTool`, `ShellTool`, `LocalShellTool`, `ApplyPatchTool`; approval for
+`ShellTool`/`ApplyPatchTool` is opt-in (`needs_approval` defaults to `False`).
+Function-tool guardrails cover none of these. Confirm names in the installed
+`agents/tool.py` or the official [tools docs](https://openai.github.io/openai-agents-python/tools/).
 
-For model-written programmatic tool calling, verify the selected Responses
-model and installed SDK constraints, allowed callers and tool exposure before
-enabling it. A general function-tool list is not automatically callable from
-model-generated code.
+`ProgrammaticToolCallingTool` (0.19+) lets the model call tools from generated
+JavaScript: Responses models only, at most one per agent, and a tool is callable
+from the program only with `allowed_callers=["programmatic"]` (or
+`["direct", "programmatic"]`). Keep approval-sensitive tools direct.
 
-Use SDK human-in-the-loop interruption/resume state when the task needs approval.
-Tie the decision to an authorized server-issued run/tool call and recheck
-policy before executing it; do not trust client-edited run state.
+`agent.as_tool(tool_name=..., tool_description=...)` returns the child's output
+to the manager, which keeps control; it accepts `parameters=`, `max_turns=` and
+`needs_approval=`. A handoff makes the specialist active ([handoffs.md](handoffs.md)).
+
+## Approval and resume
+
+```python
+result = await Runner.run(agent, message)
+if result.interruptions:                  # ToolApprovalItem entries
+    state = result.to_state()             # state.to_string() to persist
+    for item in result.interruptions:
+        state.approve(item)               # or state.reject(item, rejection_message=...)
+    result = await Runner.run(agent, state)   # the original top-level agent
+```
+
+Restore a persisted state with `await RunState.from_string(agent, text)`; it is
+async. The serialized state includes run context, so keep secrets out of it.
+Tie decisions to an authorized server-side run and recheck policy before
+resuming; do not trust client-edited state. Approvals raised inside handoffs or
+nested `as_tool()` runs surface on the outer run. See the official
+[human-in-the-loop docs](https://openai.github.io/openai-agents-python/human_in_the_loop/).

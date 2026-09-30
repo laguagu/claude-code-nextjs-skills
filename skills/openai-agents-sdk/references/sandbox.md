@@ -1,22 +1,32 @@
-# Sandbox agents
+# Sandbox agents (beta)
 
-Use `SandboxAgent` when the agent needs a persistent workspace, filesystem/shell
-tools or lazily loaded skills. Ordinary API/function-tool work need not pay for
-a workspace runtime.
-
-The sandbox hosts execution; the agent loop remains in the application process.
-The API is beta. Read the current
+Use `SandboxAgent` when the agent needs a persistent workspace: files, shell,
+lazily loaded skills. Plain function tools need no workspace runtime. The
+sandbox hosts tool execution; the agent loop stays in your process. The API is
+beta: read the installed `agents/sandbox/` source or the official
 [sandbox quickstart](https://openai.github.io/openai-agents-python/sandbox_agents/)
-and installed source before choosing clients, capabilities, manifests or mounts.
+before choosing clients, capabilities, manifests or mounts.
 
-A local Unix client, Docker client and remote environment do not establish the
-same isolation/permission boundary. Configure allowed paths, commands, network
-access and credentials for the task; do not copy demo defaults blindly.
+| Import | Role |
+| --- | --- |
+| `from agents.sandbox import SandboxAgent, SandboxRunConfig, Manifest` | Agent, per-run config, workspace manifest |
+| `from agents.sandbox.entries import LocalDir, LocalFile, Dir` | Copy host files in, or create a workspace dir |
+| `from agents.sandbox.capabilities import Capabilities, Skills, LocalDirLazySkillSource` | Sandbox tools (`Capabilities.default()`) and skills |
+| `from agents.sandbox.sandboxes.unix_local import UnixLocalSandboxClient` | Host processes |
+| `from agents.sandbox.sandboxes.docker import DockerSandboxClient` | Container (`openai-agents[docker]`) |
 
-Use documented session/snapshot state to resume the workspace. Define who owns
-cleanup and how mounts or files persist. Skills are instruction bundles;
-loading them does not authorize tools or grant isolation.
+Run with `RunConfig(sandbox=SandboxRunConfig(client=...))`.
 
-Verify the actual client on the target host, including cancellation, cleanup,
-resume and access limits. Do not show an incomplete constructor sketch as a
-working example.
+- `UnixLocalSandboxClient` adds no OS confinement on Linux; on macOS
+  `sandbox-exec` restricts the filesystem but not the network. For untrusted or
+  input-influenced commands use Docker, a hosted client or external isolation.
+- Since 0.17, `LocalDir`/`LocalFile` sources outside the process working
+  directory need `Manifest(extra_path_grants=(SandboxPathGrant(path=..., read_only=True),))`.
+  Never build grants from model output.
+- Resume through `SandboxRunConfig(session=...)`, `session_state=` or
+  `snapshot=`. Define who owns cleanup and what persists.
+- Skills are instructions; loading them grants no tools or isolation.
+
+Verify on the target host: cancellation, cleanup, resume and access limits.
+`agents.testing.scripted_sandbox_session()` tests the workflow without starting
+a sandbox.

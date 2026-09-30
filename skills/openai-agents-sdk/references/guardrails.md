@@ -1,23 +1,31 @@
-# Guardrail coverage
+# Guardrails
 
-Agent input guardrails run for the first agent; output guardrails check the
-final-output agent. They do not surround every intermediate handoff or tool.
+| Kind | Declare | Runs | Tripwire raises |
+| --- | --- | --- | --- |
+| Agent input | `@input_guardrail`, `Agent(input_guardrails=[...])` | First agent only; parallel with it by default | `InputGuardrailTripwireTriggered` |
+| Agent output | `@output_guardrail`, `Agent(output_guardrails=[...])` | Agent producing the final output, after it finishes | `OutputGuardrailTripwireTriggered` |
+| Tool | `@tool_input_guardrail` / `@tool_output_guardrail`, `@function_tool(tool_input_guardrails=[...])` | Every call of that `FunctionTool`; local MCP tools when the server sets them | `ToolInputGuardrailTripwireTriggered` / `ToolOutputGuardrailTripwireTriggered` |
 
-Input guardrails default to parallel execution. The agent can already consume
-tokens or execute tools before a tripwire cancels it. Use
-`run_in_parallel=False` when the check must complete before the run starts.
-Output guardrails happen after execution and cannot undo side effects or
-already-streamed output.
+Agent guardrails return `GuardrailFunctionOutput(output_info=..., tripwire_triggered=...)`;
+the exception carries it as `exc.guardrail_result.output`. Tool guardrails return
+`ToolGuardrailFunctionOutput.allow()`, `.reject_content(message)` (the model
+sees the message, the run continues) or `.raise_exception()`.
 
-Tool input/output guardrails use the FunctionTool pipeline. Hosted/built-in
-execution tools and handoff calls have different coverage; local MCP tools can
-use server-configured guardrails in supported releases. Verify the installed
-coverage before assuming a generic policy applies.
+- A parallel input guardrail can let the agent spend tokens and run tools before
+  the tripwire cancels it. `@input_guardrail(run_in_parallel=False)` completes
+  first.
+- Output guardrails cannot undo tool side effects or text already streamed.
+- In a tool guardrail, `data.context.tool_arguments` is the raw JSON string:
+  `json.loads(data.context.tool_arguments or "{}")`.
+- Tool guardrails skip hosted tools, `ComputerTool`/`ShellTool`/`LocalShellTool`/
+  `ApplyPatchTool`, handoff calls and `Agent.as_tool()`. With approval, tool
+  input guardrails run after approval unless
+  `RunConfig(tool_execution=ToolExecutionConfig(pre_approval_tool_input_guardrails=True))`.
+- A tripwire and an exception raised inside the guardrail persist session
+  history differently. Catch the tripwire types explicitly, not a broad `except`.
+- Output guardrails with `conversation_id`/`previous_response_id` on a Responses
+  model raise `UserError`: rejected output cannot be removed from server history.
 
-A returned tripwire and a guardrail exception have different failure and
-session-persistence semantics. Read the current
-[guardrail documentation](https://openai.github.io/openai-agents-python/guardrails/)
-for those details rather than writing a broad catch that hides the distinction.
-
-Keep actual access control in application/tool code. Test a rejected input,
-tool denial, output tripwire and relevant streaming behavior.
+Keep access control in application and tool code. Test a rejected input, a tool
+denial, an output tripwire and the streaming path. Details: the official
+[guardrails docs](https://openai.github.io/openai-agents-python/guardrails/).

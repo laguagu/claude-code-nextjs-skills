@@ -29,10 +29,10 @@ error.
 5. Add a reranker last, over the head of a good shortlist
    ([reranking.md](references/reranking.md)).
 
-Change one thing at a time. Predefine the acceptance rule, measure run-to-run
-spread and inspect wins/losses for the query populations the change affects.
-The numerical findings below are corpus-specific observations, not universal
-performance guarantees.
+Change one thing at a time. Agree the acceptance rule first; by default keep a
+change only if its gain exceeds the measured run-to-run spread on both eval
+sets, and inspect its per-query losses. The numbers below are observations on
+named corpora, not guarantees.
 
 ## Choosing
 
@@ -46,7 +46,7 @@ performance guarantees.
   and evaluate on the target language before committing.
 - **Hybrid when users type both questions and terms.** On a Finnish corpus
   keyword alone was weak on long questions (24 % right first), vector alone on
-  short terms (53 %), and hybrid led on both (53 % and 93 %;
+  short terms (53 %); only hybrid was strong on both (53 %, tying vector, and 93 %;
   [hybrid-search.md](references/hybrid-search.md#where-each-arm-fails-long-questions-and-short-terms)).
 - **BM25 is not available everywhere**: managed hosts differ (Neon removed
   `pg_search`). Plain FTS with the fixes below is often enough.
@@ -117,22 +117,24 @@ Details and measurements: [hybrid-search.md](references/hybrid-search.md).
 
 ## Reranking
 
-- **Evaluate rerank depth on short terms and full questions.** On one Finnish
-  transcript corpus, shallow reranking preserved topical-term results better
-  than reordering all 30. Compare no reranking and several depths; that result
-  does not establish a universal top-5 rule or cross-encoder behavior.
+- **Rerank the head, not the whole shortlist, and measure the depth.** On a
+  Finnish transcript corpus, reordering all 30 candidates cut short-term Hit@1
+  from 0.93 to 0.60–0.80; reranking only the top 5 kept every term first for
+  all six rerankers tested. Compare no reranking and several depths on both
+  eval sets.
 - **The relevance question's wording can matter more than the model** (about
   thirty points on one corpus). Every criterion must be checkable from the text
   sent, and the source title belongs in the reranker input.
-- **Choose by the deployment/data policy and measured latency.** Model size,
-  quantization, batching and hardware affect CPU/GPU suitability; do not infer
-  a universal latency cutoff from parameter count. Hosted reranking sends
-  candidate text to that provider. Define a timeout fallback.
+- **Hosting narrows the models before quality does.** On a 2-core CPU pod a
+  568M cross-encoder took 9.6 s for 10 candidates, while a ~120M one added about
+  0.3 s at depth 5; on a GPU the 568M model takes tens of milliseconds. Hosted
+  reranking sends candidate text to that provider. Measure p95 on the target
+  hardware and fall back to first-stage order on timeout.
 - **Measure the shortlist ceiling first**: a reranker cannot recover what the
   first stage missed.
-- Make the backend/depth configurable when operationally useful; choose the
-  enabled default from the accepted quality and latency results. If callers may choose a
-  backend per request, allow only admin-enabled ones.
+- Make backend and depth runtime settings so switching or disabling needs no
+  deploy, and enable by default only what passed the eval. If callers may
+  choose a backend per request, allow only admin-enabled ones.
 
 Numbers, model trade-offs and adoption rules: [reranking.md](references/reranking.md)
 and [jev-rerank-bench](https://github.com/laguagu/jev-rerank-bench).
@@ -187,7 +189,9 @@ await db.execute(sql`SELECT * FROM match_documents(${JSON.stringify(embedding)}:
 
 ## Versions (checked 2026-09)
 
-- **pgvector**: 0.8.0+ for iterative scans. Check current stable releases: 0.8.2 fixed a
+- **pgvector**: installed version via
+  `SELECT extversion FROM pg_extension WHERE extname = 'vector'`. 0.8.0+ for
+  iterative scans; newest release 0.8.6 (2026-07). 0.8.2 fixed a
   buffer overflow in parallel HNSW builds, 0.8.3 and 0.8.4 HNSW vacuum
   corruption and errors. Read the current index-fix and upgrade notes before
   upgrading. Releases ship as git tags only, so read the

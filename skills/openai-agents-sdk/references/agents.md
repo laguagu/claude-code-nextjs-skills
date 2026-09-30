@@ -1,30 +1,63 @@
 # Agents and provider wiring
 
-Read [model docs](https://openai.github.io/openai-agents-python/models/) and the
-installed package source. Omitting `model` uses SDK defaults, which can change;
-`OPENAI_DEFAULT_MODEL` is an SDK setting, while a custom app variable needs
-explicit wiring. Default ModelSettings are not universal across model families.
+The installed default and its settings:
+`python -c "from agents.models import get_default_model as m, get_default_model_settings as s; print(m(), s())"`.
 
-Configure only settings supported by the selected provider/model. Reasoning,
-sampling and tool support differ by endpoint. Do not infer capabilities or a
-model family from an Azure deployment's user-defined name.
+- Omitting `model` uses the SDK default (0.22.x: `gpt-5.6-luna`, reasoning
+  effort `none`, verbosity `low`). `OPENAI_DEFAULT_MODEL` or
+  `RunConfig(model=...)` override it; a custom app variable needs explicit wiring.
+- Only names starting `gpt-5` get tuned defaults. Every other name gets bare
+  `ModelSettings()`, i.e. the provider's default reasoning effort. Do not infer
+  capabilities or a model family from an Azure deployment's user-defined name.
+- `reasoning.mode` and `reasoning.context` are Responses-only; Chat Completions
+  sends only `reasoning.effort`.
 
-Azure can use native OpenAI model classes with the configured async Azure
-client. Choose Responses/Chat Completions from deployed capabilities and the
-current Azure API contract. Read deployment configuration or documented Azure
-management APIs to identify the deployment; do not rely on an old generic
-listing endpoint.
+## Azure OpenAI with the native client
 
-LiteLLM/Any-LLM are beta adapters recommended when built-in integration points
-are insufficient. They have independent model maps, imports and package extras.
-A rejected parameter may be adapter capability metadata rather than the
-provider; verify before enabling it. Silently dropping a requested reasoning
-setting changes behavior.
+```python
+from openai import AsyncAzureOpenAI  # reads AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, OPENAI_API_VERSION
+from agents import Agent, OpenAIChatCompletionsModel
 
-Tracing is separate from model authentication. An Azure/LiteLLM key does not
-authorize OpenAI trace uploads. Configure trace destination or disable uploads
-according to the application's policy.
+client = AsyncAzureOpenAI()
+agent = Agent(name="Assistant",
+              model=OpenAIChatCompletionsModel(model="<deployment name>", openai_client=client))
+```
 
-See [SDK models](https://openai.github.io/openai-agents-python/models/),
-[LiteLLM integration](https://docs.litellm.ai/docs/tutorials/openai_agents_sdk)
-and the configured provider's current docs.
+Use `OpenAIResponsesModel` when the deployment serves the Responses API.
+Process-wide alternative: `set_default_openai_client(client, use_for_tracing=False)`,
+plus `set_default_openai_api("chat_completions")` without Responses.
+
+The Chat Completions path silently drops Responses-only fields
+(`previous_response_id`, `conversation_id`, `prompt`);
+`OpenAIProvider(use_responses=False, strict_feature_validation=True)` makes that
+an error. `ToolSearchTool`, `ProgrammaticToolCallingTool`, `tool_namespace()` and
+deferred tool loading are rejected there.
+
+## LiteLLM and Any-LLM (beta adapters)
+
+Use them when the built-in paths (`set_default_openai_client`, a `ModelProvider`
+or a model object on `Agent.model`) do not cover the provider. LiteLLM:
+`openai-agents[litellm]`, then `model="litellm/<provider>/<model>"` or
+`LitellmModel(model="azure/<deployment>")` from
+`agents.extensions.models.litellm_model`.
+
+- Since 0.21 the SDK requires `openai>=3`, while LiteLLM 1.84+ pins `openai<3`:
+  the resolver lands on LiteLLM 1.83.x, and requiring a newer LiteLLM is
+  unsatisfiable.
+- LiteLLM checks parameters against its own model map. For a deployment name it
+  does not recognize (`azure/my-deploy`), `ModelSettings(reasoning=...)` raises
+  `UnsupportedParamsError: azure does not support parameters: ['reasoning_effort']`.
+  Allow it explicitly; `litellm.drop_params=True` silently discards the effort:
+
+  ```python
+  from openai.types.shared import Reasoning
+  ModelSettings(reasoning=Reasoning(effort="low"),
+                extra_args={"allowed_openai_params": ["reasoning_effort"]})
+  ```
+- Some backends report no usage unless `ModelSettings(include_usage=True)`.
+
+An Azure or LiteLLM key does not authorize OpenAI trace uploads; see
+[patterns.md](patterns.md#tracing).
+
+Official docs: [models](https://openai.github.io/openai-agents-python/models/),
+LiteLLM [providers](https://docs.litellm.ai/docs/providers).

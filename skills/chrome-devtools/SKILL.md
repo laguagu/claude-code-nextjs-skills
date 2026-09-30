@@ -35,8 +35,8 @@ Inspect the available tool schema; namespace prefixes depend on the client.
 | Console failures | `list_console_messages`, `get_console_message` |
 | HTTP failures/payloads | `list_network_requests`, `get_network_request` |
 | Styles | `get_css_styles` (matched rules, cascade, CSS variables); `evaluate_script` with `getComputedStyle` for final values |
-| Visual evidence | `take_screenshot`, `resize_page` |
-| Performance | `performance_start_trace`, `performance_stop_trace`, `performance_analyze_insight` |
+| Visual evidence | `take_screenshot`, `resize_page`; `emulate` for mobile viewport/touch and color scheme |
+| Performance | `performance_start_trace`, `performance_stop_trace`, `performance_analyze_insight`; `emulate` for CPU/network throttling |
 | Automated accessibility/SEO checks | `lighthouse_audit` (does not audit performance) |
 
 ## Workflow
