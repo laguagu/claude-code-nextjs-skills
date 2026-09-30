@@ -127,8 +127,6 @@ licenses survive. Validate skills with
 `claude plugin validate .claude-plugin/plugin.json` and
 `claude plugin validate .claude-plugin/marketplace.json`.
 
-[Audit history](AUDIT.md) records material changes, corrections and validation limits.
-
 ## 📚 See Also
 
 [agents-best-practices](https://github.com/laguagu/agents-best-practices) — skill

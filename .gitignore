@@ -1,5 +1,8 @@
 __pycache__/
 
+# Local audit notes; versioned history lives in the source collection.
+/AUDIT.md
+
 # Skills that do not ship with this collection. The maintainer's reference
 # check reads these entries to catch published files that still point at
 # them. A skill whose name also appears in public URLs is left out, because
