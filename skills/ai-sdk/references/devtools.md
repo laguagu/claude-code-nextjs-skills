@@ -5,7 +5,7 @@ description: Debug AI SDK calls by inspecting captured runs and steps.
 
 # AI SDK DevTools
 
-Use DevTools when captured model requests, responses and steps would help diagnose a development issue. Match `@ai-sdk/devtools` to the installed SDK major:
+Use DevTools when captured model requests, responses and steps would help diagnose a development issue. Match `@ai-sdk/devtools` to the installed SDK major (`latest` for v7, `@ai-sdk/devtools@ai-v6` for v6):
 
 | SDK | Capture setup |
 | --- | --- |

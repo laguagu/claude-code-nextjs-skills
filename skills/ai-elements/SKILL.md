@@ -30,10 +30,10 @@ registry, preset and primitive-base details.
 
 ## Integration
 
-[Integration](references/integration.md) covers the UI/SDK boundary and v6
-pitfalls. Keep stable message IDs and render supported message parts with the
-generated compound components. Keep model choice, tools, credentials and
-authorization on the server.
+[Integration](references/integration.md) covers the UI/SDK boundary, v6
+pitfalls and the `context.tsx` patch that AI SDK 7 needs. Keep stable message
+IDs and render supported message parts with the generated compound components.
+Keep model choice, tools, credentials and authorization on the server.
 
 Compose the states the feature needs: streaming, completion, retry, cancellation,
 attachments, approval or sources. Avoid adding components merely because the

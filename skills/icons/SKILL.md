@@ -35,8 +35,9 @@ Collection metadata gives licensing information. Fetch individual SVGs through
 The public API needs no key; `https://api.iconify.design/collections?prefixes=<sets>`
 returns metadata and licences for comma-separated sets.
 
-These flag sets use lowercase ISO 3166-1 alpha-2 codes; a country-name search
-can miss them and return emoji sets instead. Build the id directly: `circle-flags:fi`,
+The SVG flag sets `circle-flags`, `flagpack` and `flag` use lowercase ISO 3166-1
+alpha-2 codes. The checked `finland` search (2026-09-30) returned only Emoji
+collections, none of these three. Build the id directly: `circle-flags:fi`,
 `flagpack:fi`; `flag` needs a ratio suffix (`flag:fi-4x3`, `flag:fi-1x1`), and
 bare `flag:fi` is a 404. Use SVG flags rather than emoji: Windows' emoji font
 has no flag glyphs and shows the letters (`FI`). For a language selector,

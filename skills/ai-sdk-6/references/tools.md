@@ -8,10 +8,12 @@ external executor; it is not automatically a server action.
 V6 manual approval uses tool-level `needsApproval` and the UI's
 `addToolApprovalResponse`. Do not replace it with SDK 7's `toolApproval`.
 Bind browser-round-tripped approval to trusted server state for sensitive
-operations. Late v6 (verified in 6.0.298) accepts
-`experimental_toolApprovalSecret` on core functions and `ToolLoopAgent` for
-HMAC-signed approvals; check installed types before using it. Approval does
-not replace tenant/role checks or idempotency.
+operations. `experimental_toolApprovalSecret` (HMAC-signed approvals) is
+accepted by `generateText`/`streamText` from 6.0.202 and by `ToolLoopAgent`
+settings and `prepareCall` from 6.0.272. Before 6.0.202, approved tool calls
+replayed from client history ran without schema re-validation or an approval
+re-check, so a forged approval executed: treat 6.0.202 as the security floor.
+Approval does not replace tenant/role checks or idempotency.
 
 Render the installed union, including `input-streaming`, `input-available`,
 `approval-requested`, `approval-responded`, `output-available`,

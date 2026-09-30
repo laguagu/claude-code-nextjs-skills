@@ -56,7 +56,7 @@ Codemods do not cover every semantic change.
 
 | Area | Migration contract |
 | --- | --- |
-| Runtime | Node.js 22+, ESM-only AI SDK packages; check CommonJS interop on the target Node release |
+| Runtime | Node.js 22+, ESM-only AI SDK packages; `require()` is officially unsupported, though it may load through require(esm) on Node ≥22.12 |
 | Step preparation | Returned instructions and messages carry into later steps |
 | Trusted history | System messages in `messages`/`prompt` rejected by default; `allowSystemInMessages` only for trusted stored history |
 | Callbacks | Rename core/agent/UI-stream callbacks only; client `useChat` `onFinish` keeps its name |

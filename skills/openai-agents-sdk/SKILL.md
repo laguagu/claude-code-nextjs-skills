@@ -16,9 +16,52 @@ The wheel ships no docs. Offline, read the installed source: the version from
 (`python -c "import agents; print(agents.__file__)"`). The documentation
 source is `docs/` at repository tag `v<version>`.
 
+## Core shape
+
 `Runner.run_sync` raises inside a running event loop (async handlers and
 notebooks); use `await Runner.run(...)`. `Runner.run_streamed(...)` itself
 is not awaited; consume its `stream_events()` async iterator to completion.
+
+Checked with openai-agents 0.22.3; confirm names in the installed source for
+another version:
+
+```python
+import asyncio
+from pydantic import BaseModel
+from agents import Agent, Runner, SQLiteSession, function_tool
+
+class OrderAnswer(BaseModel):
+    order_id: str
+    status: str
+    reply: str
+
+@function_tool
+def get_order_status(order_id: str) -> str:
+    """Return an order's shipping status.
+
+    Args:
+        order_id: Order ID given by the customer.
+    """
+    return f"{order_id}: shipped"  # authorize and read the app's data here
+
+support = Agent(
+    name="Support",
+    instructions="Answer order questions. Use get_order_status for order data.",
+    model="gpt-5.6-luna",  # explicit; use the project's configured model
+    tools=[get_order_status],
+    output_type=OrderAnswer,
+)
+# A manager keeps control with tools=[order_tool]; handoffs=[support] transfers it.
+order_tool = support.as_tool("order_support", "Answer an order question.")
+
+async def main() -> None:
+    session = SQLiteSession("user-123", "conversations.db")  # ID owned by the signed-in user
+    result = await Runner.run(support, "Where is order A-17?", session=session)
+    answer: OrderAnswer = result.final_output  # validated OrderAnswer instance
+    print(answer.status, answer.reply)
+
+asyncio.run(main())
+```
 
 ## Integration decisions
 
@@ -39,7 +82,7 @@ is not awaited; consume its `stream_events()` async iterator to completion.
 ## Read for the feature
 
 - [Agents/providers](references/agents.md): model defaults, Azure and adapters.
-- [Tools](references/tools.md): local/hosted execution and delegation.
+- [Tools](references/tools.md): local/hosted execution, delegation and approval/resume.
 - [Structured output](references/structured-output.md): schema and capability constraints.
 - [Streaming](references/streaming.md): event types, failures and guardrails.
 - [Handoffs](references/handoffs.md): control transfer and filtering.
@@ -55,9 +98,12 @@ reference for SDK signatures. Read selected
 [official examples](https://github.com/openai/openai-agents-python/tree/main/examples)
 from a compatible tag, not a copied catalog of demos.
 
+## Verification
+
 Verify changed tools, multi-turn history, approval/denial and failure recovery.
 Use installed `agents.testing` (verified in 0.22.3) for offline orchestration:
 `ScriptedModel`, `ModelStep`, `assistant_message`, `function_call` and
-`model.assert_complete()`, with `RunConfig(tracing_disabled=True)`. Run the
+`model.assert_complete()`, with `RunConfig(tracing_disabled=True)`; assigning
+`agent.model = ScriptedModel([...])` runs the core shape offline. Run the
 project's checks; report missing provider access separately from verified SDK
 behavior.

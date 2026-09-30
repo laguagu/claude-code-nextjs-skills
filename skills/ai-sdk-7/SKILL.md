@@ -46,6 +46,66 @@ a fresh check before adding long-lived wrappers.
   overlapping reasoning settings: provider options can override top-level
   `reasoning`.
 
+## Core shape
+
+Checked with `ai@7.0.124`, `@ai-sdk/react@4.0.127`, `zod@4.6.5`, React 19 and
+TypeScript 5.9: `tsc --noEmit`, plus a mock-model run through one tool step and
+the follow-up answer. A string model resolves through the AI Gateway.
+
+```ts
+// app/api/chat/route.ts
+import { convertToModelMessages, createUIMessageStreamResponse, isStepCount, streamText, tool,
+  toUIMessageStream, validateUIMessages, type InferUITools, type UIDataTypes, type UIMessage } from 'ai';
+import { z } from 'zod';
+
+const tools = {
+  weather: tool({
+    inputSchema: z.object({ city: z.string() }),
+    execute: async ({ city }) => ({ city, celsius: 21 }),
+  }),
+};
+export type ChatMessage = UIMessage<never, UIDataTypes, InferUITools<typeof tools>>;
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+  const uiMessages = await validateUIMessages<ChatMessage>({ messages, tools });
+  const result = streamText({
+    model: 'provider/model-id', // configured gateway ID, or a provider instance
+    instructions: 'Answer briefly.',
+    messages: await convertToModelMessages(uiMessages),
+    tools,
+    stopWhen: isStepCount(5),
+  });
+  return createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream }) });
+}
+```
+
+```tsx
+// app/page.tsx
+'use client';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import type { ChatMessage } from './api/chat/route';
+
+const transport = new DefaultChatTransport<ChatMessage>({ api: '/api/chat' });
+
+export default function Chat() {
+  const { messages, sendMessage, status } = useChat<ChatMessage>({ transport });
+  return (
+    <form action={(form) => void sendMessage({ text: String(form.get('text')) })}>
+      {messages.map((m) => <div key={m.id}>{m.parts.map((part, i) =>
+        part.type === 'text' ? <p key={i}>{part.text}</p>
+        : part.type === 'tool-weather' && part.state === 'output-available'
+          ? <p key={i}>{part.output.city}: {part.output.celsius} °C</p> : null)}</div>)}
+      <input name="text" disabled={status === 'submitted' || status === 'streaming'} />
+    </form>
+  );
+}
+```
+
+The v6 spellings (`system`, `stepCountIs`, `result.toUIMessageStreamResponse()`)
+still compile in 7.0.124; `system` and the response method are deprecated.
+
 ## Read for the feature
 
 - [Agents](references/agents.md): in-memory/durable execution and context.

@@ -1,5 +1,39 @@
 # Skill audit history
 
+## 2026-09-30: verified API examples, release 1.0.9
+
+Imported the source collection's next 15 commits through `9ae1048` and reviewed
+the restoration in three groups: Python agents, AI SDK, and Next.js.
+Preserved the concise examples in five implementation skills:
+`openai-agents-sdk`, `ai-sdk-6`, `ai-sdk-7`, `cache-components`, and
+`next-best-practices`. They demonstrate version-sensitive tool, stream,
+session, cache, async-params and proxy contracts. Tutorials remain removed.
+
+Kept provider dist-tag compatibility, the pinned AI Elements v6 constraint
+and v7 usage-field patch, approval-signing version floors, the corrected
+Search Console anchor, and the raw-fetch route. Example count is not a quality
+target; authoring guidance distinguishes implementation from discovery-only
+skills and identifies the version and kind of verification.
+
+Review narrowed two factual claims: ordinary Python function-tool results use
+stringification as a fallback, with structured/JSON exceptions; cache
+persistence across instances and deployments depends on storage and cache
+identity. The Iconify `finland` search remains a dated observation.
+
+The Python example passed an offline run with openai-agents 0.22.3,
+ScriptedModel, SQLiteSession and tracing disabled. Both AI SDK route/client
+examples passed typechecking against ai 6.0.298 and 7.0.124; mock-model POSTs
+returned HTTP 200 SSE with one tool step and a follow-up answer. Next.js claims
+were reviewed against tagged 16.3.8 docs/source; the earlier review's build and
+server tests were not rerun. No live provider, production app or agent-output
+quality test was performed.
+
+Format and local-file link checks passed for all 50 source skills, including
+11 intentional client extensions. All 395 files in the 24 published skills
+match committed source content. Plugin/marketplace manifests and private-skill
+reference checks passed; the actual skill targets cover the validator's local
+junction warning.
+
 ## 2026-09-30: reconcile the two restoration reviews
 
 Compared the published baseline `011f5f9`, the five commits ending at

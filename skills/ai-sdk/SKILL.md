@@ -13,8 +13,10 @@ upgrade is requested.
 - AI SDK 6 maintenance: use `ai-sdk-6`.
 - Unknown, mixed or older versions: resolve them before applying either API set.
 - New apps: start on the current major (7 when written; `npm view ai dist-tags`
-  confirms). Majors move together: `ai@7` with `@ai-sdk/react@4` and
-  `@ai-sdk/<provider>@4`; `ai@6` with `@ai-sdk/react@3` and providers `@3`.
+  confirms). `ai@7` pairs with `@ai-sdk/react@4`, `ai@6` with `@ai-sdk/react@3`.
+  Provider majors differ per package (for v7, Amazon Bedrock and xAI are 5.x,
+  OpenAI-compatible 3.x), so install each provider's `latest` for v7 and its
+  `ai-v6` dist-tag for v6 (`npm view <pkg> dist-tags`).
 
 ## Find the API that matches the app
 

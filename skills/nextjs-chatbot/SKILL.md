@@ -10,7 +10,6 @@ tool result UI and an embedded widget. Use `ai-app` for scaffolding,
 `ai-sdk` to resolve the SDK version, and `ai-elements` for component contracts.
 For multi-platform messaging, consult [Chat SDK](https://chat-sdk.dev/).
 
-Start with the supported task, authoritative sources and privacy/latency budget.
 Keep the project's stack. Choose the model, reasoning setting, storage and
 client state from the product's quality, latency and privacy requirements.
 A chatbot does not inherently need PostgreSQL, Zustand, MCP servers or every
@@ -41,9 +40,9 @@ The linked ai-sdk.dev pages are the online fallback and describe the newest majo
   for failed HTTP requests and in-stream failures; an error after headers have
   been sent cannot change the HTTP status. The UI stream masks ordinary errors
   by default; provider-executed tool errors can bypass `onError`, so check the
-  tool error renderer too. A custom `onError` return value reaches the browser verbatim, and
-  a non-2xx response reaches `useChat` `onError` with the raw response body as
-  its message.
+  tool error renderer too. A custom `onError` return value reaches the browser
+  verbatim, and a non-2xx response reaches `useChat` `onError` with the raw
+  response body as its message.
 - Verify actual proxy streaming and buffering configuration. SDK UI-message
   responses already send `X-Accel-Buffering: no`; streams you build yourself
   (NDJSON/SSE progress) need it and `Cache-Control: no-store, no-transform`.

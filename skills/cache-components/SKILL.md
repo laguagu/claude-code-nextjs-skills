@@ -31,10 +31,17 @@ that remain correct after mutations, deploys and client navigation.
   `experimental.dynamicIO`, `experimental.useCache` and `experimental.ppr`;
   `cacheLife`/`cacheTag` import from `next/cache` without `unstable_`.
 - With it enabled, segment exports `dynamic`, `revalidate`, `fetchCache` and
-  `dynamicParams` are errors, and Edge runtime is unsupported. Replace segment
-  policies with `use cache`/`cacheLife`, Suspense and, for rejected unknown
-  params, `notFound()`. Existing `fetch` and `unstable_cache` caching still
-  works as a separate layer; do not mechanically rewrite every read.
+  `dynamicParams` are errors, and Edge runtime is unsupported. `revalidate = N`
+  becomes `cacheLife` (nearest or custom profile) inside `use cache`;
+  `force-dynamic` and `fetchCache` are unnecessary; fetch
+  `next: { revalidate, tags }` becomes `cacheLife`/`cacheTag` in a `use cache`
+  function; request data goes under Suspense; `dynamicParams = false` becomes
+  `notFound()` for unknown params.
+- Existing `fetch` and `unstable_cache` caching still works as a separate layer,
+  so do not mechanically rewrite every read. Its persistence across deployments
+  and instances depends on retained/shared storage; self-hosted instances do not
+  share it by default. `use cache` is in-memory by default; even a durable
+  handler cannot reuse entries when the build/deployment ID changes.
 - `generateStaticParams` must return at least one param: `[]` fails the build,
   and removing the export renders the route on every request.
 - `revalidate: 0` or `expire` under 5 minutes makes a request-time hole instead
@@ -52,6 +59,52 @@ that remain correct after mutations, deploys and client navigation.
 For whole-app adoption or instant-navigation work, Next.js publishes workflow
 skills (`next-cache-components-adoption`, `next-cache-components-optimizer`)
 in `vercel/next.js/skills`; the bundled migration guide covers the same steps.
+
+## Shape of one route
+
+`app/posts/page.tsx`, checked against next 16.3.8 with `cacheComponents: true`
+(`tsc --noEmit`, `next build`, the action under `next start`). `@/lib/*` is
+project code.
+
+```tsx
+import { Suspense } from 'react'
+import { cookies } from 'next/headers'
+import { cacheLife, cacheTag, updateTag } from 'next/cache'
+import { insertPost, listPosts } from '@/lib/posts' // project code
+import { requireEditor } from '@/lib/auth' // throws unless the session may edit
+
+async function getPosts() {
+  'use cache' // shared entry: no cookies/headers/searchParams inside
+  cacheLife('hours')
+  cacheTag('posts')
+  return listPosts()
+}
+
+async function Theme() {
+  const theme = (await cookies()).get('theme')?.value // request-time, outside the cache
+  return <p>Theme: {theme ?? 'system'}</p>
+}
+
+async function addPost(formData: FormData) {
+  'use server'
+  await requireEditor()
+  const title = String(formData.get('title') ?? '').trim()
+  if (!title) return
+  await insertPost(title)
+  updateTag('posts') // Server Actions only; the next read waits for fresh data
+}
+
+export default async function Page() {
+  const posts = await getPosts() // cached, so it can be part of the static shell
+  return (
+    <>
+      <ul>{posts.map((p) => <li key={p.id}>{p.title}</li>)}</ul>
+      <Suspense fallback={<p>Theme: …</p>}><Theme /></Suspense>
+      <form action={addPost}><input name="title" /><button>Add</button></form>
+    </>
+  )
+}
+```
 
 ## Decide the boundary
 

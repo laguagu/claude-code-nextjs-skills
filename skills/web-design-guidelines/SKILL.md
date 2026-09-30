@@ -25,7 +25,7 @@ Fetch fresh guidelines before each review:
 https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md
 ```
 
-Retrieve the complete rules with an available web or shell tool. A summary may omit rules; use the raw file when checking the full set. Without web access, use the pinned snapshot [references/command.md](references/command.md) and say in the review that it used the snapshot and its date.
+Retrieve the complete rules with an available web or shell tool. A fetch tool that returns a summary (such as Claude Code's WebFetch) may omit rules; when the shell has network access, `curl` the raw URL instead. Without web access, use the pinned snapshot [references/command.md](references/command.md) and say in the review that it used the snapshot and its date.
 
 ## Usage
 

@@ -78,9 +78,8 @@ Multiple instances need coordinated data/cache behavior where shared freshness
 is required: custom `cacheHandlers` use `updateTags()` to write invalidations
 and `refreshTags()` to synchronize them before requests. `cacheHandler` for
 legacy ISR is a different contract. Do not implement a generic Redis/S3 handler
-from a tutorial: use
-the installed Next.js handler contract and a maintained adapter or a tested
-project implementation.
+from a tutorial: use the installed Next.js handler contract and a maintained
+adapter or a tested project implementation.
 
 Read the [caching guide](https://nextjs.org/docs/app/getting-started/caching)
 and [self-hosting guide](https://nextjs.org/docs/app/guides/self-hosting) for

@@ -10,6 +10,13 @@ source first. Use `ai-sdk-6` for an existing v6 project and `ai-sdk-7` for v7.
 Read installed SDK types and version-matched docs before composing the transport,
 response helper or lifecycle callbacks.
 
+Upstream AI Elements (main at 6a9d5b1) still declares `ai` ^6 and
+`@ai-sdk/react` ^3. Against AI SDK 7 types, the generated `context.tsx` fails
+typecheck: it reads `usage.reasoningTokens` and `usage.cachedInputTokens`,
+which v7's `LanguageModelUsage` moved to `outputTokenDetails.reasoningTokens`
+and `inputTokenDetails.cacheReadTokens`. Update those reads in the installed
+copy.
+
 `convertToModelMessages` is asynchronous in v6 and v7; await it.
 `createAgentUIStreamResponse({ agent, uiMessages })` validates against the
 agent tools and converts messages itself. Do not transplant v7 helpers into

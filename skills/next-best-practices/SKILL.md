@@ -41,6 +41,32 @@ Exact exports are also in `node_modules/next/{server,navigation,headers,cache}.d
   `{ expire: 0 }` for immediate expiry. `updateTag` and `refresh` are Server
   Action-only. Caching details: `cache-components`.
 
+The params and proxy shapes, checked against next 16.3.8 (`next typegen`,
+`tsc --noEmit`, `next build`):
+
+```tsx
+// app/blog/[slug]/page.tsx; PageProps is global after `next typegen` (or dev/build)
+export async function generateStaticParams() {
+  return [{ slug: 'hello' }] // cacheComponents: needed for this top-level await; never []
+}
+
+export default async function Page({ params }: PageProps<'/blog/[slug]'>) {
+  const { slug } = await params // a Promise; sync access was removed in 16
+  return <h1>{slug}</h1>
+}
+
+// proxy.ts, replacing middleware.ts: Node.js runtime, no `runtime` export
+import { NextResponse, type NextRequest } from 'next/server'
+
+export function proxy(request: NextRequest) {
+  // Optimistic check only: authorize again where the data is read.
+  if (request.cookies.has('session')) return NextResponse.next()
+  return NextResponse.redirect(new URL('/login', request.url))
+}
+
+export const config = { matcher: ['/dashboard/:path*'] }
+```
+
 The `upgrade` codemod does not migrate synchronous request-API access; run
 `next-async-request-api` separately when migrating that code. Use the project's
 package runner and review the resulting types and runtime behavior.

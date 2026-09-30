@@ -1,4 +1,4 @@
-# Tool execution boundaries
+# Tool execution boundaries and approvals
 
 Use typed function tools for application operations; keep tenant/role checks,
 input validation and idempotency in the executor. Model input/context is not
@@ -17,6 +17,11 @@ function-tool guardrails cover hosted shell, computer, MCP or patch tools.
 Use `agent.as_tool()` when the manager consumes a child result and retains
 control. Use a handoff when the specialist should become the active agent.
 Tool execution limits and cancellation apply to real side effects too.
+Ordinary function-call dict/Pydantic results, including a structured
+`as_tool()` final output, default to `str(value)` in 0.22.3. Declared output
+schemas serialize JSON; recognized `ToolOutputText`/image/file content retains
+its structured format. Programmatic calls have separate JSON serialization.
+Return JSON text or use `custom_output_extractor` when JSON formatting matters.
 `tool_use_behavior="stop_on_first_tool"` or
 `StopAtTools(stop_at_tool_names=[...])` returns a selected tool output as the
 final result; `Agent.reset_tool_choice` defaults to `True` so a forced tool
@@ -34,4 +39,6 @@ policy before executing it; do not trust client-edited run state.
 `state.approve(item)` / `state.reject(item)`, then resume with
 `await Runner.run(original_agent, state)`. Restore serialized state with
 `await RunState.from_string(original_agent, text)`; that method is async and
-the serialized state includes run context.
+the serialized state includes run context. Pass `context_override=` to replace
+that saved context with trusted server context; approval decisions and usage
+still come from the string (verified in 0.22.3).

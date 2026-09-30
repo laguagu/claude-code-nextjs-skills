@@ -13,9 +13,11 @@ JavaScript projects.
 
 1. Resolve the installed AI SDK major through `ai-sdk`; use `ai-sdk-6` or
    `ai-sdk-7` for implementation. For a new app, default to **AI SDK 7**: `ai@7`,
-   `@ai-sdk/react@4` and provider packages `@4` (Node.js 22+). Keep v6 only
-   when a required dependency pins it. Read version-matched `ai/docs/` and
-   provider docs before using web examples.
+   `@ai-sdk/react@4` and each provider package at `latest` (provider majors
+   differ; Node.js 22+). Keep v6 only when a required dependency pins it. AI
+   Elements still targets v6, and its `context.tsx` fails a v7 typecheck until
+   patched (see `ai-elements`). Read version-matched `ai/docs/` and provider
+   docs before using web examples.
 2. Use `nextjs-shadcn` for framework setup and `frontend-design` for visual
    direction. Use `ai-elements` when its components fit the required chat UI;
    inspect installed source instead of assuming registry props.

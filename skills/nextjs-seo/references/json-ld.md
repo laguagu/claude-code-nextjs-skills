@@ -11,10 +11,7 @@ FAQ (gone for all sites from 2026-05-07), HowTo (2023), Course Info, Claim
 Review, Estimated Salary, Learning Video, Special Announcement and Vehicle
 Listing (2025), Practice Problems (2025-11). Dataset markup serves Dataset
 Search only. Such markup can remain for other consumers but yields no Google
-rich result.
-
-Google's [May 2026 notice](https://developers.google.com/search/updates)
-confirms the FAQ removal; keep eligibility separate from Schema.org validity.
+rich result ([Search updates](https://developers.google.com/search/updates)).
 
 Mark up only facts users can verify on the page or through its legitimate
 associated content. Do not invent reviews, ratings, prices, stock, authors,
