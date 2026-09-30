@@ -13,6 +13,7 @@ import {
   ContextTrigger,
 } from "@/components/ai-elements/context";
 
+// TokenLens catalog fixture, not a production model recommendation.
 const Example = () => (
   <div className="flex items-center justify-center p-8">
     <Context

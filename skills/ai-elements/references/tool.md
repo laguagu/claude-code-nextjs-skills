@@ -130,7 +130,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const result = streamText({
-    model: "openai/gpt-6-sol",
+    model: "openai/gpt-6.1-sol",
     messages: await convertToModelMessages(messages),
     tools: {
       fetch_weather_data: {

@@ -10,6 +10,13 @@ source first. Use `ai-sdk-6` for an existing v6 project and `ai-sdk-7` for v7.
 Read installed SDK types and version-matched docs before composing the transport,
 response helper or lifecycle callbacks.
 
+Model selectors and server examples are illustrative. For current IDs and
+capabilities, use the [OpenAI model catalog](https://developers.openai.com/api/docs/models)
+and the [AI Gateway catalog](https://vercel.com/ai-gateway/models) for the actual
+provider route. `openai/gpt-6.1-sol` was verified in Vercel's catalog on
+2026-09-30; select from the application's supported models rather than treating
+the demo selection as a production default.
+
 Upstream AI Elements (main at 6a9d5b1) still declares `ai` ^6 and
 `@ai-sdk/react` ^3. Against AI SDK 7 types, the generated `context.tsx` fails
 typecheck: it reads `usage.reasoningTokens` and `usage.cachedInputTokens`,

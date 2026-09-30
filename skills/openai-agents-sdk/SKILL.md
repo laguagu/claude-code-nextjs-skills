@@ -10,6 +10,11 @@ Resolve the installed package and its provider integrations before implementing
 an API. Current [SDK documentation](https://openai.github.io/openai-agents-python/)
 and a matching source tag take precedence over static examples.
 
+Choose a model from the current [OpenAI model catalog](https://developers.openai.com/api/docs/models)
+and [model-selection guide](https://developers.openai.com/api/docs/guides/model-selection).
+Check the selected model's tools, reasoning settings and provider availability;
+an SDK fallback or a demo ID is not a permanent recommendation.
+
 The wheel ships no docs. Offline, read the installed source: the version from
 `importlib.metadata.version("openai-agents")`, public exports in
 `agents/__init__.py`, docstrings and types in the package directory
@@ -28,7 +33,8 @@ another version:
 ```python
 import asyncio
 from pydantic import BaseModel
-from agents import Agent, Runner, SQLiteSession, function_tool
+from agents import Agent, ModelSettings, Runner, SQLiteSession, function_tool
+from openai.types.shared import Reasoning
 
 class OrderAnswer(BaseModel):
     order_id: str
@@ -47,7 +53,8 @@ def get_order_status(order_id: str) -> str:
 support = Agent(
     name="Support",
     instructions="Answer order questions. Use get_order_status for order data.",
-    model="gpt-5.6-luna",  # explicit; use the project's configured model
+    model="gpt-6.1-sol",  # example API ID; use the project's configured model
+    model_settings=ModelSettings(reasoning=Reasoning(effort="medium")),
     tools=[get_order_status],
     output_type=OrderAnswer,
 )
@@ -62,6 +69,11 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
+
+The example uses Responses (the SDK's default API). [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol)
+requires Responses for tool calling and does not support `none` or `minimal`
+reasoning effort. Model availability/live responses were not tested by the
+offline SDK check.
 
 ## Integration decisions
 
