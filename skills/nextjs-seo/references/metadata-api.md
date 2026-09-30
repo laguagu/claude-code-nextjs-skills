@@ -10,15 +10,15 @@ Export `viewport` / `generateViewport` for viewport-related fields.
 
 Set `metadataBase` to the intended public origin when using relative metadata
 URLs. It applies to canonical/language alternates as well as social images.
-Missing-base behavior can differ between versions, fields and hosts; current
-docs require a base for relative URL-based fields. Inspect emitted production
-URLs rather than treating a development fallback or warning as the contract.
+An absolute field URL ignores it. Without a base, the docs describe a build
+error, but the 16.3 resolver leaves canonical/hreflang URLs relative and falls
+back to a Vercel URL or `localhost` for social images with only a warning.
+Inspect emitted production URLs rather than trusting either.
 
 Metadata merges shallowly from root to leaf. Replacing a nested object such as
 `openGraph` can discard inherited fields; explicitly carry forward needed
-values or use a shared helper. File-based metadata can override config-based
-metadata. Verify title templates, canonical queries and per-route image
-selection in the served response.
+values or use a shared helper. Verify title templates, canonical queries and
+per-route image selection in the served response.
 
 In localized pages, provide absolute reciprocal hreflang URLs, including the
 page itself. Preserve the distinction between language versions and unrelated
@@ -36,22 +36,28 @@ requirements; don't force every page into `use cache`. A cached
 `generateMetadata` return must be serializable under the documented contract:
 use URL strings rather than `URL` instances where required.
 
-Next.js can stream metadata to capable clients and block for HTML-limited
-bots. Check the installed `htmlLimitedBots` behavior and the complete response
-for relevant agents before diagnosing “missing head tags”. Do not broaden bot
-overrides without evidence.
+Next.js can stream metadata into `<body>` for capable clients and block for
+HTML-limited bots. Check the complete response for relevant agents before
+diagnosing “missing head tags”. Setting `htmlLimitedBots` replaces the default
+list (Bingbot, Twitterbot, Slackbot, non-rendering Google crawlers and more)
+rather than extending it; `/.*/` disables streaming. The default fits most sites.
 
 ## Social images, icons and manifest
 
-Use [metadata file conventions](https://nextjs.org/docs/app/api-reference/file-conventions/metadata)
-when they fit. Static and generated OG/Twitter images, favicon/icon/apple-icon
-files and manifests have different formats and limits; read the exact
-convention before adding an export or file.
+Prefer [metadata file conventions](https://nextjs.org/docs/app/api-reference/file-conventions/metadata);
+they emit the tags (type, size) and override the `metadata` object for the same asset:
 
-For generated images, follow
-[ImageResponse](https://nextjs.org/docs/app/api-reference/functions/image-response)
-rendering, font and bundle limitations. Test the actual generated URL and
-image, including fonts and long titles.
+| File | Static | Generated | Notes |
+|---|---|---|---|
+| `favicon` | `.ico` | no | Root `app/` only |
+| `icon` | `.ico .jpg .jpeg .png .svg` | `.tsx` | Any segment; numeric suffixes for several |
+| `apple-icon` | `.jpg .jpeg .png` | `.tsx` | |
+| `opengraph-image` / `twitter-image` | `.jpg .jpeg .png .gif` | `.tsx` | Build fails above 8 MB / 5 MB; alt text in `opengraph-image.alt.txt` |
+
+Generated files use [ImageResponse](https://nextjs.org/docs/app/api-reference/functions/image-response):
+flexbox and a CSS subset only (no `display: grid`), a 500 KB bundle including
+fonts and images, and `ttf`/`otf`/`woff` fonts (not `woff2`). Test the actual
+generated URL and image, including fonts and long titles.
 
 A web manifest is useful for an installable web app; it is not a generic SEO
 requirement. Avoid duplicating equivalent icon/social-image definitions merely

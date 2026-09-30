@@ -27,17 +27,24 @@ a logo for a real organization when an official asset is unavailable.
 
 ## Iconify
 
-Search at [Iconify's catalog](https://icon-sets.iconify.design/) or through its
-[search API](https://iconify.design/docs/api/search.html). Results use
-`prefix:name` identifiers; `prefixes` limits a query to selected sets.
-Collection metadata gives licensing information. Fetch individual SVGs through
-`https://api.iconify.design/{prefix}:{name}.svg`.
+Public API, no key; results use `prefix:name` identifiers
+([search docs](https://iconify.design/docs/api/search.html), visual catalog at
+[icon-sets.iconify.design](https://icon-sets.iconify.design/)):
 
-Flag sets often use country codes rather than country names. Inspect the set's
-naming convention and aspect-ratio variants; examples include `circle-flags:fi`
-and `flag:fi-4x3`. Use real SVG flags when consistent rendering across platforms
-matters. For a language selector, language names usually communicate the choice
-better than national flags.
+```bash
+curl -s "https://api.iconify.design/search?query=pdf&prefixes=vscode-icons,catppuccin"
+curl -s "https://api.iconify.design/collections?prefixes=circle-flags,simple-icons"  # licence per set
+curl -s "https://api.iconify.design/circle-flags:fi.svg" -o fi.svg
+```
+
+SVGs come at `width="1em" height="1em"`; monochrome sets draw with
+`currentColor`, colour sets keep their own fills.
+
+Flag sets are indexed by lowercase ISO 3166-1 alpha-2 code, so `?query=finland`
+returns only emoji sets. Build the id: `circle-flags:fi`, `flagpack:fi`,
+`flag:fi-4x3` or `flag:fi-1x1` (bare `flag:fi` is a 404). Emoji flags render as
+two letters in Chromium on Windows; use SVG flags. For a language selector,
+language names usually communicate the choice better than national flags.
 
 Use local SVGs or build-time icon data by default. A string identifier passed to
 `@iconify/react` can load missing data from the public API at runtime; merely
@@ -47,15 +54,28 @@ for the project's chosen integration.
 
 ## svgl
 
-Use [svgl's API docs](https://svgl.app/docs/api) to find exact titles, categories
-and asset routes. Category names and registry identifiers must come from the
-current catalog; lowercasing a display title is not a reliable identifier rule.
+Software and brand logos only ([API docs](https://svgl.app/docs/api)):
 
-For a shadcn project, its
-[registry guide](https://svgl.app/docs/shadcn-ui) defines the `@svgl` namespace
-at `https://svgl.app/r/{name}.json`. Follow the project's package manager and
-existing registry configuration. If shadcn is absent, use the raw asset rather
-than initializing a component system just to add a logo.
+- `https://api.svgl.app?search=<brand>` matches brand names; flags, file types
+  and concepts return `SVG not found`, so switch to Iconify rather than rephrasing.
+- `https://api.svgl.app/categories`, then `/category/<Category>` with the
+  spelling from that list (`/category/ai` is a 404; `AI` works).
+- Each entry's `route` is a URL or a `{light, dark}` pair; some add a `wordmark`.
+  Use those URLs for the raw SVG.
+
+For a shadcn project, the [registry guide](https://svgl.app/docs/shadcn-ui)
+maps `"@svgl": "https://svgl.app/r/{name}.json"` under `registries` in
+`components.json`; then `shadcn add @svgl/<name>` with the project's runner.
+Registry names derive from the title, not the route filename (`Hugging Face` →
+`hugging-face`, `Next.js` → `nextjs`); confirm `https://svgl.app/r/<name>.json`
+returns 200 first. If shadcn is absent, use the raw asset rather than
+initializing a component system just to add a logo.
+
+## Without network access
+
+Use what is installed: the project's icon library, `@iconify-json/<prefix>`
+packages (`icons.json` holds names and SVG bodies, `info.json` the licence) and
+assets already in the repo. Otherwise ask the user for the official file.
 
 ## Integration gotchas
 

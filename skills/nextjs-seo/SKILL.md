@@ -6,9 +6,11 @@ description: Next.js App Router SEO implementation and audits. Use for metadata 
 # Next.js SEO
 
 Start from the page's task, production response and observed search behavior.
-Read the installed Next.js version and relevant `node_modules/next/dist/docs/`
-pages; otherwise use matching official documentation. Keep framework APIs,
-caching mode and deployment policy consistent with the project.
+Read the installed version first: `node_modules/next/dist/docs/` when present,
+and the `Metadata`, `Viewport` and `MetadataRoute` types in
+`node_modules/next/dist/lib/metadata/types/metadata-interface.d.ts`. The
+official docs (nextjs.org/docs) are the fallback. Keep framework APIs, caching
+mode and deployment policy consistent with the project.
 
 Useful, distinct content matters more than a longer page. Give titles,
 headings and descriptions separate jobs; add a FAQ, summary, badges or extra
@@ -35,6 +37,18 @@ changes. Verify authorship, credentials and factual claims.
 - Preserve the owner's crawler policy. Training, search and user-triggered
   retrieval have different controls; robots rules are not access control.
 
+## Facts often gotten wrong
+
+- Google ignores the `keywords` meta tag and sitemap `priority`/`changefreq`,
+  and uses `lastmod` only when it is consistently accurate. Next.js's sitemap
+  examples set `new Date()` and `priority`; don't copy them.
+- Google no longer shows FAQ (since May 2026) or HowTo rich results.
+- `themeColor`, `colorScheme` and `viewport` belong in `export const viewport`,
+  not `metadata` (deprecated there since v14).
+- Unset metadata fields inherit: a canonical in the root layout becomes every
+  child page's canonical. Set `alternates.canonical` per page.
+- Never disallow `/_next/` in robots; crawlers need that CSS/JS to render.
+
 ## Read for the affected area
 
 - [Metadata](references/metadata-api.md): inheritance, social images, icons and streaming.
@@ -51,6 +65,14 @@ and cannot establish field INP. Good field thresholds at the 75th percentile
 are LCP ≤ 2.5 s, INP ≤ 200 ms and CLS ≤ 0.1.
 
 Verify status, headers and complete production HTML, including relevant bot
-responses, then open the route directly and test its interaction. A spoofed
-User-Agent tests response handling, not actual verified bot access. Report
-unavailable checks explicitly and avoid ranking, indexing or citation promises.
+responses, then open the route directly and test its interaction. Twitterbot is
+on the HTML-limited list, so its response must carry the head tags:
+
+```bash
+curl -sA Twitterbot https://<site>/<route> | grep -E '<title>|rel="canonical"|og:image|ld\+json'
+curl -sI https://<site>/robots.txt https://<site>/sitemap.xml
+```
+
+A spoofed User-Agent tests response handling, not actual verified bot access.
+Report unavailable checks explicitly and avoid ranking, indexing or citation
+promises.

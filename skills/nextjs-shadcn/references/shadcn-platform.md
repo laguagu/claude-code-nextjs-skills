@@ -12,7 +12,7 @@ Use the existing alias convention, including Node package imports when configure
 
 ## Rendered markdown and loading
 
-[Typeset](https://ui.shadcn.com/docs/typeset) provides owned CSS for rendered markdown, docs or streaming content. Generate the stylesheet in its builder and import it; it is not installed by `init`. Use it when it fits the content rather than recreating a typography system for every message.
+[Typeset](https://ui.shadcn.com/docs/typeset) provides owned CSS for rendered markdown, docs or streaming content. Generate `typeset.css` in its builder, import it after Tailwind and wrap content in `className="typeset typeset-<preset>"`; it is not installed by `init`. Use it when it fits the content rather than recreating a typography system for every message.
 
 The `shimmer` and `scroll-fade` utilities come from `shadcn/tailwind.css` in projects that import it:
 
@@ -42,6 +42,8 @@ Choose policies for the actual project:
 | `no-unknown-classes` | Classes Tailwind cannot generate |
 
 Use contracts and scoped exceptions where deliberate customization belongs: component source, custom patterns, dynamic geometry or media layers. A blanket ban on arbitrary values or inline styles can defeat a valid visual design. Resolve the intent before changing a policy.
+
+The component directory needs its own override: shadcn's components use structural values such as `ring-[3px]`, so turn off `no-restyle`, `no-arbitrary-values` and `require-static-classes` for `components/ui/**` (adjust to the `ui` alias) when enabling them. `no-raw-colors` and `no-inline-styles` stay on there.
 
 Existing projects can adopt selected rules gradually instead of rewriting unrelated UI. Token suggestions are candidates, not semantic decisions: a nearby chart color may be wrong for muted body text.
 

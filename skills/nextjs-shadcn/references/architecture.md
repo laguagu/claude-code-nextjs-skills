@@ -1,20 +1,10 @@
 # Next.js integration
 
-Use the project's installed-version docs for API details. This reference covers the boundaries that matter when composing shadcn interfaces.
-
-## Server and Client Components
-
-Default to Server Components for server data and static composition. Put state, event handlers and browser APIs behind a Client Component boundary. Keep that boundary as narrow as practical; providers can wrap larger subtrees.
-
-Only props crossing from Server to Client Components need React-supported serialization. Ordinary client callbacks can pass within a Client subtree. Server Functions are a supported exception to the restriction on ordinary functions crossing the boundary.
-
-Pass Server-rendered content through `children` or other supported slots rather than importing server-only modules into Client Components.
+Use the project's installed-version docs for API details. This reference covers the version-sensitive boundaries that matter when composing shadcn interfaces.
 
 ## Routing and layouts
 
 Keep shared navigation and providers in the appropriate layout and route-specific content near its route. Use route groups to organize routes without changing URLs; the name `(protected)` provides no authorization.
-
-Layouts preserve shared state during navigation. Use a template when remounting the subtree is intentional. Prefer `loading.tsx` or granular Suspense boundaries where streaming improves the experience; keep fallbacks proportional to the content.
 
 In current App Router versions, `params` and `searchParams` are promises. Resolve them with `await` in async Server Components or React `use` in an appropriate Client Component. Check the installed version before applying migration patterns.
 
@@ -28,7 +18,7 @@ Authenticate, authorize and validate each mutation. Decide whether data may be s
 
 - `"use cache"`, `cacheTag` and `cacheLife` use Cache Components and require `cacheComponents: true`.
 - `updateTag` is restricted to Server Actions and immediately expires a tag for read-your-own-writes. It also works with `fetch` tags and does not itself require Cache Components.
-- `revalidateTag(tag, "max")` uses stale-while-revalidate and can also be called from Route Handlers.
+- `revalidateTag(tag, "max")` uses stale-while-revalidate and can also be called from Route Handlers. The one-argument form is deprecated.
 - Read request-specific values outside shared cached scopes and pass suitable values as arguments. Never accidentally share a user's private result across users.
 
 Choose request-time APIs and Suspense boundaries according to the installed version's rendering model rather than adding `connection()` to every read.

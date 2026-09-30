@@ -39,9 +39,9 @@ bunx --bun shadcn@latest info --json
 bunx --bun shadcn@latest docs <component>
 ```
 
-Component APIs depend on the primitive base: Base UI uses `render` where Radix commonly uses `asChild`. Preserve the existing base and consult its docs.
+Component APIs depend on the primitive base: Base UI uses `render` where Radix commonly uses `asChild`. Preserve the existing base; the installed source in the `ui` alias directory is the API the project actually has, and works offline.
 
-Prefer documentation matching the installed Next.js version, including `node_modules/next/dist/docs/` when present. Use available Next.js dev tools for runtime errors and route context rather than relying on remembered APIs.
+Prefer documentation matching the installed Next.js version, including `node_modules/next/dist/docs/` when present. When configured and the dev server runs, the `next-devtools` MCP (`get_errors`, `get_routes`, `get_page_metadata`) gives runtime errors and route context instead of remembered APIs.
 
 ## Keep the integration sound
 
@@ -50,7 +50,7 @@ Prefer documentation matching the installed Next.js version, including `node_mod
 - Authenticate, authorize and validate inside Server Actions and data access. Choose caching from freshness and access requirements.
 - Use semantic theme tokens and existing component variants. Put deliberate design-system changes in the theme or component definitions.
 
-Read [architecture.md](references/architecture.md) for routing, Server/Client boundaries and caching; [sidebar.md](references/sidebar.md) for shared sidebar layouts; [project-setup.md](references/project-setup.md) for scaffolding and presets.
+Read [architecture.md](references/architecture.md) for routing, proxy and caching; [sidebar.md](references/sidebar.md) for shared sidebar layouts; [project-setup.md](references/project-setup.md) for scaffolding and presets.
 
 ## Verify the result
 

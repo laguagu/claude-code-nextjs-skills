@@ -43,10 +43,10 @@ production browser and test buttons, forms and Suspense content. Inspect
 console errors, streamed RSC responses, failed assets, client/server initial
 state and the deployed proxy.
 
-A previous app exhibited correct SEO HTML with stalled PPR boundaries; that
-observation is a reason to test, not a universal Next.js defect or proof of a
-particular repair. Preserve a reproducible case and investigate the installed
-framework/configuration.
+Test partially prerendered routes (`◐` in `next build` output) first: one app
+served complete SEO HTML while none of its Suspense boundaries hydrated on a
+direct load. Reproduce with `next build && next start` before attributing it
+to the framework.
 
 Use [URL Inspection documentation](https://support.google.com/webmasters/answer/9012289)
 for report semantics. State missing credentials, reports or verified bot logs

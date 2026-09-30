@@ -13,22 +13,23 @@ Sitemap presence does not override crawl restrictions, canonical selection or
 indexing decisions.
 
 Use `lastModified` only for meaningful content changes from reliable data.
-Do not stamp every URL with the current build/request time. Google ignores
-`priority` and `changeFrequency`; they do not need tuning.
+Do not stamp every URL with the current build/request time.
 
-Each sitemap is limited to 50,000 URLs and 50 MB uncompressed. Split large
-sets, verify the generated endpoint paths and expose all children through a
-sitemap index or their submission/discovery mechanism. Next.js
-`generateSitemaps` does not itself create a sitemap index; its route/ID
-contract is version-sensitive.
+Each sitemap is limited to 50,000 URLs and 50 MB uncompressed. With
+`generateSitemaps`, children are served at `<segment>/sitemap/<id>.xml`, the
+plain `sitemap.xml` 404s and no index is generated; since v16 the sitemap
+function receives `id` as `Promise<string>`. List the children in robots
+`sitemap` (a string or array) or serve an index from a Route Handler at
+another path such as `/sitemap-index.xml`.
 
 Localized entries need absolute reciprocal language alternates including
 themselves. Image/video extensions should describe actual media and meet the
 consumer's requirements.
 
-A database-backed sitemap may otherwise run only at build time. Verify that a
-publication update reaches the served sitemap using the configured cache,
-invalidation or rebuild path. See
+`sitemap.ts` and `robots.ts` are cached by default unless they use a
+request-time API or dynamic config, so a database-backed sitemap may run only
+at build time. Verify that a publication update reaches the served sitemap
+using the configured cache, invalidation or rebuild path. See
 [Google sitemap guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap).
 
 ## Robots and previews

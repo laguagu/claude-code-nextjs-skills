@@ -16,7 +16,7 @@ Base UI composes custom elements through `render`; Radix commonly uses `asChild`
 
 Keep selected state and labels clear. An icon rail needs accessible names and a usable way to expand on touch and keyboard. Use `useSidebar()` for custom triggers and mobile state where appropriate.
 
-To persist open state without a hydration mismatch, read the sidebar cookie in the layout Server Component and pass `defaultOpen` to the provider. Use controlled `open` and `onOpenChange` only when the app needs to own the state.
+To persist open state without a hydration mismatch, read the `sidebar_state` cookie in the layout Server Component and pass `defaultOpen` to the provider. Use controlled `open` and `onOpenChange` only when the app needs to own the state.
 
 Choose width, collapse behavior and `sidebar`, `floating` or `inset` variants for the content. A sidebar should give users context without reducing the working area unnecessarily.
 
