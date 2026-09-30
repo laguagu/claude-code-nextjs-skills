@@ -135,7 +135,7 @@ Output: feat(auth): implement JWT-based authentication
 
 #### Gotchas Section
 
-Always include a `## Gotchas` section in created skills. This is the highest-value content — non-obvious facts that prevent mistakes the agent would otherwise make. Things like environment quirks, implicit assumptions, or behaviors the agent can't infer from reading code.
+Include non-obvious pitfalls when they prevent a plausible mistake: environment quirks, implicit assumptions or behavior the agent cannot infer from the code. Do not add a Gotchas section merely to repeat the main instructions.
 
 #### Pre-publish Checklist
 

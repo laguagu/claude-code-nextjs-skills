@@ -3,174 +3,40 @@ name: ai-sdk-6
 description: Vercel AI SDK v6 development, for projects already on ai@6. Use when building or maintaining AI agents, chatbots, tool integrations, streaming apps, or structured output in a v6 codebase. New projects and ai@7 code use ai-sdk-7; an unknown version goes through ai-sdk. Covers ToolLoopAgent, useChat, generateText, streamText, tool approval, smoothStream, provider tools, MCP integration, and Output patterns.
 ---
 
-# Vercel AI SDK v6 Development Guide
+# AI SDK 6 maintenance
 
-Use this skill when developing AI-powered features using Vercel AI SDK v6 (`ai` package).
+Apply this skill only to `ai@6` projects. Resolve compatible provider and UI
+packages from the existing manifest/lockfile. Use `ai-sdk` when the major is
+unknown and `ai-sdk-7` for an authorized upgrade.
 
-> **Docs location**: bundled in `node_modules/ai/docs/`. Workspace dependency layout depends on the package manager and configuration; also check `apps/*/node_modules/ai/docs/` or `packages/*/node_modules/ai/docs/` instead.
+Read the resolved `ai/docs/`, provider docs and source/types for the exact minor
+release. In a monorepo, resolve from the app using the dependency. The default
+[online docs](https://ai-sdk.dev/docs) and repository main may describe v7;
+select v6 documentation or a matching repository tag.
 
-## Quick Reference
+## Boundaries that differ from old and new code
 
-### Installation
+- Text functions use `system`; `ToolLoopAgent` uses `instructions`.
+- Loop limits use `stopWhen: stepCountIs(...)`.
+- Use text functions with `Output` for new schema output; legacy object
+  functions are deprecated.
+- Tools use `inputSchema`; SDK-executed approval is tool-level `needsApproval`.
+  V7 agent-level `toolApproval` is not a v6 substitute.
+- React `useChat` owns messages and stream status, not form input. Use the
+  appropriate transport and UI-message response protocol.
+- Core completion callbacks are `onFinish`; result `usage` is final-step usage,
+  while `totalUsage` covers all steps.
 
-```bash
-bun add ai@6 @ai-sdk/openai@3 zod    # or @ai-sdk/anthropic, @ai-sdk/google, etc.
-```
+Use a configured model verified for the actual provider. Typecheck and test a
+multi-turn stream with relevant tool/approval/error states after integration changes.
 
-### Core Functions
+## Read for the feature
 
-| Function       | Purpose                                                           |
-| -------------- | ----------------------------------------------------------------- |
-| `generateText` | Non-streaming text generation (+ structured output with `Output`) |
-| `streamText`   | Streaming text generation (+ structured output with `Output`)     |
-
-> **v6 Note**: `generateObject`/`streamObject` are deprecated.
-> Use `generateText`/`streamText` with `output: Output.object({ schema })` instead.
-
-### Structured Output (v6)
-
-```typescript
-import { generateText, Output } from "ai";
-import { z } from "zod";
-
-const { output } = await generateText({
-  model: anthropic("claude-sonnet-5"),
-  output: Output.object({
-    schema: z.object({
-      sentiment: z.enum(["positive", "neutral", "negative"]),
-      topics: z.array(z.string()),
-    }),
-  }),
-  prompt: "Analyze this feedback...",
-});
-```
-
-Output types: `Output.object()`, `Output.array()`, `Output.choice()`, `Output.json()`, `Output.text()` (default)
-
-### Agent Class (v6 Key Feature)
-
-```typescript
-import { ToolLoopAgent, tool, stepCountIs } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
-import { z } from "zod";
-
-const myAgent = new ToolLoopAgent({
-  model: anthropic("claude-sonnet-5"),
-  instructions: "You are a helpful assistant.",
-  tools: {
-    getData: tool({
-      description: "Fetch data from API",
-      inputSchema: z.object({
-        query: z.string(),
-      }),
-      execute: async ({ query }) => {
-        return { result: "data" };
-      },
-    }),
-  },
-  stopWhen: stepCountIs(20),
-});
-
-// Usage
-const { text } = await myAgent.generate({ prompt: "Hello" });
-const stream = await myAgent.stream({ prompt: "Hello" });
-```
-
-### API Route with Agent
-
-```typescript
-// app/api/chat/route.ts
-import { createAgentUIStreamResponse } from "ai";
-import { myAgent } from "@/agents/my-agent";
-
-export async function POST(request: Request) {
-  const { messages } = await request.json();
-
-  return createAgentUIStreamResponse({
-    agent: myAgent,
-    uiMessages: messages,
-  });
-}
-```
-
-### Smooth Streaming
-
-```typescript
-import { createAgentUIStreamResponse, smoothStream } from "ai";
-
-return createAgentUIStreamResponse({
-  agent: myAgent,
-  uiMessages: messages,
-  experimental_transform: smoothStream({
-    delayInMs: 15,
-    chunking: "word", // "word" | "line" | RegExp | Intl.Segmenter | callback
-  }),
-});
-```
-
-### useChat Hook (Client)
-
-```typescript
-"use client";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { useState } from "react";
-
-export function Chat() {
-  const [input, setInput] = useState("");
-  const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-    }),
-  });
-
-  return (
-    <>
-      {messages.map((msg) => (
-        <div key={msg.id}>
-          {msg.parts.map((part, i) =>
-            part.type === "text" ? <span key={i}>{part.text}</span> : null
-          )}
-        </div>
-      ))}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (input.trim()) {
-            sendMessage({ text: input });
-            setInput("");
-          }
-        }}
-      >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={status !== "ready"}
-        />
-        <button type="submit" disabled={status !== "ready"}>
-          Send
-        </button>
-      </form>
-    </>
-  );
-}
-```
-
-> **v6 Note**: `useChat` no longer manages input state internally. Use `useState` for controlled inputs.
-
-## Reference Documentation
-
-For detailed information, see:
-
-- [agents.md](references/agents.md) - ToolLoopAgent, loop control, workflows
-- [core-functions.md](references/core-functions.md) - generateText, streamText, Output patterns
-- [tools.md](references/tools.md) - Tool definition with Zod schemas
-- [workflows.md](references/workflows.md) - Sequential, parallel, routing, and orchestrator-worker patterns
-- [ui-hooks.md](references/ui-hooks.md) - useChat, UIMessage, streaming
-- [middleware.md](references/middleware.md) - Custom middleware patterns
-- [mcp.md](references/mcp.md) - MCP server integration
-- [examples.md](references/examples.md) - Canonical provider × feature examples from vercel/ai repo
-
-## Official Documentation
-
-For the latest information, see [AI SDK docs](https://ai-sdk.dev/docs/agents).
+- [Agents](references/agents.md): loop limits, call options and context.
+- [Core functions](references/core-functions.md): output and stream contracts.
+- [Tools](references/tools.md): execution, approval and typed states.
+- [UI hooks](references/ui-hooks.md): transport, restoration and stream lifetime.
+- [Middleware](references/middleware.md): provider interception.
+- [MCP](references/mcp.md): transport and cleanup.
+- [Workflows](references/workflows.md): when a loop needs explicit orchestration.
+- [Examples](references/examples.md): version-matched official implementations.

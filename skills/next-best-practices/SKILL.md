@@ -3,155 +3,35 @@ name: next-best-practices
 description: Next.js App Router best practices covering file conventions, RSC boundaries, async APIs, data patterns, hydration errors, metadata, route handlers, image/font optimization, and bundling. Use when writing or reviewing Next.js code to prevent hydration errors, RSC violations, data waterfalls, and configuration mistakes.
 ---
 
-# Next.js Best Practices
+# Next.js review and implementation
 
-Apply these rules when writing or reviewing Next.js code. Next.js ships
-version-matched docs in `node_modules/next/dist/docs/`; when they disagree with
-this skill, the installed docs win.
+Read the installed `next` version and relevant `node_modules/next/dist/docs/`
+pages before changing framework behavior. Those docs and project configuration
+take precedence; use a matching online version/source tag when local docs are
+unavailable. The original Next-skills upstream is archived.
 
-> **Cache Components patterns**: When the project has `cacheComponents: true` in `next.config.ts`,
-> use the separate `cache-components` skill for `'use cache'`, `cacheLife()`, `cacheTag()`,
-> `updateTag()`, and `revalidateTag()` guidance.
+Review the actual failure or feature, rather than applying every optimization.
+Keep the project's router, caching mode, runtime and package manager unless
+migration is requested.
 
-## File Conventions
+## Read for the affected area
 
-See [file-conventions.md](./file-conventions.md) for:
-- Project structure and special files
-- Route segments (dynamic, catch-all, groups)
-- Parallel and intercepting routes
-- Middleware rename in v16 (middleware → proxy)
+| Area | Local reference |
+| --- | --- |
+| Route files, groups, proxy | [File conventions](file-conventions.md) |
+| Server/client imports and props | [RSC boundaries](rsc-boundaries.md), [directives](directives.md) |
+| Params and request APIs | [Async APIs](async-patterns.md), [functions](functions.md) |
+| Reads, mutations and APIs | [Data patterns](data-patterns.md), [Route Handlers](route-handlers.md) |
+| Rendering and failures | [Suspense](suspense-boundaries.md), [hydration](hydration-error.md), [errors](error-handling.md) |
+| Metadata and public discovery | [Metadata](metadata.md); `nextjs-seo` for an SEO audit |
+| Assets and loading | [Images](image.md), [fonts](font.md), [scripts](scripts.md) |
+| Package/runtime behavior | [Bundling](bundling.md), [runtime](runtime-selection.md) |
+| Navigation slots/modals | [Parallel routes](parallel-routes.md) |
+| Deployment/debugging | [Self-hosting](self-hosting.md), [diagnostics](debug-tricks.md) |
 
-## RSC Boundaries
+Use `cache-components` when that mode is enabled and relevant to the task.
+Tag invalidation can also operate on fetch caches outside that mode.
 
-Detect invalid React Server Component patterns.
-
-See [rsc-boundaries.md](./rsc-boundaries.md) for:
-- Async client component detection (invalid)
-- Non-serializable props detection
-- Server Action exceptions
-
-## Async Patterns
-
-Next.js 15+ async API changes.
-
-See [async-patterns.md](./async-patterns.md) for:
-- Async `params` and `searchParams`
-- Async `cookies()` and `headers()`
-- Migration codemod
-
-## Runtime Selection
-
-See [runtime-selection.md](./runtime-selection.md) for:
-- Default to Node.js runtime
-- When Edge runtime is appropriate
-
-## Directives
-
-See [directives.md](./directives.md) for:
-- `'use client'`, `'use server'` (React)
-- `'use cache'` (Next.js)
-
-## Functions
-
-See [functions.md](./functions.md) for:
-- Navigation hooks: `useRouter`, `usePathname`, `useSearchParams`, `useParams`
-- Server functions: `cookies`, `headers`, `draftMode`, `after`
-- Generate functions: `generateStaticParams`, `generateMetadata`
-
-## Error Handling
-
-See [error-handling.md](./error-handling.md) for:
-- `error.tsx`, `global-error.tsx`, `not-found.tsx`
-- `redirect`, `permanentRedirect`, `notFound`
-- `forbidden`, `unauthorized` (auth errors)
-- `unstable_rethrow` for catch blocks
-
-## Data Patterns
-
-See [data-patterns.md](./data-patterns.md) for:
-- Server Components vs Server Actions vs Route Handlers
-- Avoiding data waterfalls (`Promise.all`, Suspense, preload)
-- Client component data fetching
-
-## Route Handlers
-
-See [route-handlers.md](./route-handlers.md) for:
-- `route.ts` basics
-- GET handler conflicts with `page.tsx`
-- Environment behavior (no React DOM)
-- When to use vs Server Actions
-
-## Metadata & OG Images
-
-See [metadata.md](./metadata.md) for:
-- Static and dynamic metadata
-- `generateMetadata` function
-- OG image generation with `next/og`
-- File-based metadata conventions
-
-## Image Optimization
-
-See [image.md](./image.md) for:
-- Always use `next/image` over `<img>`
-- Remote images configuration
-- Responsive `sizes` attribute
-- Blur placeholders
-- `preload` / `fetchPriority` for the LCP image (`priority` is deprecated)
-
-## Font Optimization
-
-See [font.md](./font.md) for:
-- `next/font` setup
-- Google Fonts, local fonts
-- Tailwind CSS integration
-- Preloading subsets
-
-## Bundling
-
-See [bundling.md](./bundling.md) for:
-- Server-incompatible packages
-- CSS imports (not link tags)
-- Polyfills (already included)
-- ESM/CommonJS issues
-- Bundle analysis
-
-## Scripts
-
-See [scripts.md](./scripts.md) for:
-- `next/script` vs native script tags
-- Inline scripts need `id`
-- Loading strategies
-- Google Analytics with `@next/third-parties`
-
-## Hydration Errors
-
-See [hydration-error.md](./hydration-error.md) for:
-- Common causes (browser APIs, dates, invalid HTML)
-- Debugging with error overlay
-- Fixes for each cause
-
-## Suspense Boundaries
-
-See [suspense-boundaries.md](./suspense-boundaries.md) for:
-- CSR bailout with `useSearchParams` (also `usePathname`/`useParams` under `cacheComponents`)
-- Forcing dynamic rendering with `connection()` instead
-
-## Parallel & Intercepting Routes
-
-See [parallel-routes.md](./parallel-routes.md) for:
-- Modal patterns with `@slot` and `(.)` interceptors
-- `default.tsx` for fallbacks
-- Closing modals correctly with `router.back()`
-
-## Self-Hosting
-
-See [self-hosting.md](./self-hosting.md) for:
-- `output: 'standalone'` for Docker
-- Cache handlers for multi-instance ISR
-- What works vs needs extra setup
-
-## Debug Tricks
-
-See [debug-tricks.md](./debug-tricks.md) for:
-- MCP endpoint for AI-assisted debugging
-- Rebuild specific routes with `--debug-build-paths`
+Validate a production build and the changed route's behavior. A dev render can
+hide prerender/Suspense issues; a build cannot prove authorization, hydration,
+freshness or cross-instance behavior. Report what was actually exercised.

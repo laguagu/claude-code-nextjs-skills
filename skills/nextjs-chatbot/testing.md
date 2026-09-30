@@ -1,102 +1,39 @@
-# Testing a chatbot
+# Chatbot verification
 
-Two instruments that answer different questions. `createChat` tests **the UI
-given a response**; benchmarks test **whether the model produces that response**.
-Neither replaces the other.
+UI transitions, retrieval quality and model behavior are separate checks.
+Choose checks for the changed behavior, using the project's existing tooling.
 
-## Contents
+## Interface and transport
 
-- Building chat UI without a model (`@shadcn/helpers/ai-sdk`)
-- Evals / benchmarks: fixture schema, assertion fields, stability
-- What to skip when the chatbot is open-ended Q&A
+Drive representative typed messages through the actual installed renderer and
+chat lifecycle. If a compatible test helper exists, inspect its current API;
+do not assume a named helper/package is installed.
 
-## Building chat UI without a model
+Exercise partial input, tool completion, approval/denial, empty results,
+safe errors, cancellation, restored history and rapid conversation switching.
+Verify a second turn after reload, readable Markdown, scroll anchoring, keyboard
+focus and mobile composer reachability. An agent-level eval cannot detect
+controls hidden behind a loading animation.
 
-`@shadcn/helpers/ai-sdk` runs a scripted conversation through the **real `useChat` lifecycle** — no model, API route, network request, or API key. Every part type streams the way it would in production.
+Verify the production stream path: first visible output, proxy buffering,
+timeout/disconnect behavior and terminal in-stream errors. A successful HTTP
+status alone does not prove completion.
 
-```bash
-bun add @shadcn/helpers
-```
+## Model and retrieval
 
-```tsx
-import { useChat } from "@ai-sdk/react";
-import { createChat } from "@shadcn/helpers/ai-sdk";
+Use cases representative of the supported domain: answerable questions,
+missing records, ambiguous requests, off-topic requests and prompt injection
+through both user input and retrieved content. Assert supported claims,
+appropriate tool choice, permissions and source coverage rather than exact
+prose.
 
-const chat = createChat()
-  .user("Which components parse PDFs?")
-  .assistant((w) => {
-    w.reasoning("Catalog question — search first.");
-    w.tool("searchComponents", { input: { tags: ["pdf"] }, output: fixtures.pdf });
-    w.text("Two options: …");
-  });
+When changing retrieval/model/prompt behavior, compare baseline and candidate
+on the same fixtures. Include short and long queries and target languages.
+Repeat where run-to-run variance could change the conclusion, recording model
+version/settings, latency, cost and per-case failures. Judge answer support
+separately from retrieval rank.
 
-export function ChatDemo() {
-  const { messages, sendMessage } = useChat({
-    messages: chat.get(0),
-    transport: chat.transport(),
-  });
-  const next = chat.next(messages);
-  return <button onClick={() => next && sendMessage(next)}>Next</button>;
-}
-```
-
-Writers inside `.assistant()`: `text()`, `reasoning()`, `tool()`, `data()`, `file()`, `sourceUrl()`, `sourceDocument()`, `stepStart()`, `custom()`.
-
-Use it for:
-
-- **Tool-render states** — drive a tool part through `input-streaming` → `input-available` → `output-available` → `error` deterministically instead of waiting for a live model to reproduce each one. Same for the 6-state HITL machine (see [hitl.md](hitl.md)) — server-side evals are blind to a wedged approval UI, so this is the only cheap way to cover it.
-- **Streaming-flicker regressions** — the multi-tool `isGenerating` bug (SKILL.md, "Message streaming state") reproduces reliably here.
-- **Docs, demos, screenshots** — a fixed conversation that never drifts or costs tokens.
-
-
-## Evals / Benchmarks
-
-Single-run `pass/fail` suites catch tool-accuracy and scope regressions but miss two failure modes that only surface under repetition: **instability** (same prompt, different result set across runs) and **hallucination** (LLM invents names not in any tool result). Add fixtures for both when the chatbot serves a bounded catalog.
-
-### Fixture schema
-
-```jsonc
-{
-  "tests": [
-    {
-      "id": "agent-001",
-      "description": "User asks about PDF parsing",
-      "input": { "prompt": "What component parses PDFs?" },
-      "expected": {
-        "requiredTools": ["searchComponents"],
-        "responseContains": ["Parser"],
-        "responseNotContains": ["FooBarParser", "pkg[foo-bar]"]
-      }
-    },
-    {
-      "id": "stability-rag-browse",
-      "description": "Same catalog question → same result set across runs",
-      "input": { "prompt": "What RAG components are available?" },
-      "runs": 5,
-      "stabilityThreshold": 0.8,
-      "expected": {
-        "requiredTools": ["searchComponents"],
-        "resultMustContain": ["Retriever", "Embedder", "VectorStore", "AnswerGenerator"],
-        "minResultCount": 4,
-        "toolParams": [
-          { "tool": "searchComponents", "mustInclude": { "tags": ["rag"] }, "mustNotInclude": ["freeText"] }
-        ]
-      }
-    }
-  ]
-}
-```
-
-### Extra assertion fields
-
-- `runs: N` (default 1) — evaluator runs the prompt N times and records tool calls + results each time
-- `stabilityThreshold: 0–1` — test fails if `|intersection| / |union|` over tool-result identifier sets across runs is below this
-- `toolParams: [{ tool, mustInclude?, mustNotInclude? }]` — asserts the agent actually passed the expected filter shape (not just called the tool)
-- `resultMustContain: string[]` — names that must appear in aggregated tool results (proves retrieval quality, not just prose)
-- `minResultCount` / `maxResultCount` — guardrails for result-set size
-- `responseNotContains` — hallucination guard: list known-fake names the LLM tends to invent so a regression fails immediately
-
-One production incident: "What X are available?" returned 11 % stability (different 4–6 items across 5 runs) because the tool accepted a freeform `query` and silent SQL retries simplified it each run. Structured tag filters took it to 100 %. Skip stability fixtures if your chatbot doesn't serve a bounded catalog — they're overhead for open-ended Q&A.
-
-Run with `bun run benchmarks/run.ts`. Evaluator runs N times, records tool inputs + outputs, computes pass/fail + stability score.
-
+Keep real secrets and customer content out of fixtures and captures. Report
+what ran, what failed and which provider/deployment checks were unavailable.
+Do not add benchmark commands or a fixture schema for files that the project
+does not actually have.

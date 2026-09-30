@@ -1,396 +1,58 @@
-# Next.js Metadata API
-
-Complete guide for implementing SEO metadata in Next.js App Router.
-
-## Contents
-
-- Static vs Dynamic Metadata (`generateMetadata` full signature, `parent`, memoization)
-- Complete Metadata Object (incl. `facebook`, `pinterest`, `appleWebApp`, `other`)
-- Viewport Configuration
-- Metadata Merging (shallow-merge gotcha)
-- File-based metadata & priority
-- OG / Twitter images: file conventions + `ImageResponse` + `generateImageMetadata`
-- Web App Manifest & icon file conventions
-- generateMetadata with Cache Components
-- Social image sizes
-- Streaming Metadata
-- Best Practices
-
-## Static vs Dynamic Metadata
-
-### Static Metadata (metadata object)
-
-Use when metadata is known at build time:
-
-```typescript
-// app/layout.tsx or app/page.tsx
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Page Title',
-  description: 'Page description',
-};
-```
-
-### Dynamic Metadata (generateMetadata)
-
-Use when metadata depends on route params or external data:
-
-```typescript
-// app/products/[id]/page.tsx
-import type { Metadata, ResolvingMetadata } from 'next';
-
-type Props = {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // page.js only
-};
-
-export async function generateMetadata(
-  { params }: Props,
-  parent: ResolvingMetadata, // optional 2nd arg: read/extend parent metadata
-): Promise<Metadata> {
-  const { id } = await params; // params & searchParams are Promises in current Next.js
-  const product = await getProduct(id);
-
-  // Extend rather than replace parent OG images:
-  const previousImages = (await parent).openGraph?.images || [];
-
-  return {
-    title: product.name,
-    description: product.description,
-    openGraph: {
-      images: [product.image, ...previousImages],
-    },
-  };
-}
-```
-
-**Notes:**
-- `searchParams` is only available in `page.js` segments (not `layout.js`).
-- `redirect()` and `notFound()` can be called inside `generateMetadata` (useful when a fetched entity doesn't exist).
-- v16 typed helpers: type the first arg with `PageProps<'/products/[id]'>` or `LayoutProps<'/...'>` instead of a hand-rolled `Props` type.
-- **Avoid duplicate fetches:** `fetch()` is auto-memoized between `generateMetadata` and the page. For non-`fetch` data (DB/ORM), wrap the loader in React's `cache()` so it runs once.
-
-## Complete Metadata Object
-
-This is a field reference, not a root-layout template. Keep only relevant
-fields. Set canonical, language alternates and `openGraph.url` per page;
-copying the homepage values into a shared layout can misidentify child pages.
-Do not invent authors, social IDs or separate mobile URLs to fill the example.
-
-```typescript
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  // Base URL for relative paths
-  metadataBase: new URL('https://your-site.com'),
-
-  // Title configuration
-  title: {
-    default: 'Default Title',        // Used when no page title
-    template: '%s | Site Name',      // Template for child pages
-    absolute: 'Override All',        // Ignores template
-  },
-
-  // Description (~150-160 chars is a guideline — Google has no hard limit)
-  description: 'Compelling meta description with target keywords',
-
-  // Keywords — Google ignores this tag entirely (explicitly unsupported; zero
-  // indexing/ranking effect). Omit it; shown here only because the field exists.
-  keywords: ['keyword1', 'keyword2', 'long-tail keyword'],
-
-  // Author information
-  authors: [{ name: 'Author Name', url: 'https://author.com' }],
-  creator: 'Creator Name',
-  publisher: 'Publisher Name',
-
-  // Robots directives
-  robots: {
-    index: true,
-    follow: true,
-    nocache: false,
-    googleBot: {
-      index: true,
-      follow: true,
-      noimageindex: false,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-
-  // Canonical and alternates
-  alternates: {
-    canonical: '/',
-    languages: {                     // hreflang rules: sitemap-robots.md
-      'en-US': '/en-US',
-      'fi-FI': '/fi-FI',
-      'x-default': '/en-US',
-    },
-    media: { 'only screen and (max-width: 600px)': 'https://m.your-site.com' },
-    types: { 'application/rss+xml': 'https://your-site.com/rss' }, // advertise feeds
-  },
-
-  // Open Graph (Facebook, LinkedIn)
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://your-site.com',
-    siteName: 'Site Name',
-    title: 'Open Graph Title',
-    description: 'Open Graph description',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Image alt text',
-        type: 'image/png',
-      },
-    ],
-  },
-
-  // Twitter Cards
-  twitter: {
-    card: 'summary_large_image',  // or 'summary' for square images
-    site: '@username',
-    creator: '@creator',
-    title: 'Twitter Title',
-    description: 'Twitter description',
-    images: ['/twitter-image.png'],
-  },
-
-  // Icons
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
-  },
-
-  // Verification tags
-  verification: {
-    google: 'google-verification-code',
-    yandex: 'yandex-verification-code',
-  },
-
-  // App links
-  appLinks: {
-    ios: {
-      url: 'https://app.example.com/ios',
-      app_store_id: 'app_store_id',
-    },
-    android: {
-      package: 'com.example.app',
-      app_name: 'App Name',
-    },
-  },
-
-  // Format detection (disable auto-linking)
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-
-  // Category
-  category: 'technology',
-
-  // PWA manifest link (or use app/manifest.ts — see below)
-  manifest: '/manifest.webmanifest',
-
-  // Social platform extras
-  facebook: { appId: '1234567890' },     // Facebook Social Plugins
-  pinterest: { richPin: true },          // Pinterest Rich Pins
-  appleWebApp: { capable: true, title: 'Site', statusBarStyle: 'default' },
-
-  // Escape hatch for custom / newly-released meta tags not yet typed
-  other: { 'custom-tag': 'value' },
-};
-```
-
-## Viewport Configuration
-
-**Important:** viewport must be a separate export, not a field in `metadata`:
-
-```typescript
-import type { Viewport } from 'next';
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-  viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
-  ],
-  colorScheme: 'light dark',
-};
-```
-
-## Metadata Merging
-
-Metadata merges from root to leaf. Child metadata overrides parent:
-
-```
-app/layout.tsx (base metadata)
-  └── app/blog/layout.tsx (adds/overrides)
-        └── app/blog/[slug]/page.tsx (final metadata)
-```
-
-**Shallow-merge gotcha:** merging is **shallow**. Redefining a nested object like `openGraph` or `robots` in a child segment **replaces the entire parent object** — sibling keys are lost. Setting only `openGraph.title` in a child drops the parent's `openGraph.description`/`images`. Fix by exporting shared nested fields and spreading them:
-
-```typescript
-// app/shared-metadata.ts
-export const sharedOpenGraph = { images: ['/og-image.png'], siteName: 'Site Name' };
-
-// child segment
-export const metadata = {
-  openGraph: { ...sharedOpenGraph, title: 'Child title' },
-};
-```
-
-## File-based Metadata & Priority
-
-File conventions (`favicon.ico`, `icon.*`, `apple-icon.*`, `opengraph-image.*`, `twitter-image.*`, `manifest.*`, `sitemap.*`, `robots.*`) **take priority over and override** the `metadata` object / `generateMetadata`. Next.js recommends file conventions for icons and OG images over hand-syncing the `icons`/`openGraph.images` config — and avoid using both for the same asset to prevent duplicate `<head>` tags.
-
-## OG / Twitter Images (file conventions + ImageResponse)
-
-Three approaches (SKILL.md has the quick version; details here):
-
-**1. External URL** — set `openGraph.images` / `twitter.images` in metadata (shown above). Use for externally hosted images.
-
-**2. Static file convention (recommended default):** place `opengraph-image.(jpg|jpeg|png|gif)` / `twitter-image.*` in a route segment. Next.js emits `og:image`/`twitter:image` + `:type/:width/:height`. A deeper segment's image overrides one above. Alt text via a sibling `opengraph-image.alt.txt` (→ `og:image:alt`). **Build fails** if a static file exceeds 8 MB (OG) / 5 MB (Twitter).
-
-**3. Code-generated with `ImageResponse`:**
-
-```tsx
-// app/blog/[slug]/opengraph-image.tsx
-import { ImageResponse } from 'next/og';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-
-export const alt = 'Post preview';            // → og:image:alt
-export const size = { width: 1200, height: 630 }; // → og:image:width/height
-export const contentType = 'image/png';       // → og:image:type
-
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;              // params is a Promise in v16
-  const post = await getPost(slug);
-  const font = await readFile(join(process.cwd(), 'assets/Inter-SemiBold.ttf'));
-
-  return new ImageResponse(
-    (
-      <div style={{ display: 'flex', width: '100%', height: '100%', fontSize: 64 }}>
-        {post.title}
-      </div>
-    ),
-    { ...size, fonts: [{ name: 'Inter', data: font, style: 'normal', weight: 600 }] },
-  );
-}
-```
-
-- Default export should return a `Response` — `ImageResponse` satisfies this.
-- **Satori rendering:** flexbox + a subset of CSS only; `display: grid` is unsupported. Load local images via `readFile` (base64 data URI or `ArrayBuffer`) under the Node.js runtime.
-- **Limits:** 500 KB total bundle (JSX, CSS, fonts, images); fonts must be `ttf`, `otf` or `woff` (no `woff2`).
-- **Caching:** these are special Route Handlers, **statically optimized** (built once, cached) unless they read request-time APIs or uncached data; they accept the same route segment config as pages.
-- **Multiple images per route:** export `generateImageMetadata()` returning an array of `{ id (required), alt?, size?, contentType? }`; the default `Image({ id, params })` receives both as Promises (v16).
-
-## Web App Manifest & Icon File Conventions
-
-**Manifest:** `app/manifest.ts` returning `MetadataRoute.Manifest` — or a static `app/manifest.(json|webmanifest)`. **Not an SEO requirement** (no ranking effect); a PWA-completeness nicety, so skip it unless the site is or may become a PWA.
-
-```typescript
-// app/manifest.ts
-import type { MetadataRoute } from 'next';
-
-export default function manifest(): MetadataRoute.Manifest {
-  return {
-    name: 'Site Name',
-    short_name: 'Site',
-    description: 'Site description',
-    start_url: '/',
-    display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#0a0a0a',
-    icons: [
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-    ],
-  };
-}
-```
-
-**Icons (prefer over the metadata `icons` field):**
-- `favicon.ico` — root `app/` only; appears in browser tabs **and Google SERPs**.
-- `app/icon.(ico|jpg|jpeg|png|svg)` and `app/apple-icon.(jpg|jpeg|png)` — auto-emit `<link rel="icon">` / `apple-touch-icon` with correct `type`/`sizes`.
-- Code-generated: `app/icon.tsx` / `app/apple-icon.tsx` with `ImageResponse` (export `size`, `contentType`). Note: `favicon.ico` cannot be code-generated — use `icon.*` or a static `.ico`.
-- Multiple icons via numeric suffixes (`icon1.png`, `icon2.png`); `.svg` icons get `sizes="any"`.
-
-## generateMetadata with Cache Components
-
-When `cacheComponents` is enabled, a `generateMetadata` that reads runtime data (`cookies()`, `headers()`, `params`, `searchParams`) or fetches uncached data while the rest of the page is prerenderable raises a build error requiring an explicit choice:
-
-- **External (non-runtime) data:** add `"use cache"` inside `generateMetadata` (with `cacheTag` for invalidation).
-- **Genuine runtime data:** signal intent with a `DynamicMarker` component (`await connection()`) inside a `<Suspense>` boundary so the page can still prerender a static shell.
-
-## Social Image Sizes
-
-- **Open Graph:** 1200×630 (1.91:1) recommended, 8 MB max (Meta docs). LinkedIn reads the same `og:image`.
-- **X `summary_large_image`:** 2:1, min 300×157, max 4096×4096, under 5 MB. A 1200×630 OG image is cropped slightly.
-- **X `summary`:** 1:1, min 144×144 — for logos and icons.
-
-## Streaming Metadata
-
-For **dynamically rendered** pages, `generateMetadata` resolves as part of rendering, and the resulting tags are **appended to the `<body>`** once it resolves — without blocking the initial UI. This improves TTFB/LCP. (Prerendered/static pages resolve metadata at build time and put it in `<head>` normally — no streaming.)
-
-- **JS-capable bots (Googlebot):** read the streamed tags after executing JS and inspecting the full DOM.
-- **HTML-limited bots:** metadata keeps blocking and is placed in `<head>`. Next.js detects these by User-Agent; the built-in list includes `Twitterbot`, `Slackbot`, `Bingbot`, `facebookexternalhit`, and more.
-
-`htmlLimitedBots` **overrides** (replaces) the entire built-in list — it does NOT append to it:
-
-```typescript
-// next.config.ts
-import type { NextConfig } from 'next';
-
-const config: NextConfig = {
-  // Fully DISABLE streaming (all bots get blocking metadata):
-  htmlLimitedBots: /.*/,
-
-  // ⚠️ A narrow regex like /facebookexternalhit|linkedinbot/ is DANGEROUS:
-  // it REPLACES the default list, so Bingbot/Twitterbot/Slackbot would lose
-  // their blocking metadata and get broken previews. Only override if you
-  // fully understand you're replacing the whole list.
-};
-
-export default config;
-```
-
-Streaming metadata is an advanced feature — **the default is correct for almost all cases**, so usually you should not set `htmlLimitedBots` at all.
-
-> **Verify rather than assuming.** Capture the full production response and
-> headers for relevant User-Agents. If metadata is missing, reproduce it on the
-> installed version before attributing it to a framework bug or changing
-> `htmlLimitedBots`. Tags outside the initial head may be expected streaming;
-> browser success alone does not prove a social crawler receives correct tags.
->
-> ```bash
-> curl -sA "Googlebot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"|name="description"'
-> curl -sA "Twitterbot" https://your-site.com/some-page | grep -E '<title>|og:image'
-> curl -sA "OAI-SearchBot" https://your-site.com/some-page | grep -E '<title>|rel="canonical"'
-> ```
-
-Twitterbot is on the HTML-limited list, so its tags must be in `<head>`. For an
-OpenAI check use OAI-SearchBot (search); GPTBot only reflects the training policy.
-A spoofed User-Agent tests response behavior, not verified bot identity or indexing.
-
-## Best Practices
-
-1. **Always set metadataBase** - Without it, relative OG/Twitter image URLs fall back to `VERCEL_PROJECT_PRODUCTION_URL` (the preview URL on Vercel previews) or `http://localhost:3000` with only a warning, and relative canonical/hreflang URLs stay relative (Google requires absolute hreflang URLs). An absolute URL in any field **ignores** `metadataBase`.
-2. **Use title templates** - Consistent branding across pages
-3. **Write unique descriptions** - Each page needs unique description
-4. **Use consistent canonical signals** - Canonicals are hints, not a guarantee; avoid inheriting the homepage canonical on child pages
-5. **Test with validators** - Use the Facebook Sharing Debugger; for X, preview in the post composer or use a third-party OG preview tool (e.g. opengraph.xyz)
-6. **Don't mix static and dynamic** - Use either `metadata` object or `generateMetadata` in the **same route segment** (a layout can use static metadata while its child page uses `generateMetadata`)
-7. **`themeColor`/`colorScheme`/`viewport` inside `metadata` are ignored** (Next.js 16 emits no tag, only an "Unsupported metadata" warning) - use the separate `export const viewport` (see above)
+# Metadata contracts
+
+Use the installed Next.js docs and
+[Metadata API](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)
+for signatures. Metadata exports run in Server Components; choose
+`metadata` or `generateMetadata` in the same route segment, not both.
+Export `viewport` / `generateViewport` for viewport-related fields.
+
+## URL resolution and inheritance
+
+Set `metadataBase` to the intended public origin when using relative metadata
+URLs. It applies to canonical/language alternates as well as social images.
+Missing-base behavior can differ between versions, fields and hosts; current
+docs require a base for relative URL-based fields. Inspect emitted production
+URLs rather than treating a development fallback or warning as the contract.
+
+Metadata merges shallowly from root to leaf. Replacing a nested object such as
+`openGraph` can discard inherited fields; explicitly carry forward needed
+values or use a shared helper. File-based metadata can override config-based
+metadata. Verify title templates, canonical queries and per-route image
+selection in the served response.
+
+In localized pages, provide absolute reciprocal hreflang URLs, including the
+page itself. Preserve the distinction between language versions and unrelated
+regional pages; avoid generating alternates for nonexistent routes.
+
+## Async and cached metadata
+
+Follow the installed async contracts for `params`, `searchParams` and generated
+metadata IDs. Do not copy v15/16 examples into an older application without
+checking types.
+
+Metadata can be static, cached or request-dependent. With Cache Components,
+request-dependent metadata and prerendered page content must meet that mode's
+requirements; don't force every page into `use cache`. A cached
+`generateMetadata` return must be serializable under the documented contract:
+use URL strings rather than `URL` instances where required.
+
+Next.js can stream metadata to capable clients and block for HTML-limited
+bots. Check the installed `htmlLimitedBots` behavior and the complete response
+for relevant agents before diagnosing “missing head tags”. Do not broaden bot
+overrides without evidence.
+
+## Social images, icons and manifest
+
+Use [metadata file conventions](https://nextjs.org/docs/app/api-reference/file-conventions/metadata)
+when they fit. Static and generated OG/Twitter images, favicon/icon/apple-icon
+files and manifests have different formats and limits; read the exact
+convention before adding an export or file.
+
+For generated images, follow
+[ImageResponse](https://nextjs.org/docs/app/api-reference/functions/image-response)
+rendering, font and bundle limitations. Test the actual generated URL and
+image, including fonts and long titles.
+
+A web manifest is useful for an installable web app; it is not a generic SEO
+requirement. Avoid duplicating equivalent icon/social-image definitions merely
+to increase metadata volume.

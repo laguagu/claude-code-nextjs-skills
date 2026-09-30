@@ -3,108 +3,41 @@ name: ai-sdk
 description: 'Answer questions about the AI SDK and help build AI-powered features. Use when developers ask about Vercel AI SDK, generateText, streamText, ToolLoopAgent, useChat, providers, tools, structured output, embeddings, streaming, or adding AI to an app. First identify the installed major version and route version-specific work: use ai-sdk-7 for AI SDK 7 features/migrations such as WorkflowAgent, HarnessAgent, reasoning, runtime/tools context, toolApproval, telemetry, realtime, or v6-to-v7 upgrades; use ai-sdk-6 for v6 code.'
 ---
 
-## Prerequisites
+# AI SDK version and documentation routing
 
-Before searching docs, check the installed major version in `package.json`,
-lockfiles, or `node_modules/ai/package.json`.
+Identify `ai` and the provider/React package versions in the relevant workspace's
+manifest, lockfile or installed package. Keep the installed major unless an
+upgrade is requested.
 
-- AI SDK 7 implementation or migration work -> use `ai-sdk-7`.
-- AI SDK 6 implementation work -> use `ai-sdk-6`.
-- Unknown or mixed versions -> continue with this skill until the version is
-  clear. If starting fresh or no version is pinned, assume the current line
-  (AI SDK 7) and use `ai-sdk-7`.
+- AI SDK 7 implementation or migration: use `ai-sdk-7`.
+- AI SDK 6 maintenance: use `ai-sdk-6`.
+- Unknown, mixed or older versions: resolve them before applying either API set.
+- New apps: verify the current release and package compatibility in the
+  [official docs](https://ai-sdk.dev/docs).
 
-Check installed docs before fetching online. If dependencies are not installed,
-restore the existing lockfile with the project's package manager when installation
-is needed. Do not add or upgrade `ai` merely to read documentation.
+## Find the API that matches the app
 
-In a monorepo, resolve `ai` from the relevant app/workspace. Hoisting and
-`node_modules` layout depend on package-manager configuration; Yarn PnP may not
-have `node_modules`. Check app-local paths or use the version-matched online docs.
+Search the resolved package's `docs/` and `src/` first, including provider
+packages. Monorepo hoisting and Yarn PnP may change the paths; do not install
+or upgrade a dependency solely to obtain docs.
 
-## Critical: Do Not Trust Internal Knowledge
+When local documentation is unavailable, use the matching docs version or
+repository tag. The [documentation search](https://ai-sdk.dev/api/search-docs?q=useChat)
+and Markdown page variants help locate the relevant feature. Repository main
+and the default website can target a newer major than the app.
 
-AI SDK APIs differ between major versions. Verify the installed API before applying remembered patterns.
+Choose model IDs from the app's provider configuration or current provider
+catalog. The [Gateway catalog](https://ai-gateway.vercel.sh/v1/models) can aid
+discovery; its IDs and capability availability do not imply that another
+provider accepts them. Choose capability, latency and cost for the task.
 
-**When working with the AI SDK:**
+## Targeted references
 
-1. Identify the project dependency version and available docs (see Prerequisites)
-2. Identify the installed major version and use `ai-sdk-7` or `ai-sdk-6` for deep version-specific work
-3. Search `node_modules/ai/docs/` and `node_modules/ai/src/` for current APIs
-4. If not found locally, search ai-sdk.dev documentation (instructions below)
-5. Never rely on memory - always verify against source code or docs
-6. **`useChat` has changed significantly** - check [Common Errors](references/common-errors.md) before writing client code
-7. **Always fetch current model IDs** - Never use model IDs from memory. A public catalog of current IDs across providers is available at `https://ai-gateway.vercel.sh/v1/models` — useful purely for discovery, not a recommendation to use Gateway as a runtime provider. Example: `curl -s https://ai-gateway.vercel.sh/v1/models | jq -r '[.data[] | select(.id | startswith("anthropic/")) | .id] | reverse | .[]'` (swap `anthropic/` for `openai/`, `google/`, etc.). Pick the model family/tier by capability, cost, and latency requirements; within the chosen family, use the latest version from the catalog (e.g. prefer `claude-sonnet-5` over an older `claude-sonnet-4-x`) — version number alone is not a selection criterion across families.
-8. Run typecheck after changes to ensure code is correct
-9. **Be minimal** - Only specify options that differ from defaults. When unsure of defaults, check docs or source rather than guessing or over-specifying.
+- [Common errors](references/common-errors.md): obsolete names and protocol mismatches.
+- [Typed agents](references/type-safe-agents.md): UI inference and server/client boundaries.
+- [DevTools](references/devtools.md): local debugging.
+- [Examples](references/examples.md): provider-specific official code.
 
-If you cannot find documentation to support your answer, state that explicitly.
-
-## Finding Documentation
-
-### ai@6.0.34+ and ai@7+
-
-Search bundled docs and source in `node_modules/ai/`:
-
-- **Docs**: `grep "query" node_modules/ai/docs/`
-- **Source**: `grep "query" node_modules/ai/src/`
-
-Provider packages include docs at `node_modules/@ai-sdk/<provider>/docs/`.
-
-For v7-specific features such as `WorkflowAgent`, `HarnessAgent`, tool context,
-reasoning, telemetry, realtime, video, or v6-to-v7 migration, read the
-`ai-sdk-7` skill after confirming the installed major version.
-
-### Earlier versions or missing local docs
-
-1. Search: `https://ai-sdk.dev/api/search-docs?q=your_query`
-2. Fetch `.md` URLs from results (e.g., `https://ai-sdk.dev/docs/agents/building-agents.md`)
-
-### Working examples
-
-For runnable provider × feature examples (Anthropic cache-control, OpenAI computer-use, Google grounding, etc.), see [examples.md](references/examples.md). Fetch individual files on demand via WebFetch or `gh api` — do not clone the repo.
-
-## When Typecheck Fails
-
-**Before searching source code**, grep [Common Errors](references/common-errors.md) for the failing property or function name. Many type errors are caused by deprecated APIs documented there.
-
-If not found in common-errors.md:
-
-1. Search `node_modules/ai/src/` and `node_modules/ai/docs/`
-2. Search ai-sdk.dev (for earlier versions or if not found locally)
-
-## Building and Consuming Agents
-
-### Creating Agents
-
-Use the agent pattern that matches the installed major version and task:
-
-- v6/v7 in-memory agent loops: `ToolLoopAgent`
-- v7 durable workflow-backed agents: `WorkflowAgent` from `@ai-sdk/workflow`
-- v7 external coding/runtime harnesses: `HarnessAgent` from `@ai-sdk/harness/agent`
-
-Search `node_modules/ai/docs/` for current agent creation APIs before writing code.
-
-**File conventions**: See [type-safe-agents.md](references/type-safe-agents.md) for where to save agents and tools.
-
-**Type Safety**: When consuming agents with `useChat`, always use `InferAgentUIMessage<typeof agent>` for type-safe tool results. See [reference](references/type-safe-agents.md).
-
-### Consuming Agents (Framework-Specific)
-
-Before implementing agent consumption:
-
-1. Check `package.json` to detect the project's framework/stack
-2. Search documentation for the framework's quickstart guide
-3. Follow the framework-specific patterns for streaming, API routes, and client integration
-
-## References
-
-- [Common Errors](references/common-errors.md) - Renamed parameters reference (parameters → inputSchema, etc.)
-- [Type-Safe Agents with useChat](references/type-safe-agents.md) - End-to-end type safety with InferAgentUIMessage
-- [DevTools](references/devtools.md) - Local debugging and observability (development only)
-- [Canonical Examples](references/examples.md) - Provider × feature working code from vercel/ai/examples
-
-## Related Skills
-
-- `ai-sdk-7` - AI SDK 7 development, HarnessAgent, WorkflowAgent, telemetry, realtime, video, and v6-to-v7 migration
-- `ai-sdk-6` - AI SDK 6 development with ToolLoopAgent, Output patterns, MCP, middleware, tools, and UI hooks
+Use defaults when they fit. Typecheck changed integrations and exercise their
+streaming/tool path; a supported symbol can still be used with the wrong
+callback scope, result semantics or provider.

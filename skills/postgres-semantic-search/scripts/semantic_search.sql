@@ -9,8 +9,8 @@
 -- model-specific: a cutoff that suits one embedding model returns nothing for
 -- another. Leave it NULL for plain top-k, or calibrate it on your eval set.
 --
--- None of these set hnsw.ef_search (default 40, which also caps how many rows
--- the index returns). The caller owns that trade-off: SET LOCAL it in the same
+-- None of these set hnsw.ef_search (default 40; without iterative scans,
+-- results are limited by that candidate list). The caller owns the trade-off: SET LOCAL it in the same
 -- transaction when a transaction pooler sits in front of Postgres.
 
 CREATE OR REPLACE FUNCTION match_documents(

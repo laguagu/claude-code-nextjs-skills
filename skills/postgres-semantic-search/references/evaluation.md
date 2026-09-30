@@ -32,8 +32,8 @@ answer once. Keep both:
 - **Long set**: sample chunks with enough real text (a few hundred
   characters), from documents still in use, and have a cheap model write one
   natural question each chunk answers. Store question, expected document and
-  expected chunk. Under ~50 questions is noise; a few hundred is a useful
-  signal.
+  expected chunk. Choose set size for the effect and coverage you need; a fixed question
+  count cannot by itself establish statistical reliability.
 - **Bias**: a question generated from a chunk is unusually close to that chunk
   in embedding space. Vector and RRF baselines look better than in production,
   and rerankers and query rewriters look worse, because they reshuffle a
@@ -47,8 +47,9 @@ answer once. Keep both:
 
 ## Noise and what a delta means
 
-- A short set with no LLM on the request path is often deterministic, so a
-  one-point move is real. A long set that passes through a query rewriter,
+- A short set with no LLM on the request path can be deterministic. A changed
+  result is real for those fixtures, but a small set still has uncertainty
+  about the wider query population. A long set that passes through a query rewriter,
   intent splitter or translation gate swung ±3 points between runs of identical
   code. Measure your run-to-run spread once, write it next to the set, and do
   not believe a smaller delta.
@@ -88,4 +89,5 @@ answer once. Keep both:
 - Bigint ids come back as strings from some drivers; compare
   `String(a) === String(b)` when computing ranks.
 - If production keeps the HNSW index warm, benchmark warm; otherwise you
-  measure a state users never see. Discard the first cold query either way.
+  measure a different workload. Report cold and warm results separately;
+  discard warm-up runs only when reporting a deliberately warm workload.

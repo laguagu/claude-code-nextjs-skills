@@ -11,6 +11,7 @@ results, never an error.
 - [Accents, invisible characters and language configs](#accents-invisible-characters-and-language-configs)
 - [A dead keyword arm](#a-dead-keyword-arm)
 - [Inflected languages: prefix matching](#inflected-languages-prefix-matching)
+- [Stemmer, lemmatizer or neither](#stemmer-lemmatizer-or-neither)
 - [Trigrams, typos and autocomplete](#trigrams-typos-and-autocomplete)
 - [ParadeDB (pg_search)](#paradedb-pg_search)
 
@@ -50,20 +51,23 @@ almost everything.
     ALTER MAPPING FOR hword, hword_part, word WITH unaccent, french_stem;
   ```
 
-  Never for Finnish, Swedish, Danish, Norwegian, German, Turkish or Hungarian:
-  there the marked letters are different letters (`säästää` "to save" becomes
-  `saastaa` "to pollute"), and the stemmer receives forms it was not built for.
+  Avoid blanket folding for Finnish, Swedish, Danish, Norwegian, German,
+  Turkish or Hungarian: marked letters can be distinct letters (`säästää` "to save" becomes
+  `saastaa`, "filth" in the partitive), and the stemmer receives forms it was
+  not built for.
   Handle accentless typing with a trigram fallback instead.
-- **Strip zero-width characters** (U+200B, U+200C, U+200D, U+FEFF) from text
-  and every metadata field at ingest, and from queries. Postgres does not treat
+- **Normalize unwanted zero-width export artifacts** consistently at ingest and
+  query time. Do not indiscriminately delete ZWNJ/ZWJ from every language or
+  field: they can carry meaningful shaping or text information. Postgres does not treat
   them as whitespace, so the glued token skips stemming:
   `to_tsvector('finnish', 'kirjanpidossa')` gives `kirjanpido`, the same word
   followed by U+200B stays whole and never matches. A CMS export had them in 10
   titles and 23 chunks, invisible in every editor.
 - **Mixed or unknown languages**: `'simple'` plus prefix or trigram matching.
-  A per-row language cannot live in a generated column
-  (`to_tsvector(lang::regconfig, body)` is not immutable); write the tsvector
-  at ingest.
+  A per-row language works in a generated column or index only if the column
+  is of type `regconfig` (`to_tsvector(lang, body)`); casting a text column
+  (`lang::regconfig`) is not immutable and is rejected. Otherwise write the
+  tsvector at ingest.
 - **The index expression must match the query**, config included:
   `to_tsvector('simple', content)` in the index serves only that exact call.
 
@@ -83,16 +87,19 @@ SELECT count(*) AS total, count(tsv) AS populated FROM documents;
 ```
 
 Repair is `DROP COLUMN` plus `ADD COLUMN ... GENERATED`, which drops its indexes
-too. A check with no database access: run a literal term through hybrid and
-vector-only search; identical lists mean the keyword arm is dead.
+too. If only the application API is available, compare literal-term keyword-only,
+hybrid and vector-only results. Identical hybrid/vector lists are a symptom,
+not proof of a dead arm: weak weights, overlapping candidates or an unsuitable
+query can also produce them. Inspect population and arm matches when possible.
 
 ## Inflected languages: prefix matching
 
 With the `'simple'` config, prefix terms (`kirjasto:*`) match suffixed forms
 (`kirjastossa`, `kirjastoon`). Two cases still return nothing:
 
-- **Stem changes.** Finnish consonant gradation rewrites the stem, so
-  `hakemus:*` misses `hakemuksesta` and `asiakas:*` misses `asiakkaan`. Any one
+- **Stem changes.** Finnish inflection rewrites many stems (`-us` to `-ukse-`,
+  consonant gradation), so `hakemus:*` misses `hakemuksesta` and `asiakas:*`
+  misses `asiakkaan`. Any one
   term can miss, so AND-joining terms returned zero rows for every multi-word
   query on a ~2,000-document Finnish corpus. OR-join them and let `ts_rank_cd`
   order the pool.
@@ -109,6 +116,48 @@ matches win ties.
 Keyword search alone is weak in these languages: a stemmer reduces a compound
 to a stem that a query for its first half no longer reaches. On one corpus FTS
 alone reached 33.7 % Recall@15 against 75.0 % for vector search.
+
+## Stemmer, lemmatizer or neither
+
+Measured on a Finnish lecture-transcript corpus (~2,000 segments, 67 long
+questions, 15 short terms, the same 15 typed inflected), keyword arm alone and
+fused with vector search as the app does (right moment first):
+
+| Keyword arm | Long, alone | Long, hybrid | Inflected terms, alone | Inflected terms, hybrid |
+| --- | ---: | ---: | ---: | ---: |
+| `simple` + prefix (baseline) | 12 | 37 | 4 | 12 |
+| Postgres `finnish` stemmer, OR | 21 | 35 | 9 | 12 |
+| Dictionary lemmas (Voikko), OR | 17 | 35 | 6 | 11 |
+| Lemmas, stemmer for unknown words | 17 | 39 | 10 | 12 |
+| No keyword arm | – | 37 | – | 12 |
+
+- **Embeddings already absorb inflection.** Vector search alone found 8 of the
+  15 terms in base form and 9 inflected. The prefix arm fell from 9 to 4 and
+  matched nothing for 5 inflected terms: a prefix reaches suffixed forms of the
+  typed word, never the base form of an inflected query (`purentakiskon:*`
+  misses `purentakisko`).
+- **Morphology helps the keyword arm alone, not hybrid.** The stemmer won 11
+  and lost 2 long questions alone (sign test p = 0.02). Fused, the stemmer and
+  lemma variants stayed within two queries of the baseline, which itself tied
+  "no keyword arm", and none of the differences was significant. Add
+  a stemmed arm for keyword-only search or highlighted literal matches; for a
+  hybrid ranking, measure before paying for it.
+- **Prefer the stemmer to a dictionary lemmatizer** for spoken or domain text.
+  Voikko could not analyse 8.3 % of the running words (a quarter of distinct
+  words): spoken forms (`mä`, `tota`) and domain terms (`uniapnea`, `tmd`). A
+  lemmatizer that keeps unknown words as typed never joins `pulpiitista` with
+  `pulpiitti`; stem them instead. The snowball stemmer needs no dictionary and
+  no service beside Postgres.
+- **Compound splitting floods the arm.** Indexing compound parts made a long
+  question match a median of 1,056 of 2,072 segments (221 for the prefix
+  baseline) and scored 4 fewer long questions in hybrid. Leave it off unless
+  queries name compound halves.
+- **A library's default query mode can switch the arm off.** A lemmatizing
+  store that defaulted to `websearch_to_tsquery` (AND) matched nothing for all
+  67 long questions. Check the default, not the README's recommended mode.
+
+With 15 short terms, only a gap of about 5 queries is significant; the long
+set was model-labelled. One corpus, so re-measure on yours.
 
 ## Trigrams, typos and autocomplete
 
@@ -136,7 +185,8 @@ from memory (checked 2026-09):
   since 0.25.0; `USING bm25` is a backwards-compatible alias, and
   `CALL paradedb.create_bm25` is gone. The key field is unique and listed first.
 - One ParadeDB index per table, covering every column you search, filter, sort
-  or aggregate on. Adding a column means `REINDEX`.
+  or aggregate on. Adding or removing a field, or changing its tokenizer, means
+  rebuilding it (the docs build a new one `CONCURRENTLY`, then drop the old).
 - Current query API: `|||` (any term), `&&&` (all terms), `###` (phrase), `===`
   (exact), `pdb.score()`, `pdb.snippet()`. The `paradedb.*` builder functions are
   legacy.

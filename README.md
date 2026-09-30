@@ -40,9 +40,9 @@ activate from your request.
 
 | Skill | Description |
 |-------|-------------|
-| [next-best-practices](skills/next-best-practices/) | RSC, async APIs, routing, optimization |
+| [next-best-practices](skills/next-best-practices/) | Installed-version docs for routing, RSC and Next.js integration |
 | [react-best-practices](skills/react-best-practices/) | React/Next.js performance optimization (Vercel) |
-| [cache-components](skills/cache-components/) | Cache Components & PPR |
+| [cache-components](skills/cache-components/) | Cache Components, freshness, invalidation and isolation |
 | [nextjs-seo](skills/nextjs-seo/) | SEO (metadata, sitemaps, JSON-LD) |
 | [vercel-react-view-transitions](skills/vercel-react-view-transitions/) | React View Transitions and navigation motion |
 
@@ -86,10 +86,10 @@ Example agents for common workflows. Installed with the Claude Code plugin; othe
 | Skill | Original Source | License |
 |-------|-----------------|---------|
 | [ai-sdk](skills/ai-sdk/) | [vercel/ai](https://github.com/vercel/ai/tree/main/skills) | Apache 2.0 |
-| [cache-components](skills/cache-components/) | [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills) | MIT |
+| [cache-components](skills/cache-components/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (archived; maintained locally) | MIT |
 | [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
 | [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
-| [next-best-practices](skills/next-best-practices/) | [skills.sh/vercel-labs/vercel-plugin](https://skills.sh/vercel-labs/vercel-plugin/next-best-practices) | - |
+| [next-best-practices](skills/next-best-practices/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (archived; maintained locally) | - |
 | [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/agent-skills](https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices) | MIT |
 | [chrome-devtools](skills/chrome-devtools/) | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills/blob/main/skills/browser-testing-with-devtools/SKILL.md) | - |
@@ -112,8 +112,9 @@ Example agents for common workflows. Installed with the Claude Code plugin; othe
 Both plugin manifests use this single configuration. Optional Chrome DevTools MCP
 setup is in the [browser testing skill](skills/chrome-devtools/SKILL.md).
 
-[AGENTS.md](AGENTS.md) is an example of Next.js-generated agent rules plus the
-custom rule `Always use bun, not npm`; [CLAUDE.md](CLAUDE.md) references it.
+[AGENTS.md](AGENTS.md) contains an example of Next.js-generated project rules;
+[CLAUDE.md](CLAUDE.md) references it. These root files guide work on the
+repository; installing the plugin does not load them as project context.
 
 ## 🔄 Updating
 

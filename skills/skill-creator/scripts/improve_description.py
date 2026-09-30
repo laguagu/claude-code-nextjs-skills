@@ -129,10 +129,10 @@ Based on the failures, write a new and improved description that is more likely 
 1. Avoid overfitting
 2. The list might get loooong and it's injected into ALL queries and there might be a lot of skills, so we don't want to blow too much space on any given description.
 
-Concretely, your description should not be more than about 100-200 words, even if that comes at the cost of accuracy. There is a hard limit of 1024 characters — descriptions over that will be truncated, so stay comfortably under it.
+Keep the description within the Agent Skills specification's 1024-character limit; longer descriptions fail portable validation. Put the core use case first because a client's separate listing budget can shorten or omit the description.
 
 Here are some tips that we've found to work well in writing these descriptions:
-- The skill should be phrased in the imperative -- "Use this skill for" rather than "this skill does"
+- Start with a third-person capability summary, then state concrete use contexts with "Use when...".
 - The skill description should focus on the user's intent, what they are trying to achieve, vs. the implementation details of how the skill works.
 - The description competes with other skills for Claude's attention — make it distinctive and immediately recognizable.
 - If you're getting lots of failures after repeated attempts, change things up. Try different sentence structures or wordings.

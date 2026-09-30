@@ -1,157 +1,24 @@
-# Tools
+# Tool execution boundaries
 
-## Contents
+Use typed function tools for application operations; keep tenant/role checks,
+input validation and idempotency in the executor. Model input/context is not
+authorization. Tool errors returned to the model or UI need the app's safe
+formatting policy.
 
-- [Function Tools](#function-tools-function_tool)
-- [Tool with Multiple Parameters](#tool-with-multiple-parameters)
-- [Hosted Tools](#hosted-tools-built-in)
-- [Agents as Tools](#agents-as-tools)
-- [Tool Guardrails](#tool-guardrails)
-- [Forcing Tool Use](#forcing-tool-use)
+Hosted tools run under provider contracts; local tools execute in the app's
+runtime or sandbox. Confirm installed tool types and endpoint support in
+[tools docs](https://openai.github.io/openai-agents-python/tools/). Do not assume
+function-tool guardrails cover hosted shell, computer, MCP or patch tools.
 
-## Function Tools (@function_tool)
+Use `agent.as_tool()` when the manager consumes a child result and retains
+control. Use a handoff when the specialist should become the active agent.
+Tool execution limits and cancellation apply to real side effects too.
 
-```python
-from typing import Annotated
-from agents import Agent, Runner, function_tool
+For model-written programmatic tool calling, verify the selected Responses
+model and installed SDK constraints, allowed callers and tool exposure before
+enabling it. A general function-tool list is not automatically callable from
+model-generated code.
 
-@function_tool
-def get_weather(city: Annotated[str, "City name"]) -> str:
-    """Get weather for a city."""
-    return f"Weather in {city}: Sunny, 20C"
-
-@function_tool
-async def search_database(query: Annotated[str, "Search query"]) -> list[dict]:
-    """Search products in database."""
-    # Async function - can await database calls
-    return [{"id": "1", "name": "Hiking boots"}]
-
-agent = Agent(
-    name="Assistant",
-    instructions="Help users find information.",
-    tools=[get_weather, search_database],
-)
-```
-
-## Tool with Multiple Parameters
-
-```python
-@function_tool
-def book_flight(
-    origin: Annotated[str, "Departure city"],
-    destination: Annotated[str, "Arrival city"],
-    date: Annotated[str, "Travel date (YYYY-MM-DD)"],
-    passengers: Annotated[int, "Number of passengers"] = 1,
-) -> dict:
-    """Book a flight between two cities."""
-    return {
-        "confirmation": "ABC123",
-        "route": f"{origin} -> {destination}",
-        "date": date,
-        "passengers": passengers,
-    }
-```
-
-## Hosted Tools (Built-in)
-
-```python
-from agents import Agent, WebSearchTool, CodeInterpreterTool
-
-agent = Agent(
-    name="Researcher",
-    instructions="Search the web and analyze data.",
-    tools=[
-        WebSearchTool(user_location={"type": "approximate", "city": "Helsinki"}),
-        CodeInterpreterTool(tool_config={"type": "code_interpreter", "container": {"type": "auto"}}),
-    ],
-)
-```
-
-Hosted tools (run on OpenAI's servers):
-- `WebSearchTool` - web search
-- `FileSearchTool` - retrieval from OpenAI vector stores
-- `CodeInterpreterTool` - sandboxed code execution (requires `tool_config`)
-- `HostedMCPTool` - remote MCP server tools
-- `ImageGenerationTool` - image generation
-- `ToolSearchTool` - on-demand tool discovery for large tool sets
-- `ProgrammaticToolCallingTool` - the model calls tools from code it writes. Responses models only, at most one per agent; a tool is callable from that code only if it opts in with `allowed_callers=["programmatic"]` (or `["direct", "programmatic"]`) — omitting it allows direct calls only
-- `ShellTool` - shell execution in a hosted container (also has a local mode)
-
-Local runtime tools (execute on your machine):
-- `ComputerTool` - computer use / GUI automation
-- `ShellTool` (local mode) / `LocalShellTool` - local shell commands
-- `ApplyPatchTool` - apply file patches
-
-The list moves between releases — confirm names in the tools reference
-(https://openai.github.io/openai-agents-python/tools/) before use.
-
-## Agents as Tools
-
-Use other agents as tools for orchestration:
-
-```python
-from agents import Agent, Runner
-
-translator_es = Agent(
-    name="SpanishTranslator",
-    instructions="Translate to Spanish.",
-)
-
-translator_fr = Agent(
-    name="FrenchTranslator",
-    instructions="Translate to French.",
-)
-
-orchestrator = Agent(
-    name="Orchestrator",
-    instructions="Use translation tools as needed.",
-    tools=[
-        translator_es.as_tool(
-            tool_name="translate_spanish",
-            tool_description="Translate text to Spanish",
-        ),
-        translator_fr.as_tool(
-            tool_name="translate_french",
-            tool_description="Translate text to French",
-        ),
-    ],
-)
-
-result = await Runner.run(orchestrator, "Translate 'hello' to Spanish and French")
-```
-
-## Tool Guardrails
-
-Use `@tool_input_guardrail` / `@tool_output_guardrail` and attach via `tool_input_guardrails=` / `tool_output_guardrails=` on `@function_tool`. Return `ToolGuardrailFunctionOutput` via `.allow()`, `.reject_content(message=...)`, or `.raise_exception()`.
-
-```python
-from agents import function_tool, tool_input_guardrail
-from agents import ToolGuardrailFunctionOutput, ToolInputGuardrailData
-
-@tool_input_guardrail
-def validate_query(data: ToolInputGuardrailData) -> ToolGuardrailFunctionOutput:
-    query = str(data.context.tool_arguments.get("query", ""))
-    if len(query) < 3:
-        return ToolGuardrailFunctionOutput.reject_content(message="Query too short")
-    return ToolGuardrailFunctionOutput.allow()
-
-@function_tool(tool_input_guardrails=[validate_query])
-def search(query: Annotated[str, "Search query"]) -> list[str]:
-    """Search for items."""
-    return ["result1", "result2"]
-```
-
-## Forcing Tool Use
-
-```python
-from agents import Agent, ModelSettings
-
-agent = Agent(
-    name="ToolUser",
-    instructions="Always use tools to answer.",
-    tools=[get_weather, search_database],
-    model_settings=ModelSettings(
-        tool_choice="required",  # Force tool usage
-    ),
-)
-```
+Use SDK human-in-the-loop interruption/resume state when the task needs approval.
+Tie the decision to an authorized server-issued run/tool call and recheck
+policy before executing it; do not trust client-edited run state.

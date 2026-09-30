@@ -1,100 +1,45 @@
 ---
 name: ai-elements
-description: Build AI chat interfaces with pre-built shadcn-style components (Message, Conversation, PromptInput, Reasoning, Sources, Tool, Artifact, CodeBlock, Suggestion, Task, Image, ChainOfThought, InlineCitation, WebPreview, Checkpoint, Plan, Queue, ModelSelector, and more). Use when adding AI chat UI to a Next.js + AI SDK app, installing AI Elements components via the CLI (`bun x ai-elements@latest add message` or `npx shadcn@latest add @ai-elements/message`), composing message displays with markdown, building prompt inputs with attachments, or rendering streaming reasoning and tool output.
+description: Builds AI chat interfaces with AI Elements components copied into the project. Use when adding or composing conversations, messages, prompt inputs, attachments, reasoning, tool output or sources in an AI SDK application.
 ---
 
 # AI Elements
 
-[AI Elements](https://www.npmjs.com/package/ai-elements) is a component library and custom registry built on top of [shadcn/ui](https://ui.shadcn.com/) to help you build AI-native applications faster. It provides pre-built components like conversations, messages and more.
+Use AI Elements where its components fit the interaction. The generated source
+belongs to the project: inspect it for the actual API and customize it deliberately.
 
-Components are copied into the project as source, so they are owned and editable — not a black-box dependency.
+## Project and documentation
 
-## Prerequisites
+Follow the project's package manager, aliases, shadcn configuration and AI SDK
+major. Read `ai-sdk` to resolve the installed version, then the appropriate
+`ai-sdk-6` or `ai-sdk-7` guidance. AI Elements and AI SDK versions can change
+independently.
 
-- A Node.js version supported by the installed Next.js, AI SDK and CLI packages; use the strictest engine requirement
-- A [Next.js](https://nextjs.org/) project with the [AI SDK](https://ai-sdk.dev/) installed
-- [shadcn/ui](https://ui.shadcn.com/) in the project — running any install command sets it up if missing
+Find current component documentation through the
+[AI Elements site](https://ai-sdk.dev/elements), the available AI Elements MCP,
+or the matching component file in `references/`. Load only the relevant
+component references; verify older bundled examples against installed source.
 
-## Installing Components
+For installation, use the project's runner with `ai-elements@latest add <component>`
+or `shadcn@latest add @ai-elements/<component>`. Check installed components and
+review generated files before replacing local customization. Use `shadcn` for
+registry, preset and primitive-base details.
 
-Install AI Elements components using either the dedicated AI Elements CLI or the shadcn/ui CLI. Both achieve the same result: adding the selected component's code and any needed dependencies to the project.
+## Integration
 
-### AI Elements CLI
+[Integration](references/integration.md) covers the UI/SDK boundary and v6
+pitfalls. Keep stable message IDs and render supported message parts with the
+generated compound components. Keep model choice, tools, credentials and
+authorization on the server.
 
-```bash
-# npm
-npx ai-elements@latest add message
-# pnpm
-pnpm dlx ai-elements@latest add message
-# yarn
-yarn dlx ai-elements@latest add message
-# bun
-bun x ai-elements@latest add message
-```
+Compose the states the feature needs: streaming, completion, retry, cancellation,
+attachments, approval or sources. Avoid adding components merely because the
+library offers them. Preserve keyboard interaction, accessible labels and useful
+scroll behavior.
 
-### shadcn CLI
+When rendering fails, inspect the owned component, theme imports, semantic tokens
+and actual configured aliases. Do not copy a default `tsconfig` or replace the
+project's theme to fix one import.
 
-```bash
-# npm
-npx shadcn@latest add @ai-elements/message
-# pnpm
-pnpm dlx shadcn@latest add @ai-elements/message
-# yarn
-yarn dlx shadcn@latest add @ai-elements/message
-# bun
-bun x shadcn@latest add @ai-elements/message
-```
-
-The CLI downloads the component's code and integrates it into the project's directory. By default, AI Elements components are added to `@/components/ai-elements/` (or whatever folder is configured in `components.json`). After running the command, the terminal confirms which files were added — proceed to import and use the component in code.
-
-## Use the installed source
-
-Inspect the generated component before composing it; APIs can change independently
-of the AI SDK major. Render `UIMessage.parts` with stable message IDs, and handle
-text, tool, reasoning and source parts according to the app's requirements.
-Use [integration.md](references/integration.md) for the bundled v6 integration
-example; use `ai-sdk-7` when the project is on v7.
-
-Customize the owned source or pass supported props. Do not assume every compound
-component forwards every HTML attribute to the same element.
-
-## Troubleshooting
-
-### Components render unstyled
-
-The project is missing the shadcn/ui base layer. Tailwind 4 is CSS-first (legacy JavaScript config is possible via `@config`); `globals.css` must `@import "tailwindcss"` and define the shadcn
-theme tokens in an `@theme inline` block.
-
-### The CLI ran but nothing was added
-
-Run it from the directory holding `package.json`, and pass both `@latest` and a component
-name — use an explicit `add <component>` command and inspect the output rather than assuming the default action.
-
-### Theme switching stays in light mode
-
-shadcn/ui toggles `class="dark"` (or a `data-theme` attribute) on `<html>`. In Tailwind 4
-the matching selector is declared in CSS with `@custom-variant dark`, not in a config file.
-Confirm the toggle actually mutates `<html>` before suspecting the components.
-
-### Imports fail with "module not found"
-
-Check the file exists, then check the `@/` path alias in `tsconfig.json`:
-
-```json title="tsconfig.json"
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    }
-  }
-}
-```
-
-Match the alias to whatever `components.json` declares — it is not always `@/`.
-
-Anything else: [open an issue](https://github.com/vercel/ai-elements/issues).
-
-## Available Components
-
-See the `references/` folder for detailed documentation on each component.
+Verify the rendered flow with real message states and the project's checks;
+type correctness alone does not establish usable streaming or attachment behavior.

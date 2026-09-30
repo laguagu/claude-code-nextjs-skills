@@ -5,7 +5,7 @@
 --   the same function serves vector-only and keyword-only calls.
 -- * The keyword arm ORs the query's terms (plainto_tsquery, then & -> |) and
 --   lets ts_rank_cd reward rows that match more of them. Both stock parsers AND
---   every term, which leaves a long question with zero keyword hits. If the UI
+--   bare terms in plain input, which can leave a long question with zero hits. If the UI
 --   exposes quotes, OR or -exclusions, use websearch_to_tsquery unchanged.
 -- * to_tsvector runs per row here, so no index serves the keyword arm. On a
 --   large table, compare against a stored, GIN-indexed tsvector column instead

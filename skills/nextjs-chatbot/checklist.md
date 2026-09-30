@@ -1,29 +1,25 @@
-# Building a New Chatbot — Checklist
+# Building a chatbot
 
-- [ ] Scaffold with `/ai-app` or `bun x shadcn@latest init --template next --base base`
-- [ ] Install: `bun add ai@7 @ai-sdk/react @ai-sdk/openai zod drizzle-orm postgres`
-- [ ] Install chat infra: `bun add @shadcn/react @shadcn/helpers` (MessageScroller + scripted-chat helper)
-- [ ] Install ai-elements: `bun x ai-elements@latest add conversation message prompt-input loader` (run once per component, or list multiple)
-- [ ] Add typeset: generate `typeset.css` at [ui.shadcn.com/typeset](https://ui.shadcn.com/typeset), import after Tailwind, define a `.typeset-chat` preset
-- [ ] Create agent: `lib/ai/agent.ts` with ToolLoopAgent — export both factory and `export type AgentUIMessage = InferAgentUIMessage<typeof agent>`
-- [ ] Create route: `app/api/chat/route.ts` with createAgentUIStreamResponse
-- [ ] Create chat UI: ai-elements Conversation/Message/MessageResponse inside `MessageScroller` (`scrollAnchor` on user messages), markdown wrapped in `typeset typeset-chat`
-- [ ] Wire typed useChat: `useChat<AgentUIMessage>()` — enables type-safe tool part access without `as` casts (see `/ai-sdk` type-safe-agents reference)
-- [ ] Choose layout: popup widget (see [popup-widget.md](popup-widget.md)) or full-page
-- [ ] Add tools: one tool at a time, with UI renderer per tool
-- [ ] Add persistence: DB schema → session upsert → onEnd save → history load
-- [ ] **Or skip DB**: for lightweight chatbots, use `localStorage`; still assess endpoint authorization, retention and consent requirements
-- [ ] Add consent gating (if needed): privacy wall → consent check in route
-- [ ] Add feedback (if needed): thumbs up/down → 202 retry pattern
-- [ ] Add HITL approval (if needed): agent-level `toolApproval` → approval UI (NOT `needsApproval` on the tool — the v6 API, deprecated in v7 and kept only as a fallback)
-- [ ] Add suggestions (if needed): POST /api/suggestions → display after response
-- [ ] Add embed support (if needed): /embed page + widget.js + CORS headers
-- [ ] Add web search (if needed): provider-native or custom fetch tool → [web-search.md](web-search.md)
-- [ ] Apply brand theming: globals.css oklch colors matching project identity
-- [ ] Add message actions: copy, thumbs up/down, regenerate, delete — gate visibility with `isGenerating && isLast` (chat-level status), NOT tool-part states, to avoid flicker during multi-tool responses
-- [ ] Enable `experimental_throttle: 50` on `useChat` to smooth client-side UI updates during rapid tool-loop transitions
-- [ ] Define model scope and enforce server-side tool permissions; test prompt-injection resistance
-- [ ] Script tool-render states with `createChat()` from `@shadcn/helpers/ai-sdk` — drives every tool/HITL state through the real `useChat` lifecycle with no model or API key
-- [ ] Create eval benchmarks: tool accuracy + injection defense tests
-- [ ] Add admin panel (if needed): /admin with better-auth JWT, metrics dashboard
-- [ ] Add data editor (if needed): /admin/data for managing tool knowledge base
+Agree the supported task, audience, source of truth, data policy and quality/
+latency budget. Inspect the existing application before choosing dependencies.
+
+1. Resolve installed SDK/provider versions and select a supported model from
+   the current provider configuration. Keep model selection server-controlled.
+2. Connect the smallest working chat path using version-matched transport and
+   stream helpers. Validate requests and redact public errors.
+3. Add only required tools. Enforce user/tenant permissions and side-effect
+   idempotency inside the server execution path.
+4. Add approval when the product calls for it; verify approve, deny, tampered
+   replay and duplicate submission.
+5. Add persistence if history must survive reload. Establish stable IDs,
+   ownership, retention, disconnect behavior and deletion coverage.
+6. Build the readable chat surface: Markdown, relevant results/sources, focus,
+   scroll anchoring and accessible controls. Add optional message actions or
+   suggestions only when useful.
+7. Exercise restored second turns, incomplete tool states and failures with
+   the actual provider and deployment path. Use scoped model/retrieval evals
+   when changing model behavior or grounding.
+
+See [testing.md](testing.md) for verification scope and [SKILL.md](SKILL.md) for
+the feature references. Installation commands, database migrations and MCP
+configuration belong to the project's actual stack, not a mandatory scaffold.

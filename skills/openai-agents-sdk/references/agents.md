@@ -1,186 +1,30 @@
-# Agents
+# Agents and provider wiring
 
-## Contents
+Read [model docs](https://openai.github.io/openai-agents-python/models/) and the
+installed package source. Omitting `model` uses SDK defaults, which can change;
+`OPENAI_DEFAULT_MODEL` is an SDK setting, while a custom app variable needs
+explicit wiring. Default ModelSettings are not universal across model families.
 
-- [Basic Agent Creation](#basic-agent-creation)
-- [Other Providers (LiteLLM)](#other-providers-litellm)
-- [Azure OpenAI without LiteLLM](#azure-openai-without-litellm-native-client)
-- [Dynamic System Prompt](#dynamic-system-prompt)
-- [Loading Prompts from Files](#loading-prompts-from-files)
-- [Agent Configuration Options](#agent-configuration-options)
+Configure only settings supported by the selected provider/model. Reasoning,
+sampling and tool support differ by endpoint. Do not infer capabilities or a
+model family from an Azure deployment's user-defined name.
 
-## Basic Agent Creation
+Azure can use native OpenAI model classes with the configured async Azure
+client. Choose Responses/Chat Completions from deployed capabilities and the
+current Azure API contract. Read deployment configuration or documented Azure
+management APIs to identify the deployment; do not rely on an old generic
+listing endpoint.
 
-The minimal `Agent` + `Runner` example lives in SKILL.md (Quick Reference → Basic
-Agent) and is not repeated here. Two things that example does not show:
+LiteLLM/Any-LLM are beta adapters recommended when built-in integration points
+are insufficient. They have independent model maps, imports and package extras.
+A rejected parameter may be adapter capability metadata rather than the
+provider; verify before enabling it. Silently dropping a requested reasoning
+setting changes behavior.
 
-- **Omitting `model=` is a choice, not a safe default.** The SDK ships its own
-  default model and settings, which can change between releases (0.22.x:
-  `gpt-5.6-luna`, overridable with the `OPENAI_DEFAULT_MODEL` env var). Set the
-  model explicitly in production code so an upstream change cannot swap tiers silently.
-- **Tuned default settings apply only to the GPT-5 family.** Other IDs, including
-  `gpt-6-*`, get a plain `ModelSettings()` and run at the API's default reasoning
-  effort, so set `reasoning` explicitly.
-- **Use a configured, verified model ID.** Check the provider's current model
-  catalog and deployment configuration; aliases and available tiers can change.
+Tracing is separate from model authentication. An Azure/LiteLLM key does not
+authorize OpenAI trace uploads. Configure trace destination or disable uploads
+according to the application's policy.
 
-## Other Providers (LiteLLM)
-
-`openai-agents` supports non-OpenAI models through [LiteLLM](https://docs.litellm.ai/), which normalizes 100+ providers (Azure, Anthropic, Bedrock, Vertex AI, Ollama, ...) behind one interface. Install the extra first: `pip install "openai-agents[litellm]"` (or `uv add "openai-agents[litellm]"`). The SDK docs classify LiteLLM (and Any-LLM) as **beta** integrations, recommended only when the built-in integration points are insufficient — for Azure OpenAI specifically, the native path further below needs no extra dependency. Two LiteLLM integration approaches exist:
-
-### Direct model instantiation
-
-Pass a `litellm/<provider>/<model>` string, or instantiate `LitellmModel` directly (shown here with Azure — swap the prefix for other providers):
-
-```python
-import os
-from typing import Union
-from agents import Agent, ModelSettings
-from agents.extensions.models.litellm_model import LitellmModel
-
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "azure")  # this project's own convention, not SDK-mandated
-MODEL = os.getenv("MODEL", "gpt-6-sol")  # Azure: the deployment name, not the catalog ID
-
-def get_model() -> Union[str, LitellmModel]:
-    """Get model based on provider."""
-    if LLM_PROVIDER == "azure":
-        # azure/ prefix tells LiteLLM to use Azure endpoint
-        # requires AZURE_API_KEY, AZURE_API_BASE, AZURE_API_VERSION —
-        # see LiteLLM's provider docs below for current names/values, they change over time
-        return LitellmModel(model=f"azure/{MODEL}")
-    # Direct OpenAI
-    return MODEL
-
-agent = Agent(
-    name="Assistant",
-    instructions="You are helpful.",
-    model=get_model(),  # Works with both Azure and OpenAI
-)
-```
-
-LiteLLM validates params against its own model map, which lags new releases.
-Before LiteLLM 1.101.0 — and on later versions when the Azure deployment name
-does not contain `gpt-6` (e.g. `azure/my-deploy`) — any `ModelSettings(reasoning=...)`
-raises `UnsupportedParamsError: azure does not support parameters: ['reasoning_effort']`.
-Allow it explicitly so the value still reaches Azure — not `litellm.drop_params=True`,
-which silently discards the effort:
-
-```python
-from openai.types.shared.reasoning import Reasoning
-
-model_settings=ModelSettings(
-    reasoning=Reasoning(effort="low"),
-    extra_args={"allowed_openai_params": ["reasoning_effort"]},
-)
-```
-
-### LiteLLM proxy
-
-Run a LiteLLM proxy server and point the SDK at it through a custom `ModelProvider`, authenticating with `LITELLM_API_KEY` (LiteLLM's own key, not the underlying provider's) against `LITELLM_BASE_URL`. Useful for centralized key management/routing across many providers. See LiteLLM's [OpenAI Agents SDK tutorial](https://docs.litellm.ai/docs/tutorials/openai_agents_sdk) for the full setup — it's a different wiring than direct instantiation above, not an alternative env var naming for the same thing.
-
-### References
-
-- **Provider list & model string prefixes:** https://openai.github.io/openai-agents-python/models/
-- **Per-provider env vars (Azure, Anthropic, Bedrock, ...):** https://docs.litellm.ai/docs/providers
-
-## Azure OpenAI without LiteLLM (native client)
-
-Azure OpenAI speaks the OpenAI API, so the SDK's own model classes work with an
-`AsyncAzureOpenAI` client — no extra dependency:
-
-```python
-import os
-from openai import AsyncAzureOpenAI
-from agents import (
-    Agent, OpenAIChatCompletionsModel,
-    set_default_openai_client, set_default_openai_api, set_tracing_disabled,
-)
-
-# AsyncAzureOpenAI also auto-reads AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT
-# and OPENAI_API_VERSION if you prefer env vars over explicit arguments.
-client = AsyncAzureOpenAI(
-    api_key=os.environ["AZURE_OPENAI_API_KEY"],
-    azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-    api_version=os.environ["OPENAI_API_VERSION"],
-)
-
-# Option A — one agent, Chat Completions against a named deployment
-agent = Agent(
-    name="Assistant",
-    instructions="You are helpful.",
-    model=OpenAIChatCompletionsModel(model="my-gpt-deployment", openai_client=client),
-)
-
-# Option B — process-wide default for every agent
-set_default_openai_client(client, use_for_tracing=False)
-set_default_openai_api("chat_completions")  # only if the deployment lacks the Responses API
-set_tracing_disabled(True)                  # or keep OPENAI_API_KEY set for the trace uploader
-```
-
-GPT-6 Sol and Luna allow function calling on Chat Completions only with
-reasoning effort `none` (Option A, Option B's `chat_completions`, and LiteLLM
-all go through Chat Completions). An agent that needs tools *and* reasoning
-should use the Responses API. Check the model page for other models.
-
-Azure deployment names are free-form (`gpt-5.5-deployment` serving `gpt-5.5`), so
-list them instead of guessing: `GET {endpoint}/openai/deployments?api-version=2023-03-15-preview`
-with the `api-key` header returns every deployment id and its model.
-
-`use_for_tracing=False` matters: trace uploads go to OpenAI's platform and need a
-real `OPENAI_API_KEY`; with an Azure-only setup either disable tracing or route
-spans elsewhere (see patterns.md → Tracing).
-
-## Dynamic System Prompt
-
-```python
-from agents import Agent, Runner, RunContextWrapper
-
-def dynamic_instructions(
-    ctx: RunContextWrapper[dict], agent: Agent[dict]
-) -> str:
-    user_name = ctx.context.get("user_name", "User")
-    return f"You are helping {user_name}. Be friendly and helpful."
-
-agent = Agent(
-    name="DynamicBot",
-    instructions=dynamic_instructions,  # Function instead of string
-    model="gpt-6-sol",
-)
-
-result = await Runner.run(
-    agent,
-    "Hello!",
-    context={"user_name": "Alice"},
-)
-```
-
-## Loading Prompts from Files
-
-```python
-from pathlib import Path
-
-PROMPTS_DIR = Path(__file__).parent / "prompts"
-
-def load_prompt(filename: str) -> str:
-    return (PROMPTS_DIR / filename).read_text(encoding="utf-8")
-
-agent = Agent(
-    name="Planner",
-    instructions=load_prompt("planner.md"),
-    model="gpt-6-sol",
-)
-```
-
-## Agent Configuration Options
-
-| Option | Description |
-|--------|-------------|
-| `name` | Agent identifier |
-| `instructions` | System prompt (string or function) |
-| `model` | Model name or LitellmModel instance |
-| `tools` | List of tools the agent can use |
-| `handoffs` | List of agents to delegate to |
-| `output_type` | Pydantic model for structured output |
-| `model_settings` | ModelSettings for fine-tuning |
-| `input_guardrails` | Input validation functions |
-| `output_guardrails` | Output validation functions |
+See [SDK models](https://openai.github.io/openai-agents-python/models/),
+[LiteLLM integration](https://docs.litellm.ai/docs/tutorials/openai_agents_sdk)
+and the configured provider's current docs.

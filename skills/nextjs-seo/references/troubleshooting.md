@@ -1,217 +1,53 @@
-# SEO Troubleshooting Guide
+# SEO diagnosis
 
-## Contents
+Start with an affected production URL and the exact observation. Compare the
+complete served response, browser behavior and Search Console evidence;
+these describe different layers.
 
-- [Google Indexing Issues](#google-indexing-issues)
-- [Google Search Console Usage](#google-search-console-usage)
-- [Common Technical Issues](#common-technical-issues)
-- [PPR route serves SEO HTML but never hydrates](#ppr-route-serves-perfect-seo-html-but-client-components-never-hydrate)
-- [Debug Checklist](#debug-checklist)
-- [Tools](#tools)
+## Indexing and crawl status
 
-## Google Indexing Issues
+“Discovered – currently not indexed” says Google knows the URL without an
+indexed crawl yet. “Crawled – currently not indexed” says a crawl did not result
+in indexing. Neither status identifies a single cause or establishes a
+content-length problem.
 
-### "Discovered - currently not indexed"
+Use URL Inspection and the relevant indexing report to check fetch success,
+crawl permission, noindex, declared and Google-selected canonicals. Inspect
+redirects, status codes, duplicate intent and whether the page has a distinct
+useful purpose. Check server/firewall logs when access is uncertain.
 
-**Meaning:** Google found the URL but hasn't crawled it yet.
+Change robots rules only after confirming the route should be public, and
+preserve unrelated restrictions. A robots block can stop discovery of a
+noindex directive. Indexing requests are optional follow-up after meaningful
+fixes; repeated submissions do not guarantee indexing.
 
-**Possible factors to investigate, not a diagnosis from this status alone:**
-- New website (low crawl priority)
-- Low-quality signals
-- Crawl budget exhaustion
+## Missing or wrong metadata
 
-**Solutions:**
-1. Request indexing via URL Inspection tool
-2. Build quality backlinks
-3. Improve internal linking
-4. Wait (can take weeks for new sites)
+Compare source and the complete production response for the installed
+metadata-streaming mode and relevant bot. Check inheritance, file precedence,
+relative URL resolution and the correct deployment origin. A spoofed bot
+User-Agent tests route behavior, not verified Google crawl access.
+See [metadata-api.md](metadata-api.md).
 
-### "Crawled - currently not indexed"
+## Content is stale
 
-**Meaning:** Google crawled but chose not to index.
+Trace the actual publication, cache and invalidation path for the page,
+metadata and sitemap. A database read or changed source file is not proof the
+deployed route refreshed. Test the real update rather than substituting a
+generic cache lifetime.
 
-**Possible factors to investigate, not a diagnosis from this status alone:**
-- Thin content
-- Duplicate content
-- Low-quality content
-- Technical issues
+## HTML is correct but interaction fails
 
-**Solutions:**
-1. Check whether the page answers a distinct need; improve usefulness without adding filler or chasing a word count
-2. Check for duplicate content issues
-3. Ensure canonical URLs are correct
-4. Show first-hand experience and trustworthy sourcing (Google: E-E-A-T itself isn't a specific ranking factor)
+Indexable HTML does not prove hydration. Directly open the route in a
+production browser and test buttons, forms and Suspense content. Inspect
+console errors, streamed RSC responses, failed assets, client/server initial
+state and the deployed proxy.
 
-### "URL is not on Google"
+A previous app exhibited correct SEO HTML with stalled PPR boundaries; that
+observation is a reason to test, not a universal Next.js defect or proof of a
+particular repair. Preserve a reproducible case and investigate the installed
+framework/configuration.
 
-**Meaning:** Page is not in Google's index.
-
-**Steps:**
-1. Check robots.txt isn't blocking
-2. Check for `noindex` meta tag
-3. Check canonical URL points to correct page
-4. Request indexing in GSC
-
-### "Blocked by robots.txt"
-
-**Solution:** Confirm the URL should be public, then narrow only the offending
-rule in `app/robots.ts`. Preserve unrelated restrictions and named-group rules:
-
-```typescript
-// Remove the blocking rule
-export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/api/', '/admin/'], // preserve intended restrictions
-    },
-  };
-}
-```
-
-## Google Search Console Usage
-
-### URL Inspection Tool
-
-1. Go to Google Search Console
-2. Enter URL in search bar at top
-3. Check:
-   - "URL is on Google" status
-   - "Page fetch" success
-   - "Indexing allowed" status
-   - "User-declared canonical"
-   - "Google-selected canonical"
-
-### Request Indexing
-
-1. Use URL Inspection tool
-2. Click "Request Indexing"
-3. Wait (don't spam - once is enough)
-4. Check back in 1-2 weeks
-
-### Pages Report
-
-Navigate to: **Indexing > Pages**. URLs are split into **Indexed** and **Not
-indexed**, each not-indexed group with a reason (e.g. "URL marked 'noindex'",
-"Duplicate, Google chose different canonical than user"). Many reasons are
-intended; act only on reasons that affect URLs you want indexed, then use
-**Validate fix**.
-
-## Common Technical Issues
-
-### JavaScript Rendering Problems
-
-**Symptom:** Content missing in URL Inspection → View Crawled Page rendered HTML.
-
-**Solutions:**
-1. Use SSR/SSG instead of CSR for SEO content
-2. Check with URL Inspection "View Crawled Page"
-3. Ensure critical content is in initial HTML
-
-### Duplicate Content
-
-**Symptom:** Multiple URLs with same content.
-
-**Solutions:**
-
-```typescript
-// Set canonical URL
-export const metadata: Metadata = {
-  alternates: {
-    canonical: '/correct-url',
-  },
-};
-```
-
-### Redirect Chains
-
-**Symptom:** Multiple redirects (A → B → C).
-
-**Solution:** Redirect directly to final URL:
-
-```typescript
-// next.config.ts
-export default {
-  async redirects() {
-    return [
-      {
-        source: '/old-url',
-        destination: '/final-url', // Direct to final
-        permanent: true,
-      },
-    ];
-  },
-};
-```
-
-### Slow Page Speed
-
-**Symptom:** High LCP, poor Core Web Vitals.
-
-**Solutions:**
-1. Use `next/image` for images
-2. Use `next/font` for fonts
-3. Lazy-load below-the-fold media; do not lazy-load the LCP/hero image
-4. Reduce JavaScript bundle size
-5. Use SSG where possible
-
-### Accidentally blocked from AI search
-
-**Symptom:** Site not appearing or cited in AI answers (ChatGPT, Perplexity, Google AI Overviews).
-
-**Causes:**
-- Old "block all AI" robots.txt templates
-- WAF/CDN rules disallowing citation bots (OAI-SearchBot, Claude-SearchBot, PerplexityBot)
-- Only deprecated tokens (anthropic-ai/Claude-Web) targeted, leaving real bots blocked or unhandled
-
-**Fix:**
-1. Allow citation bots in robots.txt
-2. Audit WAF/CDN rules together with robots.txt
-3. Verify access via server logs
-
-See [ai-search.md](ai-search.md) for AI crawler rules and GEO guidance.
-
-## PPR route serves perfect SEO HTML but client components never hydrate
-
-Observed in one app and not tied to an upstream issue — treat it as a hypothesis
-to test, not a known bug. A PPR route (`◐` in the build output, typically because
-it reads `searchParams`) served complete SEO HTML (title, canonical, body) while
-none of its `<Suspense>` boundaries hydrated on a direct URL load of the
-production build; the same client component hydrated on a static (`○`) route and
-after client-side navigation.
-
-**Check:** `next build && next start`, load the route directly, and interact with
-a client component inside a Suspense boundary. An SEO audit passing does not
-prove the page is usable.
-
-Inspect console errors as well as clicks: React can recover from a hydration
-mismatch by rebuilding a subtree, leaving a usable-looking page with an error.
-Compare the streamed HTML and client tree, check invalid nesting, unstable dates
-or randomness, and server/client data differences. Do not suppress the warning
-or remove SSR as a generic fix. Test both direct load and client navigation after
-the correction. An inactive browser tab may delay streamed reveal; distinguish
-that test condition from a reproducible application failure.
-
-## Debug Checklist
-
-When a page isn't indexed:
-
-1. [ ] Check robots.txt allows crawling
-2. [ ] Check no `noindex` tag
-3. [ ] Check canonical URL is correct
-4. [ ] Check page returns 200 status
-5. [ ] Check content is valuable and unique
-6. [ ] Check page is linked from other pages
-7. [ ] Use URL Inspection tool
-8. [ ] Request indexing (once)
-9. [ ] Wait and monitor
-
-## Tools
-
-| Tool | Purpose |
-|------|---------|
-| Google Search Console | Primary indexing tool |
-| Bing Webmaster Tools | Bing indexing |
-| Screaming Frog | Site crawl audit |
-| Ahrefs/Semrush | Backlink analysis |
+Use [URL Inspection documentation](https://support.google.com/webmasters/answer/9012289)
+for report semantics. State missing credentials, reports or verified bot logs
+as limitations instead of inferring them from unrelated exports.

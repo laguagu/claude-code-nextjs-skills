@@ -5,102 +5,58 @@ description: Manage Hetzner Cloud infrastructure with the `hcloud` CLI — serve
 
 # Hetzner Cloud
 
-Operate Hetzner Cloud through the `hcloud` CLI. When in doubt about server types, prices, locations, images, or flag syntax, run the discovery command rather than rely on this file or pretraining — the CLI is current.
+Use the installed `hcloud` CLI and its `--help`/JSON output for current
+resource types, locations, flags and pricing. This covers Cloud/DNS/Storage
+Box APIs supported by that CLI; dedicated servers/auctions use Hetzner Robot.
 
-## Authenticate
+## Authentication and discovery
 
-Generate a token in Hetzner Console → project → Security → API Tokens, then either:
+Use the authorized project's existing context or `HCLOUD_TOKEN`. A token in
+an env file is not automatically exported. Creating a context normally
+prompts; `hcloud context create --token-from-env <name>` uses the process
+token without prompting. Keep tokens out of command arguments/logs.
 
-```bash
-hcloud context create <name>      # interactive: stored in cli.toml, persists across shells
-export HCLOUD_TOKEN="…"           # CI/scripts: most commands read this automatically
-```
+Confirm project/context before writes. Discover server types, system images,
+architecture, location/network zone and price through current CLI/API data.
+Do not quote a remembered server specification or price.
 
-`hcloud context create` is the one common case that still prompts even with the env var set — pass `--token-from-env` to skip the prompt in non-interactive sessions.
+## Dependencies and verification
 
-Health check: `hcloud server list`.
+Referenced SSH keys/firewalls/networks must exist before server creation.
+Inspect a proposed firewall change against the current rules and retain a
+working management path. `firewall replace-rules --rules-file` replaces the
+set, so omitted rules disappear.
 
-## Mental model
+Treat server state, network reachability and application health as separate
+checks. Read the API action result and resource state back after changes;
+verify the intended service from its actual caller.
 
-`hcloud` manages everything inside **Hetzner Cloud**: servers, networks, firewalls, load balancers, volumes, DNS zones, SSH keys, primary/floating IPs, snapshots, certificates, placement groups, storage boxes.
+## Gotchas worth retaining
 
-It does **not** manage:
-- **Hetzner Robot** — dedicated/auction servers, separate product and API.
-- Project creation, billing, team membership, API token issuing — web console only.
+- A recycled IP can trigger SSH's changed-host-key warning. Authenticate the
+  new fingerprint through a trusted console/channel before updating
+  known_hosts; `ssh-keyscan` alone does not establish identity.
+- Volumes are location-pinned; a server in another location cannot attach them.
+  Private networks span locations within one network zone, not across zones.
+- DNS zones do not take effect until the registrar delegates to the correct
+  nameservers. Inspect delegation before debugging records.
+- Deletion is immediate. Confirm resource IDs and the requested destructive
+  scope; establish recoverable data first. Server snapshots/backups exclude
+  attached Volumes, which need their own backup. See
+  [snapshot scope](https://docs.hetzner.com/cloud/servers/backups-snapshots/overview/).
+- `status: running` does not prove reachability. Inspect
+  `public_net.ipv4.blocked` and `.ipv6.blocked` for a provider block when
+  several otherwise-open ports time out. Such symptoms alone do not prove
+  a block; a provider-level block needs Hetzner support, not an app firewall fix.
+- Firewall JSON must match the API schema. `source_ips` is an array of strings;
+  PowerShell serialization needs sufficient JSON depth. A parsing failure
+  leaves the previous rules in place; verify the returned/live rules.
+- Storage Box/DNS subcommands and API boundaries can evolve. Use installed
+  command help and the official changelog rather than treating an older
+  Cloud-only feature list as current.
 
-**Discovery beats memorization.** Pretraining ages; the CLI is current.
+## Sources
 
-| Question | Command |
-|---|---|
-| Server types and prices | `hcloud server-type list` |
-| Locations and datacenters | `hcloud location list` |
-| OS images | `hcloud image list --type system` (add `--architecture arm` for ARM) |
-| Command/flag details | `hcloud <resource> <verb> --help` |
-| Everything in this project at a glance | `hcloud all list` |
-| Is a server actually reachable? | `hcloud server describe <srv> -o json` → `public_net.ipv4.blocked` (see gotcha 9) |
-
-Structured output for scripts: `--output json | jq …`, `--output columns=id,name,status`, `--output format='{{.PublicNet.IPv4.IP}}'`.
-
-## Workflows where order matters
-
-Single commands are well-covered by `--help`. The chains worth pinning down:
-
-**Server with SSH key + firewall, ready to log in** — key and firewall must exist before `server create` references them:
-
-```bash
-hcloud ssh-key  create --name <key> --public-key-from-file ~/.ssh/id_ed25519.pub
-hcloud firewall create --name <fw>  --rules-file rules.json
-hcloud server   create --name <srv> --type <type> --image ubuntu-24.04 \
-                       --location hel1 --ssh-key <key> --firewall <fw>
-hcloud server ssh <srv>
-```
-
-**Replace firewall rules atomically** (don't drift via repeated `add-rule`):
-
-```bash
-hcloud firewall replace-rules --rules-file rules.json <fw>
-```
-
-## Gotchas
-
-1. **Public IPs get recycled.** A new server may inherit a previously-used IP and SSH refuses with `REMOTE HOST IDENTIFICATION HAS CHANGED!`. Verify the replacement server's host-key fingerprint through a trusted console/channel before updating `known_hosts`. `ssh-keyscan` alone does not authenticate the host.
-
-2. **Context vs `HCLOUD_TOKEN`.** Context (in user-config `cli.toml`) persists across shells — preferred for interactive work. Env var is preferred for non-interactive use, paired with `--token-from-env`. A token sitting in a `.env` file is **not** automatically exported — shells must source it.
-
-3. **Volumes are location-pinned.** A volume in `fsn1` cannot attach to a server in `hel1`. Match `--location` at creation.
-
-4. **`hcloud zone` is only half of DNS.** The registrar's NS records must point to Hetzner's nameservers before queries resolve. Without that, the zone is just an internal database.
-
-5. **Match location to where users are; pretraining defaults to `fsn1`.** Run `hcloud location list` and pick the closest. Private networks can't span network zones, only locations within one: `eu-central` (fsn1/hel1/nbg1), `us-east` (ash), `us-west` (hil), `ap-southeast` (sin).
-
-6. **Don't quote prices or server-type specs from memory.** Always verify with `hcloud server-type list` before committing — names, specs, and pricing shift.
-
-7. **Deletion is immediate and unrecoverable.** No undo on `server delete` or `volume delete`. `describe` first; create a snapshot (`hcloud server create-image --type snapshot <srv>`) beforehand if you might want the server back.
-
-8. **Hetzner Cloud ≠ Hetzner Robot.** If the user mentions dedicated servers, server auctions, or the Robot dashboard — that's the other product. Surface the distinction; don't try to manage it here.
-
-9. **`status: running` is not reachability — check `blocked`.** Hetzner null-routes a server's IPs at the network level for abuse reports or unpaid invoices. The server keeps reporting `running` and `locked: false` while nothing reaches it: not SSH, not the app, not ICMP.
-
-   ```bash
-   hcloud server describe <srv> -o json | jq '.public_net | {v4:.ipv4.blocked, v6:.ipv6.blocked}'
-   ```
-
-   `blocked: true` cannot be cleared from the API or the console — **only Hetzner support lifts it**. Do not debug firewalls, `pg_hba`, or application timeouts until you have ruled this out; the symptom is an indistinguishable `ETIMEDOUT`. Two tells that point here rather than at an allowlist: a port that is open to `0.0.0.0/0` (usually SSH/22) times out at the same moment as the application port, and **every server on the account** is blocked at once — investigate an account-level block as well as shared networking; these symptoms alone do not prove the cause.
-
-10. **`replace-rules` needs `source_ips` as a real JSON array.** The file must match the API schema exactly, and hcloud rejects the *whole* file — returning an error and leaving the old rules in place — if one field is shaped wrong:
-
-    ```
-    json: cannot unmarshal object into Go struct field FirewallRule.source_ips of type []string
-    ```
-
-    In PowerShell, build `source_ips` as an array (for example `@('10.0.0.0/8', '192.168.0.0/16')`) and pass enough `ConvertTo-Json -Depth` for the full rule structure. Since the write is all-or-nothing, always read the result back rather than assuming it applied:
-
-    ```bash
-    hcloud firewall describe <fw> -o json | jq '.rules[] | {port, n: (.source_ips|length)}'
-    ```
-
-## Docs
-
-- API reference (per-resource endpoints): https://docs.hetzner.cloud/reference/cloud
-- Cloud product guide: https://docs.hetzner.com/cloud/
-- CLI source and changelog: https://github.com/hetznercloud/cli
+- [API reference](https://docs.hetzner.cloud/reference/cloud)
+- [Product documentation](https://docs.hetzner.com/cloud/)
+- [CLI manual/source](https://github.com/hetznercloud/cli/tree/main/docs/reference/manual)

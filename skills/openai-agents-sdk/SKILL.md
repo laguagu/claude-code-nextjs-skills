@@ -3,118 +3,46 @@ name: openai-agents-sdk
 description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent handoffs, function tools, guardrails, sessions, streaming, or tracing with the `openai-agents` / `agents` Python package — including Azure OpenAI via LiteLLM. Triggers on imports from `agents`, uses of `Runner.run_sync`/`Runner.run_streamed`, `@function_tool`, `AgentOutputSchema`, `SQLiteSession`, or questions about the openai-agents-python SDK. Python only — not the TypeScript `@openai/agents` SDK.
 ---
 
-# OpenAI Agents SDK (Python)
+# OpenAI Agents SDK for Python
 
-Use this skill when developing AI agents using OpenAI Agents SDK (`openai-agents` package).
+Use this skill for `openai-agents` / `agents`, not the TypeScript SDK.
+Resolve the installed package and its provider integrations before implementing
+an API. Current [SDK documentation](https://openai.github.io/openai-agents-python/)
+and a matching source tag take precedence over static examples.
 
-## Quick Reference
+## Integration decisions
 
-### Installation
+- Keep the project's provider, model and storage unless the task requires a
+  change. Verify model IDs/capabilities in provider configuration or live docs.
+  SDK model/settings defaults may change; configure product-critical choices
+  explicitly.
+- Use native provider/client support when it fits. LiteLLM/Any-LLM are optional
+  integrations with their own compatibility and settings behavior.
+- Choose handoffs when a specialist takes over, or `agent.as_tool()` when the
+  manager should continue after delegated work. A fixed pipeline does not need
+  extra agents merely to implement ordinary control flow.
+- Authorize side effects in tools. Agent instructions, output schemas and
+  guardrails do not replace authorization or idempotency.
+- Decide history ownership, approval/resume and tracing data policy before
+  exposing a multi-turn agent to untrusted clients.
 
-```bash
-uv add openai-agents        # or `pip install openai-agents` outside a uv project
-```
+## Read for the feature
 
-### Environment Variables
+- [Agents/providers](references/agents.md): model defaults, Azure and adapters.
+- [Tools](references/tools.md): local/hosted execution and delegation.
+- [Structured output](references/structured-output.md): schema and capability constraints.
+- [Streaming](references/streaming.md): event types, failures and guardrails.
+- [Handoffs](references/handoffs.md): control transfer and filtering.
+- [Guardrails](references/guardrails.md): execution timing and coverage.
+- [Sessions](references/sessions.md): history ownership and persistence.
+- [Orchestration/tracing](references/patterns.md): run limits and observability.
+- [Sandbox](references/sandbox.md): beta workspace execution and resume state.
 
-Set both in the process environment before running the example; replace the placeholders:
+Use the Developer Docs MCP if available for current OpenAI API/provider behavior;
+use the Python SDK's own reference for SDK signatures. Read selected
+[official examples](https://github.com/openai/openai-agents-python/tree/main/examples)
+from a compatible tag, not a copied catalog of demos.
 
-```bash
-export OPENAI_API_KEY="sk-..."
-export OPENAI_MODEL="your-verified-model-id"  # this example's own variable; the SDK itself reads OPENAI_DEFAULT_MODEL
-```
-
-Using Azure or another provider instead? See [agents.md](references/agents.md#other-providers-litellm) — don't hardcode provider env vars here, they vary and go stale.
-
-### Basic Agent
-
-```python
-import os
-from agents import Agent, Runner
-
-agent = Agent(
-    name="Assistant",
-    instructions="You are a helpful assistant.",
-    model=os.environ["OPENAI_MODEL"],  # configure a verified model ID
-)
-
-# Synchronous
-result = Runner.run_sync(agent, "Tell me a joke")
-print(result.final_output)
-
-# Asynchronous
-result = await Runner.run(agent, "Tell me a joke")
-```
-
-Omitting `model=` uses the installed SDK's default. Configure it explicitly in production and verify available IDs against the provider's model catalog.
-
-### Key Patterns
-
-| Pattern | Purpose |
-|---------|---------|
-| Basic Agent | Simple Q&A with instructions |
-| Azure/LiteLLM | Azure OpenAI integration |
-| AgentOutputSchema | Strict JSON validation with Pydantic |
-| Function Tools | External actions (@function_tool) |
-| Streaming | Real-time UI (Runner.run_streamed) |
-| Handoffs | Specialized agents, delegation |
-| Agents as Tools | Orchestration (agent.as_tool) |
-| LLM as Judge | Iterative improvement loop |
-| Guardrails | Input/output validation |
-| Sessions | Automatic conversation history |
-| Multi-Agent Pipeline | Multi-step workflows |
-| Sandboxing | `SandboxAgent` — filesystem, shell and skills inside a local/Docker sandbox (beta) |
-| Tracing | Built-in spans for runs, tools, handoffs and guardrails; pluggable processors |
-
-The SDK has no separate `Subagent` class: express delegation with handoffs or
-`agent.as_tool()`. For model-written tool orchestration, use
-`ProgrammaticToolCallingTool` and verify its Responses-only constraints.
-
-## Preferred: Live Docs via MCP
-
-Model names and API details change frequently. When available, consult the **OpenAI Developer Docs MCP server** (`openaiDeveloperDocs`) before relying on the static references below.
-
-Setup (Codex CLI):
-```bash
-codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp
-```
-
-Setup (Claude Code):
-```bash
-claude mcp add --transport http openaiDeveloperDocs https://developers.openai.com/mcp
-```
-
-Or in Codex `~/.codex/config.toml` (VS Code and Cursor use different JSON schemas):
-```toml
-[mcp_servers.openaiDeveloperDocs]
-url = "https://developers.openai.com/mcp"
-```
-
-Key tools: `mcp__openaiDeveloperDocs__search_openai_docs`, `fetch_openai_doc`, `list_api_endpoints`, `get_openapi_spec`.
-
-**Rules:** Cite fetched docs. Never speculate on field names, defaults, or current model IDs — fetch first. Keep quotes under 125 chars.
-
-Fallback when MCP is unavailable: `https://developers.openai.com/api/docs/llms.txt` (plain-text index of all API docs; each entry has a `.md` twin at `/api/docs/<slug>.md`).
-
-## Reference Documentation
-
-Offline/quick-lookup snippets. Verify model names and API signatures against the MCP or docs when accuracy matters.
-
-- [agents.md](references/agents.md) - read when choosing or wiring a model: default-model caveat, LiteLLM, native Azure client
-- [tools.md](references/tools.md) - read when adding function tools, hosted tools, or agents-as-tools
-- [structured-output.md](references/structured-output.md) - read when the output must be a Pydantic/dataclass shape (`AgentOutputSchema`, strict vs non-strict)
-- [streaming.md](references/streaming.md) - read when streaming to a UI (event types, SSE with FastAPI)
-- [handoffs.md](references/handoffs.md) - read when one agent delegates to another (handoff vs `as_tool`, input filters)
-- [guardrails.md](references/guardrails.md) - read when validating input/output or gating tool calls
-- [sessions.md](references/sessions.md) - read when conversation history must persist across requests (SQLite, SQLAlchemy, Redis, OpenAI Conversations)
-- [patterns.md](references/patterns.md) - read for multi-agent pipelines, LLM-as-judge loops, tracing controls, `max_turns`, parallelization
-- [sandbox.md](references/sandbox.md) - read when the agent must edit files or run commands in an isolated workspace (`SandboxAgent`, beta)
-
-## Official Documentation
-
-- **Docs:** https://openai.github.io/openai-agents-python/
-- **Examples:** https://github.com/openai/openai-agents-python/tree/main/examples
-- **Major update:** https://openai.com/index/the-next-evolution-of-the-agents-sdk/
-- **Docs MCP setup:** https://developers.openai.com/learn/docs-mcp
-- **Docs index (llms.txt):** https://developers.openai.com/api/docs/llms.txt
-- **Current model IDs:** https://platform.openai.com/docs/models
+Verify changed tools, multi-turn history, approval/denial and failure recovery.
+Run the project's checks; report missing provider access separately from verified
+SDK behavior.

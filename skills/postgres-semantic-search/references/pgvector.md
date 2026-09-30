@@ -16,8 +16,9 @@ vector query returns too few rows or ignores its index. The pgvector
 
 ## Column type and dimension limits
 
-Indexable dimensions: `vector` 2,000, `halfvec` 4,000, `bit` 64,000. All types
-store up to 16,000.
+Indexable dimensions: `vector` 2,000, `halfvec` 4,000, `bit` 64,000, and
+`sparsevec` up to 1,000 non-zero elements. `vector` and `halfvec` columns store
+up to 16,000 dimensions.
 
 | Dimensions N | Column | Index |
 | --- | --- | --- |
@@ -70,7 +71,7 @@ experiments are meaningless.
 
 ## Filters, thresholds and too few rows
 
-- **An HNSW scan returns at most `hnsw.ef_search` rows** (40 by default). A
+- **Without iterative scanning, HNSW results are limited by `hnsw.ef_search`** (40 by default). A
   `LIMIT` above it, or a `WHERE` that discards candidates, silently returns
   fewer rows: a filter matching 10 % of rows leaves about 4. Iterative scans
   (0.8.0+) keep scanning until enough rows pass. They are off by default:

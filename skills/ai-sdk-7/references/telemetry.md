@@ -3,117 +3,24 @@ title: AI SDK 7 Telemetry
 description: OpenTelemetry registration, tracing channel, context filtering, and lifecycle events.
 ---
 
-# AI SDK 7 Telemetry
+# Telemetry boundaries
 
-AI SDK 7 registers telemetry integrations once at application startup. Do not
-wire custom tracing into every model call unless the installed docs require it.
+Register a telemetry integration once at app startup. For OpenTelemetry use
+`@ai-sdk/otel` with `registerTelemetry`; a Next.js app may register from its
+instrumentation entry point.
 
-## Register OpenTelemetry
+Once registered, telemetry is enabled by default; per-call `telemetry.isEnabled`
+can opt out. Without a registered integration it is disabled. Verify input and
+output capture settings for the app's data policy.
 
-Install `@ai-sdk/otel` when the project uses OpenTelemetry:
+Runtime/tool context is not included automatically. Context field filtering is
+shallow and affects telemetry only; execution, callbacks and result objects
+can still receive full values. Do not treat filtering as redaction everywhere.
 
-```bash
-bun add @ai-sdk/otel
-```
+Request/response bodies are excluded by default; opt in only where needed and
+safe. Callback sets differ by core function/agent type. Custom integrations can
+use the SDK's diagnostics tracing channel rather than per-call wrappers.
 
-Register once:
-
-```ts
-import { registerTelemetry } from 'ai';
-import { OpenTelemetry } from '@ai-sdk/otel';
-
-registerTelemetry(new OpenTelemetry());
-```
-
-In Next.js, register from `instrumentation.ts` alongside the app's normal
-OpenTelemetry setup.
-
-Telemetry is opt-out after an integration is registered:
-
-```ts
-await generateText({
-  model: __MODEL__,
-  prompt,
-  telemetry: { isEnabled: false },
-});
-```
-
-If no integration is registered, telemetry is disabled globally.
-
-## Per-Call Metadata
-
-Use `telemetry.functionId` and project metadata to identify operations:
-
-```ts
-await generateText({
-  model: __MODEL__,
-  prompt,
-  telemetry: {
-    functionId: 'support-triage',
-    metadata: { route: '/api/support' },
-  },
-});
-```
-
-## Context Filtering
-
-Runtime and tool context are not automatically included in telemetry. Opt in to
-specific top-level fields:
-
-```ts
-await agent.generate({
-  prompt,
-  runtimeContext: {
-    requestId: 'req_123',
-    userId: 'user_123',
-  },
-  toolsContext: {
-    customerLookup: {
-      region: 'eu',
-      apiKey: process.env.CUSTOMER_API_KEY!,
-    },
-  },
-  telemetry: {
-    includeRuntimeContext: { requestId: true },
-    includeToolsContext: {
-      customerLookup: { region: true },
-    },
-  },
-});
-```
-
-Filtering is shallow and only affects telemetry integrations. Tool execution,
-lifecycle callbacks, and returned results still receive full context values.
-
-## Tracing Channel
-
-AI SDK 7 emits structured events on the Node.js `ai:telemetry` tracing channel.
-Custom integrations can subscribe via `node:diagnostics_channel` and
-`AI_SDK_TELEMETRY_TRACING_CHANNEL`.
-
-Use this for observability providers that need a single subscription point
-instead of per-call callbacks.
-
-## Lifecycle Events
-
-Prefer current callback names in v7 code:
-
-- `onStart`
-- `onStepStart`
-- `onToolExecutionStart`
-- `onToolExecutionEnd`
-- `onStepEnd`
-- `onEnd`
-
-The exact callback set differs across core functions, `ToolLoopAgent`, and
-`WorkflowAgent`. Check installed package types before adding callbacks to a
-shared wrapper.
-
-## Gotchas
-
-- `experimental_telemetry` was renamed to `telemetry`.
-- Move custom tracer setup into the `OpenTelemetry` constructor.
-- `onFinish` and `onStepFinish` are v6 names; use `onEnd` and `onStepEnd` in
-  v7 core code.
-- Request/response bodies are excluded by default. If a telemetry integration
-  needs them, explicitly opt in via `include`.
+Read installed `@ai-sdk/otel` docs/types and
+[telemetry docs](https://ai-sdk.dev/docs/ai-sdk-core/telemetry) for exact capture
+defaults and integration options.

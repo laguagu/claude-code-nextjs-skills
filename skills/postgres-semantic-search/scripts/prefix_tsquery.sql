@@ -3,14 +3,21 @@
 -- indexed with the 'simple' config. websearch_to_tsquery cannot emit :*.
 --
 --   'verkko-opetus kirjasto'
---     -> ('verkko-opetus':* | 'verkko':* | 'opetus':*) | 'kirjasto':*
+--     -> 'verkko-opetus':* <-> 'verkko':* <-> 'opetus':* | 'verkko':* | 'opetus':* | 'kirjasto':*
 --
 -- Why it looks like this (each case returns zero rows, not an error):
--- * Terms are OR-joined: one term missing an inflected form (consonant
---   gradation: hakemus / hakemuksesta) would sink an AND of all of them.
+-- * Terms are OR-joined: one term missing an inflected form (a stem change:
+--   hakemus / hakemuksesta) would sink an AND of all of them.
 --   ts_rank_cd still ranks rows matching more terms first.
--- * A hyphenated token is expanded into an OR group. Passed through as-is,
---   to_tsquery turns it into a phrase that never matches an inflected form.
+-- * A hyphenated token is expanded into an OR of the compound and its parts.
+--   Alone, to_tsquery turns it into the phrase above, which never matches an
+--   inflected form (verkko-opetuksesta). Parts under 3 characters are left
+--   out: K-viiloilla would add a k:* arm that matched 2,062 of 2,072 rows.
+-- * A case ending after a colon (Finnish MTA:sta, EU:n) is dropped. Stripping
+--   only the colon gives mtasta:*, which matches nothing.
+-- * Prefixes reach suffixed forms of the typed word, not the base form of an
+--   inflected query: purentakiskon:* misses purentakisko. Where queries arrive
+--   inflected, add a stemmed arm (references/keyword-search.md).
 -- * tsquery operators and punctuation are stripped, so raw user input cannot
 --   raise a syntax error.
 -- * Tokens shorter than 3 characters are dropped from OR queries unless nothing
@@ -41,7 +48,8 @@ BEGIN
     END IF;
 
     FOREACH v_token IN ARRAY regexp_split_to_array(trim(p_text), '\s+') LOOP
-        v_cleaned := regexp_replace(v_token, '[''"()!&|<>:?\\*]', '', 'g');
+        v_cleaned := regexp_replace(v_token, '([[:alnum:]]):[[:alpha:]]+', '\1', 'g');
+        v_cleaned := regexp_replace(v_cleaned, '[''"()!&|<>:?\\*]', '', 'g');
         v_cleaned := regexp_replace(v_cleaned, '^[^[:alnum:]]+|[^[:alnum:]]+$', '', 'g');
         CONTINUE WHEN v_cleaned = '';
 
@@ -54,11 +62,15 @@ BEGIN
         IF array_length(v_parts, 1) = 1 THEN
             v_arms := v_parts;
         ELSE
-            -- Compound first (most specific), then each part, first-seen order.
+            -- Compound first (most specific), then each part long enough to be
+            -- selective, first-seen order.
             v_arms := ARRAY(
                 SELECT a FROM (
                     SELECT u.a, min(u.ord) AS ord
-                    FROM unnest(ARRAY[v_cleaned] || v_parts) WITH ORDINALITY AS u(a, ord)
+                    FROM unnest(ARRAY[v_cleaned] || ARRAY(
+                        SELECT p FROM unnest(v_parts) AS p
+                        WHERE length(p) >= MIN_OR_TERM_LENGTH
+                    )) WITH ORDINALITY AS u(a, ord)
                     GROUP BY u.a
                 ) s
                 ORDER BY s.ord

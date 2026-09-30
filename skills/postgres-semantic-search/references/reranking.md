@@ -29,14 +29,15 @@ in [jev-rerank-bench](https://github.com/laguagu/jev-rerank-bench).
 | Typed-judgment model | TypeSafe Jev | Hosted; you write the relevance question in plain language and get a probability you can gate on |
 | Chat LLM as judge | any | On the legal passages two chat models (92–93 % R@1) trailed a cross-encoder and a typed-judgment model (95.5–96.5 %) at 5–10× the latency |
 
-Ask whether candidate text may leave the user's network before recommending a
-hosted option. Look up current model names in the provider's docs rather than
+Check the project's data policy before choosing a hosted option; resolve
+permission to send candidate text if it is unknown. Look up current model names in the provider's docs rather than
 from memory. Prefer the framework's reranker adapter where one exists.
 
 ## Rerank the head of the shortlist
 
-With a cross-encoder, rerank the top ~10 of a ~30-candidate shortlist and keep
-the rest in first-stage order.
+Compare shallow head reranking with full-shortlist reranking and the unchanged
+first stage. The following depth results describe the measured transcript
+corpus; model, query mix and deployment budget can favor another depth.
 
 Reordering all 30 helped long questions but hurt one-to-three-word topical
 terms: Hit@1 on the terms fell from 0.93 without reranking to 0.60–0.80 across
@@ -46,17 +47,31 @@ passing in many segments, and a cross-encoder scores "mentions X" rather than
 brought every model's terms back to 0.87–1.00, at a cost of up to 7 points on
 the questions for the strongest models.
 
+The top 5 removed the rest. On the transcript search, six rerankers, from a
+small CPU cross-encoder to Qwen3-Reranker-8B, put all 15 terms first at 5; at
+10, four of them still lost one or two. Long questions scored better at 5 for
+four of the six, and a CPU reranker's added time fell to less than half.
+Include depth 5 as a candidate for similar short-query workloads, and choose
+from target-corpus measurements.
+
 A judgment model whose question defined the short case (the term's subject is
 a substantial topic of the segment, not a passing mention) did not show the
 harm at either depth.
 
 ## Where it runs
 
-A 500M+ cross-encoder is not interactive on a small CPU pod. On a 2-core pod,
-bge-reranker-v2-m3 (568M) took 9.6 s for 10 candidates; only a 118M model fit a
-6 s budget (1.6 s), and it scored lower. On a data-centre GPU the same 568M
-model took tens of milliseconds and Qwen3-Reranker-4B under a second. Choose a
-small model, a GPU, or a hosted API, and measure p95 on the target hardware.
+Hosting decides the shortlist of models before quality does:
+
+| Constraint | What fit (transcript search, head of 5) |
+| --- | --- |
+| CPU only | A ~120M multilingual cross-encoder (mmarco-mMiniLMv2). Right moment first on long questions 54 % → 60 %, about +0.3 s. 568M bge-reranker-v2-m3 took 9.6 s for 10 on 2 cores; Qwen3-Reranker-0.6B 21–25 s for 5 |
+| Data-centre GPU (≥ 24 GB) | Qwen3-Reranker-8B: 71 % live, the only model clearly above the CPU model (11 won, 3 lost; offline 11 and 2, p ≈ 0.02), about +0.5 s. The 4B fits 16 GB and landed in between |
+| Hosted API | No infrastructure; candidate text leaves your network. A hosted judgment model reached 67 % on the head of 10 |
+
+A GPU that is only sometimes available works as the primary with the CPU model
+as an automatic fallback on timeout. Measure p95 on the target hardware; a 568M
+cross-encoder that is unusable on a small CPU pod takes tens of milliseconds on
+a GPU.
 
 If you self-host, load the model once at startup and put it behind a small
 HTTP endpoint so the application treats it like a hosted reranker.
@@ -103,7 +118,7 @@ recall, not precision.
   short terms worse, and must answer within the timeout on the target
   hardware". Require a gain larger than your run-to-run spread, on both a long
   and a short eval set ([evaluation.md](evaluation.md)).
-- **Ship it as a runtime setting, off by default**, so switching or disabling it
+- **Make it configurable when useful, with a measured default**, so switching or disabling it
   needs no deploy. On failure, keep the first-stage order, and skip a failing
   backend for a while so an outage does not add a timeout to every search.
 - **If callers can pick a reranker per request**, allow only backends the admin

@@ -1,167 +1,21 @@
-# Handoffs
+# Delegation and history
 
-## Contents
+A handoff changes the active agent, which continues the conversation. An
+agent-as-tool returns a result to the manager. Either can be model-selected;
+handoff versus tool is a control-flow decision, not a deterministic-routing
+guarantee.
 
-- [Basic Handoffs](#basic-handoffs)
-- [Multiple Handoffs](#multiple-handoffs)
-- [Handoff with Context](#handoff-with-context)
-- [Handoff vs Agents as Tools](#handoff-vs-agents-as-tools)
-- [Message Filtering](#message-filtering)
+Use the installed handoff API for declared input, hooks and filtering. Preserve
+the current `HandoffInputData` fields when changing history (for example with a
+dataclass replacement) rather than reconstructing the structure field by field.
 
-## Basic Handoffs
+Filter only what the specialist should not receive. Keep tool-call/result and
+provider protocol context valid. Use built-in filters when they meet the
+contract and inspect their effect on the actual conversation.
 
-Handoffs allow agents to delegate tasks to specialized agents:
+Local run context is separate from model-visible history. Authorization,
+guardrail coverage and tool permissions need checking in the receiving path too.
 
-```python
-from agents import Agent, handoff
-
-billing_agent = Agent(
-    name="BillingAgent",
-    instructions="Handle billing questions. You can help with invoices, payments, and subscriptions.",
-)
-
-support_agent = Agent(
-    name="SupportAgent",
-    instructions="Handle general support. Handoff billing questions to the billing agent.",
-    handoffs=[billing_agent],
-)
-
-# LLM automatically decides when to delegate to another agent
-result = await Runner.run(support_agent, "I have a question about my invoice")
-```
-
-## Multiple Handoffs
-
-```python
-billing_agent = Agent(
-    name="BillingAgent",
-    instructions="Handle billing and payment questions.",
-)
-
-technical_agent = Agent(
-    name="TechnicalAgent",
-    instructions="Handle technical issues and troubleshooting.",
-)
-
-sales_agent = Agent(
-    name="SalesAgent",
-    instructions="Handle sales inquiries and pricing.",
-)
-
-triage_agent = Agent(
-    name="TriageAgent",
-    instructions="""You are a customer service triage agent.
-    Route customers to the appropriate specialist:
-    - Billing questions -> BillingAgent
-    - Technical issues -> TechnicalAgent
-    - Sales/pricing -> SalesAgent
-    """,
-    handoffs=[billing_agent, technical_agent, sales_agent],
-)
-
-result = await Runner.run(triage_agent, "My app keeps crashing")
-# -> Delegates to TechnicalAgent
-```
-
-## Handoff with Context
-
-```python
-from agents import Agent, handoff, RunContextWrapper
-
-def escalation_instructions(
-    ctx: RunContextWrapper[dict], agent: Agent[dict]
-) -> str:
-    priority = ctx.context.get("priority", "normal")
-    return f"""You are handling an escalated case.
-    Priority level: {priority}
-    Be thorough and professional."""
-
-escalation_agent = Agent(
-    name="EscalationAgent",
-    instructions=escalation_instructions,
-)
-
-support_agent = Agent(
-    name="SupportAgent",
-    instructions="Handle support. Escalate complex issues.",
-    handoffs=[escalation_agent],
-)
-
-result = await Runner.run(
-    support_agent,
-    "This is urgent, I need help immediately!",
-    context={"priority": "high"},
-)
-```
-
-## Handoff vs Agents as Tools
-
-| Feature | Handoffs | Agents as Tools |
-|---------|----------|-----------------|
-| Control flow | LLM decides when to delegate | Parent agent calls child explicitly |
-| Return | Child agent takes over | Returns result to parent |
-| Use case | Specialized routing | Orchestration, parallel tasks |
-| Conversation | Child continues conversation | Parent continues after tool result |
-
-### Handoff Example
-
-```python
-# Child takes over the conversation
-support_agent = Agent(
-    name="Support",
-    handoffs=[billing_agent],  # Billing agent takes over
-)
-```
-
-### Agent as Tool Example
-
-```python
-# Parent stays in control
-orchestrator = Agent(
-    name="Orchestrator",
-    tools=[
-        billing_agent.as_tool(
-            tool_name="check_billing",
-            tool_description="Get billing info",
-        ),
-    ],
-)
-```
-
-## Message Filtering
-
-Control what messages are passed during handoff:
-
-An input filter receives and returns `HandoffInputData` (fields include `input_history`, `pre_handoff_items`, `new_items`, `input_items`, `run_context` — the set grows across releases, so never rebuild the dataclass field by field):
-
-```python
-import dataclasses
-from agents import Agent, handoff
-from agents.handoffs import HandoffInputData
-
-def filter_messages(data: HandoffInputData) -> HandoffInputData:
-    # Only keep last 5 items of the input history
-    history = data.input_history
-    if isinstance(history, tuple):
-        history = history[-5:]
-    # replace() copies every other field, so fields added by newer SDKs survive
-    return dataclasses.replace(data, input_history=history)
-
-specialist = Agent(
-    name="Specialist",
-    instructions="Handle specialized tasks.",
-)
-
-agent = Agent(
-    name="Router",
-    instructions="Route to specialist when needed.",
-    handoffs=[
-        handoff(
-            agent=specialist,
-            input_filter=filter_messages,
-        ),
-    ],
-)
-```
-
-Ready-made filters are available in `agents.extensions.handoff_filters`, e.g. `handoff_filters.remove_all_tools` to strip tool calls from the handed-off history.
+Read [handoff docs](https://openai.github.io/openai-agents-python/handoffs/)
+and [orchestration docs](https://openai.github.io/openai-agents-python/multi_agent/)
+for compatible implementations.

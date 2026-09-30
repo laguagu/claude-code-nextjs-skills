@@ -1,145 +1,38 @@
-# Next.js SEO Audit Checklist
+# Scoped SEO audit
 
-## Contents
+Select representative route types, languages and deployment environments.
+Record production URLs and the relevant Next.js version/configuration.
+Do not add every optional feature to make a checklist pass.
 
-Critical | Important | Nice to Have | Audit Tools | Red Flags
+1. **Page usefulness:** Does each indexable page answer a distinct task with
+   accurate information? Check misleading availability/dates, duplicate pages
+   and repetitive UI copy.
+2. **Access and discovery:** Check actual status/redirect chains, internal
+   links, robots rules, sitemap entries and index directives. Verify public
+   versus preview/private intent.
+3. **Canonical/localization:** Inspect absolute canonical URLs, query handling
+   and reciprocal hreflang where applicable. Compare Google-selected canonicals
+   through URL Inspection when available.
+4. **Served metadata:** Inspect title/description, social images and icons for
+   the route. Check complete responses and streaming behavior for relevant
+   bots. Test image URLs; missing optional tags are not automatically defects.
+5. **Structured data:** Add only relevant accurate types. Check current
+   eligibility, visible facts and safe serialization; validate the production
+   output.
+6. **Rendering and usability:** Inspect critical public content in the response,
+   then directly open the route and exercise hydration/navigation. Check mobile
+   equivalence, media dimensions and the changed interaction.
+7. **Performance:** Use field CWV where available and lab tools for diagnosis.
+   Distinguish LCP, INP and CLS evidence; lab Lighthouse is not field INP.
+8. **Publication:** Change representative content and verify page, metadata
+   and sitemap freshness through the real invalidation/rebuild path.
+9. **Crawler policy:** Preserve intentional training/search distinctions and
+   access protection. Check firewall/access logs when public crawls fail.
+10. **Search evidence:** Use indexing/URL Inspection for indexing and canonical
+    questions, performance for query/traffic questions, and analytics for
+    referrals. A performance export cannot establish all three.
 
-Scope the audit to the actual site. Mark optional or unavailable checks as such;
-do not manufacture failures because a small site lacks every item below.
-
-## Content and evidence first
-
-- [ ] Headings, subtitles and introductory text add different information
-- [ ] No filler, repeated keyword variants or decorative badges added for SEO
-- [ ] Extra FAQ/category/team pages answer distinct needs with maintained content
-- [ ] Seasons, availability, claims and dates match current data
-- [ ] Performance exports are not treated as indexing, canonical or CWV reports
-- [ ] Findings distinguish observed behavior from hypotheses and unavailable data
-
-## Critical (Must Have)
-
-### Technical Foundation
-
-- [ ] `metadataBase` set in root layout
-- [ ] Unique `<title>` on every page (~50-60 chars is a guideline, not a Google limit — titles are truncated by device width, not character count)
-- [ ] Unique `meta description` on every page (~150-160 chars is a guideline — Google has no hard limit and truncates per device/query)
-- [ ] Intended public pages are crawlable; robots.txt has no unintended blocks (a file is not mandatory)
-- [ ] If a sitemap is useful, it contains canonical indexable URLs and accurate timestamps
-- [ ] Sitemap discovery/submission checked when applicable; submission does not guarantee indexing
-- [ ] No `noindex` on pages you want indexed
-- [ ] Canonical signals are consistent; no inherited homepage canonical on child pages
-- [ ] `viewport` exported separately from `metadata`
-- [ ] `favicon.ico` (or `app/icon`) present — appears in Google SERPs and browser tabs
-
-### Rendering
-
-- [ ] SEO pages use SSG, SSR, or `"use cache"` Cache Components (not CSR)
-- [ ] Content visible without JavaScript (test with JS disabled)
-- [ ] No client-side only content for SEO-critical text
-- [ ] Full production HTML and headers checked for relevant bot User-Agents; distinguish streamed metadata from missing metadata
-- [ ] Direct production-build load, console/hydration errors and key interactions checked, not just navigation from the homepage
-- [ ] Preview noindex/access protection verified independently of NODE_ENV
-
-### Core Web Vitals
-
-- [ ] LCP (Largest Contentful Paint) ≤ 2.5s
-- [ ] INP (Interaction to Next Paint) ≤ 200ms (INP replaced FID in March 2024)
-- [ ] CLS (Cumulative Layout Shift) ≤ 0.1
-- [ ] CWV checked on FIELD data (PageSpeed Insights / Search Console CrUX, 75th percentile) — not just Lighthouse (a page-load run can't measure INP; TBT is only a lab proxy)
-- [ ] Mobile parity — same content/metadata/structured-data on mobile (mobile-first indexing complete since July 2024)
-
-## Important (Should Have)
-
-### Structured Data
-
-- [ ] WebSite schema on homepage
-- [ ] Organization schema
-- [ ] Relevant page-specific schemas (Article, Product) for rich results
-- [ ] FAQPage only for an existing useful FAQ; no promised AI citation benefit (Google rich results removed 2026-05-07)
-- [ ] JSON-LD matches visible content
-- [ ] Eligible types validated with Rich Results Test; other schema with Schema.org Validator
-
-### Open Graph & Social
-
-- [ ] Open Graph title and description
-- [ ] OG image (1200x630 recommended)
-- [ ] OG image resolves publicly with the right MIME type; file convention, ImageResponse or metadata URL are all valid
-- [ ] Twitter Card configured
-- [ ] Images tested with Facebook Debugger
-
-### Links & Navigation
-
-- [ ] Internal links use `<Link>` component
-- [ ] No broken internal links
-- [ ] Logical URL structure
-- [ ] Breadcrumbs implemented (if applicable)
-
-### Images
-
-- [ ] Informative images have useful alt text; decorative images have empty alt
-- [ ] Images use `next/image` component
-- [ ] Images in sitemap (only if image-search traffic matters — e.g. products, recipes, photography)
-- [ ] Appropriate image sizes (no oversized images)
-
-## Nice to Have (Optimization)
-
-### PWA
-
-- [ ] `app/manifest.ts` present (name, short_name, theme_color, icons) — PWA completeness, not an SEO requirement
-
-### Performance
-
-- [ ] JavaScript bundle optimized
-- [ ] Fonts use `next/font`
-- [ ] Critical CSS inlined
-- [ ] Third-party scripts deferred
-
-### International (if applicable)
-
-- [ ] `hreflang`: every version lists itself and all others, absolute URLs, `x-default` fallback
-- [ ] Localized sitemaps
-- [ ] Language-specific metadata
-
-### Advanced
-
-- [ ] Video sitemap (if video content)
-- [ ] News sitemap (if news site)
-- [ ] App links configured (if mobile app)
-
-## Audit Tools
-
-| Tool | Purpose | URL |
-|------|---------|-----|
-| Google Search Console | Indexing, errors | search.google.com/search-console |
-| PageSpeed Insights | Core Web Vitals | pagespeed.web.dev |
-| Rich Results Test | Structured data | search.google.com/test/rich-results |
-| Lighthouse | Overall audit | Chrome DevTools |
-| Chrome DevTools device emulation | Mobile usability | Chrome DevTools (Google's Mobile-Friendly Test was retired Dec 2023) |
-| Ahrefs/Semrush | Backlinks, rankings | ahrefs.com / semrush.com |
-
-## Quick Commands
-
-```bash
-# Check robots.txt
-curl https://your-site.com/robots.txt
-
-# Check sitemap
-curl https://your-site.com/sitemap.xml
-
-# Verify indexing with Search Console URL Inspection.
-# A site: search is a discovery clue, not a complete indexing report.
-
-# Test mobile rendering
-# Use Chrome DevTools device emulation
-```
-
-## Red Flags to Watch
-
-1. **"Discovered - currently not indexed"** in GSC
-2. **Duplicate title tags** across pages
-3. **Missing canonical URLs**
-4. **Blocked resources in robots.txt**
-5. **Slow LCP (> 4s)**
-6. **High CLS (> 0.25)**
-7. **Misleading structured data or unsupported rich-result claims**
-8. **Missing alt text on images**
+Rank findings by impact and evidence, link affected routes/files and record
+checks that could not run. Separate confirmed bugs from hypotheses and
+optional improvements. See [troubleshooting.md](troubleshooting.md) and
+[Google Search Essentials](https://developers.google.com/search/docs/essentials).

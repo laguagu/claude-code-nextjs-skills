@@ -1,71 +1,16 @@
-# Suspense Boundaries
+# URL hooks and rendering
 
-`useSearchParams` needs a Suspense boundary in prerendered routes.
-`usePathname` and `useParams` do not — except with `cacheComponents`, where they
-suspend (and the build fails without a boundary) in dynamic routes whose params
-`generateStaticParams` does not cover. `useRouter` never needs one.
+`useSearchParams` can suspend in a prerendered route; the required boundary
+may be exposed only by a production build because development renders on demand.
 
-## useSearchParams
+With Cache Components, URL/param-dependent hooks can also need boundaries for
+unknown dynamic params. Match `usePathname`/`useParams` behavior to the
+installed version and route. Do not place Suspense around every hook by default.
 
-In a prerendered (static) route, calling `useSearchParams` makes the Client
-Component tree up to the nearest Suspense boundary client-side rendered. Without
-a boundary, a **production build fails** with the
-[Missing Suspense boundary with useSearchParams](https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout)
-error.
+If request-time rendering is intentional, use the documented request boundary
+rather than a client-side workaround. Cache Components still needs a useful
+fallback around request-only work.
 
-> **Dev caveat:** routes render on-demand in dev, so `useSearchParams` doesn't
-> suspend and may appear to work without `Suspense` — the failure only shows up
-> in a production build.
-
-```tsx
-// Bad: Entire page becomes CSR
-'use client'
-
-import { useSearchParams } from 'next/navigation'
-
-export default function SearchBar() {
-  const searchParams = useSearchParams()
-  return <div>Query: {searchParams.get('q')}</div>
-}
-```
-
-```tsx
-// Good: Wrap in Suspense
-import { Suspense } from 'react'
-import SearchBar from './search-bar'
-
-export default function Page() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <SearchBar />
-    </Suspense>
-  )
-}
-```
-
-## Forcing dynamic rendering instead
-
-If you intend the route to be dynamic anyway, call
-[`connection()`](https://nextjs.org/docs/app/api-reference/functions/connection)
-in a Server Component before rendering the hook's consumer. This opts the
-subtree out of prerendering, so no Suspense boundary is needed (without
-`cacheComponents` only; with it, `connection()` must itself be inside Suspense):
-
-```tsx
-import { connection } from 'next/server'
-import SearchBar from './search-bar'
-
-export default async function Page() {
-  await connection() // route is now dynamic
-  return <SearchBar />
-}
-```
-
-## Quick Reference
-
-| Hook | Suspense Required |
-|------|-------------------|
-| `useSearchParams()` | Yes (static routes) |
-| `usePathname()` | No (Yes with `cacheComponents` + params not in `generateStaticParams`) |
-| `useParams()` | No (Yes with `cacheComponents` + params not in `generateStaticParams`) |
-| `useRouter()` | No |
+Read the installed hook references and
+[missing Suspense guidance](https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout).
+Test direct load and client navigation after the production build.

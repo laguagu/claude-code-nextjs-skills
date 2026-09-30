@@ -1,175 +1,71 @@
 ---
 name: icons
-description: Find, fetch, and install the right icon or logo from the right source — brand marks, country flags, file-type icons (PDF, DOCX, ZIP), and UI glyphs — and keep them visually consistent with the app. Use when the project's icon library has no match, when svgl comes up empty, or when the user asks for a flag, a file-type badge, a brand logo, or just "an icon for X". Covers the Iconify search API (200k+ icons across flags, file types, logos and UI sets), the svgl shadcn registry for full-colour brand logos, family and stroke-weight matching so a borrowed icon does not look pasted in, and fallback sources when neither Iconify nor svgl has the mark. Triggers on "add an icon", "country flag", "flag icon", "PDF icon", "file type icon", "brand logo", "sign in with Google/GitHub", "language switcher", "svgl", "iconify", "find an icon". For overall visual direction rather than sourcing one specific mark, use frontend-design; for installing shadcn components generally, use shadcn.
+description: Sources icons, country flags, file-type marks and brand logos that fit the app's existing visual language. Use when adding an icon, finding an official logo, building a language switcher, or the project's icon library has no match. Covers Iconify and svgl; use frontend-design for overall visual direction and shadcn for general component installation.
 license: MIT
 ---
 
-# Sourcing icons
+# Source icons that fit
 
-An icon is wrong when it is the wrong *family*, not when it is the wrong shape. Pick the
-source by what kind of mark it is, then match it to what the app already uses.
+Reuse the project's icon family for ordinary UI glyphs. Choose a different source
+when the mark represents a brand, country or file type, then check it in context.
 
-## Route by mark type
+## Where to look
 
-| Need | Source | Why |
-|---|---|---|
-| App UI glyph (menu, upload, search) | project's existing library — Lucide in shadcn projects | never add a second family for a glyph the current one has |
-| Country flag | Iconify `circle-flags` / `flag` / `flagpack` | real flag geometry, MIT, no emoji-font dependency |
-| File type (PDF, DOCX, ZIP) | Iconify `vscode-icons` / `catppuccin` / `material-icon-theme` (colour), or `lucide:file-text` (mono) | pick colour or mono to match the surrounding UI, not both |
-| Brand logo, full colour, light/dark variants | svgl | curated, has wordmarks and theme variants |
-| Tech / infra logo (OpenShift, Docker, Postgres, Redis) | Iconify `logos` (1800+, CC0), `devicon`, `skill-icons` | check coverage by exact brand; available marks change |
-| Brand logo, monochrome long tail | Iconify `simple-icons` (3400+, CC0) | covers brands svgl does not |
-| Anything else | Iconify search across all sets | 200k+ icons, one API |
+| Need | Starting point |
+|---|---|
+| UI glyph | The project's existing library |
+| Country flag | Iconify: `circle-flags`, `flag`, `flagpack` |
+| Colour file-type mark | Iconify: `vscode-icons`, `catppuccin`, `material-icon-theme` |
+| Colour brand logo or wordmark | svgl, including its light/dark variants |
+| Monochrome brand logo | Iconify: `simple-icons` |
+| Tech or infrastructure logo | Iconify: `logos`, `devicon`, `skill-icons` |
+| A mark absent from catalogs | The organization's official brand assets |
 
-Check the project's own library first: `lucide:file-text`, `lucide:flag`, `lucide:file` and
-friends exist, and one family stays one family.
+These are search starting points, not guaranteed coverage or blanket licences.
+Check the selected set's licence and the brand's usage requirements. Do not invent
+a logo for a real organization when an official asset is unavailable.
 
-## Iconify — the general engine
+## Iconify
 
-Public API, no auth, no key. Search returns `prefix:name` ids.
+Search at [Iconify's catalog](https://icon-sets.iconify.design/) or through its
+[search API](https://iconify.design/docs/api/search.html). Results use
+`prefix:name` identifiers; `prefixes` limits a query to selected sets.
+Collection metadata gives licensing information. Fetch individual SVGs through
+`https://api.iconify.design/{prefix}:{name}.svg`.
 
-```bash
-# search everything
-curl -s "https://api.iconify.design/search?query=pdf&limit=32"
+Flag sets often use country codes rather than country names. Inspect the set's
+naming convention and aspect-ratio variants; examples include `circle-flags:fi`
+and `flag:fi-4x3`. Use real SVG flags when consistent rendering across platforms
+matters. For a language selector, language names usually communicate the choice
+better than national flags.
 
-# constrain to sets you actually want (this is the important flag)
-curl -s "https://api.iconify.design/search?query=pdf&prefixes=vscode-icons,catppuccin,lucide"
+Use local SVGs or build-time icon data by default. A string identifier passed to
+`@iconify/react` can load missing data from the public API at runtime; merely
+installing an icon-data package does not make that rendering offline. Pass or
+register the data explicitly. See [React usage](https://iconify.design/docs/icon-components/react/)
+for the project's chosen integration.
 
-# what is in a set / who owns the licence
-curl -s "https://api.iconify.design/collections?prefixes=circle-flags,simple-icons"
+## svgl
 
-# fetch the SVG itself
-curl -s "https://api.iconify.design/circle-flags:fi.svg" -o public/flags/fi.svg
-```
+Use [svgl's API docs](https://svgl.app/docs/api) to find exact titles, categories
+and asset routes. Category names and registry identifiers must come from the
+current catalog; lowercasing a display title is not a reliable identifier rule.
 
-Browse visually at `https://icon-sets.iconify.design` when the user should choose. The
-`collections` response carries each set's licence — nearly all of them are permissive;
-check attribution requirements for each selected set (including Twemoji).
+For a shadcn project, its
+[registry guide](https://svgl.app/docs/shadcn-ui) defines the `@svgl` namespace
+at `https://svgl.app/r/{name}.json`. Follow the project's package manager and
+existing registry configuration. If shadcn is absent, use the raw asset rather
+than initializing a component system just to add a logo.
 
-Iconify SVGs come out at `width="1em" height="1em"`, and monochrome sets use `currentColor`
-— so `className="size-4 text-muted-foreground"` just works in Tailwind. Colour sets
-(`vscode-icons`, `circle-flags`, `twemoji`) ignore `currentColor` by design.
+## Integration gotchas
 
-### Getting them into the project
-
-**Default: write the SVG to a file and inline it.** No runtime dependency, no network call,
-no bundle growth beyond the markup.
-
-```bash
-curl -s "https://api.iconify.design/vscode-icons:file-type-pdf2.svg" -o components/icons/pdf.svg
-```
-
-Only reach for a package when the project needs dozens of icons from one set:
-
-- `@iconify/react` renders `<Icon icon="circle-flags:fi" />` but **fetches from the Iconify
-  API at runtime** — an external request per icon set, on every visitor. Do not ship that
-  to production without saying so; pair it with `@iconify-json/<prefix>` offline data, or
-  skip it.
-- `unplugin-icons` + `@iconify-json/<prefix>` compiles icons in at build time. This is the
-  right choice for a bundler-based project pulling in a whole set.
-
-## svgl — brand logos
-
-Still the best source for product and company logos in colour, with light/dark variants.
-
-Register the svgl registry once in `components.json`, then add logos by name through
-the `@svgl` namespace, as svgl's docs show:
-
-```jsonc
-// components.json
-{ "registries": { "@svgl": "https://svgl.app/r/{name}.json" } }
-```
-
-```bash
-bunx --bun shadcn@latest add @svgl/<name>     # several names in one command, space-separated
-```
-
-`components.json` must exist — if it does not, stop and tell the user to run
-`bunx --bun shadcn@latest init` first.
-
-Resolve the exact name before installing:
-
-- `https://api.svgl.app?search=<query>` — search
-- `https://api.svgl.app/categories` then `https://api.svgl.app/category/<category>` — browse
-- `https://api.svgl.app/svg/<name>.svg` — raw markup
-
-`<name>` is the lowercased title (`OpenAI` → `openai`). `search` matches brand names
-only, so a concept ("LLM logos", "databases") goes through categories: show the
-candidates and install the ones the user confirms. Take the category spelling from
-`/categories` — `AI` resolves only in uppercase (`/category/ai` is a 404). Each entry's
-`route` is either a URL or a `{light, dark}` pair, and some entries carry a separate
-`wordmark`; pick the variant that suits the surface the logo lands on.
-
-svgl is **software and brand logos only**. Its categories are Software, Framework, AI,
-Library, Payment, Design and similar — there are no flags, no file types, no UI glyphs.
-`?search=finland` returns `SVG not found`, and that is expected, not a bug: switch to
-Iconify rather than retrying svgl with a different phrasing.
-
-Docs: https://svgl.app/docs/shadcn-ui
-
-## Making a borrowed icon fit
-
-A single icon from a foreign family is the most common tell of pasted-in work. Match, in
-this order:
-
-1. **Stroke vs fill** — do not drop a filled icon into an outline set. Most Iconify sets
-   ship both (`teenyicons:pdf-outline` / `teenyicons:pdf-solid`, `mingcute:pdf-line` /
-   `mingcute:pdf-fill`); take the variant that matches.
-2. **Stroke width and grid** — Lucide is 24px grid, 2px stroke. Tabler and Hugeicons sit
-   close enough to pass; Material and Carbon do not, they read thinner and boxier.
-3. **Colour** — a mono icon inherits `currentColor`; a colour icon is a *logo-like object*
-   and needs the same treatment as a logo (own size, own alignment, not tinted).
-4. **Optical size** — colour file-type icons carry their own padding and look smaller at
-   the same box; bump one step (`size-5` against a row of `size-4`) and check by eye.
-
-When mixing is unavoidable, mix by *category*, not per icon: all flags from one flag set,
-all file types from one file-type set, all UI glyphs from the project library.
-
-**Give every icon an accessible name or hide it.** An icon-only button is unlabelled to a
-screen reader unless you add `aria-label` on the button — the SVG's own title does not
-substitute. An icon sitting next to text is decorative and repeats what the text already
-says: `aria-hidden="true"`. Icon component libraries do not do this for you; inlined raw
-SVG certainly does not.
-
-### Flags specifically
-
-- Never use emoji flags (🇫🇮) when Windows is in the audience — Segoe UI Emoji ships no flag
-  glyphs, so they render as two letters (`FI`). They look fine on macOS and iOS, which is
-  exactly why this ships broken.
-- `circle-flags` for avatar-style circles, `flagpack` for rounded rectangles with a border,
-  `flag` (flag-icons) for plain rectangles. Pick one and stay in it.
-- **Do not search for the country name** — `?query=finland` returns only emoji sets
-  (`twemoji:flag-finland`, `openmoji:…`), never the real flag sets, because those are
-  indexed by ISO code. Construct the id directly from ISO 3166-1 alpha-2, lowercase:
-  `circle-flags:fi`, `flagpack:se`. `flag` needs an explicit ratio suffix —
-  `flag:fi-4x3` or `flag:fi-1x1`; bare `flag:fi` is a 404.
-- Language flags are politically loaded — for a language switcher prefer the language name
-  over a flag.
-
-### JSX conversion
-
-Inlining raw SVG into JSX: `stroke-width` → `strokeWidth`, `class` → `className`, `style`
-strings → objects, `<style>` block rules inlined onto elements.
-
-**Ensure inline SVG IDs are unique per rendered instance.** Repeated masks or
-gradients can reference the wrong element. Use a stable instance prefix (such as
-React `useId`) and update every `url(#...)`/href reference; a brand-only suffix
-still collides when the same icon renders twice.
-
-## Other sources
-
-If Iconify and svgl lack the asset, use the organization's official brand assets
-or another icon catalog. Availability, authentication and download rules change:
-inspect the current site and respect access restrictions. Check the license of
-the specific asset rather than assuming every icon in a catalog shares one.
-
-Use an available browser when normal browsing is needed. If downloading needs
-the user's account or manual interaction, ask for the official asset.
-
-Better fallbacks before giving up on Iconify: search a synonym (`document` for `file`,
-`invoice` for `receipt`), search unprefixed to see every set, or browse the nearest
-category at icon-sets.iconify.design. 200k icons is usually enough.
-
-**Local organizations may be absent from icon catalogs.** Search before assuming
-absence. Prefer the official asset; if none is available, use an explicitly
-generic placeholder rather than inventing a logo for a real organization.
+- Match stroke/fill, optical size and alignment to surrounding UI. Mix by role
+  when needed: one family for controls, one set for flags, one for file types.
+  Preserve brand colours where appropriate rather than tinting every mark.
+- Choose the variant for its actual background. Check dark and light surfaces
+  if both are supported.
+- Inline SVG masks, gradients and clip paths need IDs unique per rendered
+  instance, with every reference updated. A brand-name suffix still collides
+  when the same logo appears twice.
+- Put an accessible name on icon-only controls; hide decorative SVGs next to
+  equivalent text. Verify the rendered control and downloaded asset.

@@ -3,70 +3,12 @@ title: Canonical Examples (vercel/ai)
 description: Fetch provider × feature working examples from the AI SDK repo on demand.
 ---
 
-# Canonical Examples
+# Canonical AI SDK examples
 
-The `vercel/ai` repo maintains runnable examples for every supported AI SDK function, provider, and feature combination. These fill the gap between conceptual docs in `node_modules/ai/docs/` and high-level API reference on ai-sdk.dev — working, copy-pasteable code that tracks the current `main` branch.
+Use [vercel/ai examples](https://github.com/vercel/ai/tree/main/examples) for a provider-specific feature or integration that the installed package docs do not explain sufficiently.
 
-> **Do not clone the repo.** Fetch individual files on demand via WebFetch or `gh api`.
+Discover the current tree before constructing a path. The `examples/ai-functions/src` directory groups many core examples by function and provider, but coverage and filenames change. Read the example's imports, package manifest and runtime requirements together.
 
-## Path Pattern
+Match the repository tag or commit to the project's AI SDK major and compatible provider packages. Examples on `main` may use unreleased APIs; they are evidence of that revision's usage, not proof that an installed version supports it.
 
-```
-examples/ai-functions/src/{function}/{provider}/{feature}.ts
-```
-
-## Top-Level Categories
-
-| Category        | Directories                                                  |
-| --------------- | ------------------------------------------------------------ |
-| Text generation | `generate-text`, `stream-text`, `stream-text-custom-loop`    |
-| Agent           | `agent`                                                      |
-| Embedding       | `embed`, `embed-many`, `rerank`                              |
-| Media           | `generate-image`, `generate-video`, `generate-speech`, `transcribe` |
-| Tooling         | `tools`, `middleware`, `registry`, `telemetry`, `gateway`    |
-| Integration     | `complex`, `upload-file`                                     |
-
-Each function directory splits by provider: `anthropic`, `openai`, `google`, `amazon`, `azure`, `bedrock`, `cohere`, `groq`, `xai`, `deepseek`, `fireworks`, `huggingface`, and more.
-
-## Discovery
-
-List files under a provider subdirectory:
-
-```bash
-gh api repos/vercel/ai/contents/examples/ai-functions/src/{function}/{provider} \
-  --jq '[.[] | select(.type=="file") | .name]'
-```
-
-Or fetch the GitHub tree page with WebFetch:
-
-```
-https://github.com/vercel/ai/tree/main/examples/ai-functions/src/{function}/{provider}
-```
-
-## Fetching a Single File
-
-Use the raw URL:
-
-```
-https://raw.githubusercontent.com/vercel/ai/main/examples/ai-functions/src/{function}/{provider}/{feature}.ts
-```
-
-Concrete example — Anthropic prompt caching:
-
-```
-https://raw.githubusercontent.com/vercel/ai/main/examples/ai-functions/src/generate-text/anthropic/cache-control.ts
-```
-
-## When to Reach for This
-
-- Provider-specific features (Anthropic `adaptive-thinking`, OpenAI `computer-use`, Google grounding)
-- Version-suffixed feature flags (e.g. `code-execution-20250825.ts`)
-- Multi-step agent patterns not covered in docs
-- Middleware compositions
-- Streaming edge cases (tool-call streaming, reasoning streams)
-
-## When Not to Reach for This
-
-- Basic API usage — `node_modules/ai/docs/` is faster
-- High-level API reference — ai-sdk.dev is faster
-- Examples assume you already know the API; they are working patterns, not tutorials
+Fetch the relevant files and their dependencies rather than bringing the whole examples tree into the application. Keep the application's authorization, data policy, transport and hosting requirements when adapting an example.

@@ -4,109 +4,46 @@ description: "Vercel AI SDK v7 development and migration. Use when building or u
 compatibility: "TypeScript/JavaScript projects using AI SDK 7; Node.js >=22; AI SDK packages are ESM-only."
 ---
 
-# Vercel AI SDK v7 Development Guide
+# AI SDK 7 implementation and migration
 
-Use this skill for AI SDK 7-specific implementation, migrations, and agent
-architecture. For AI SDK 6 projects, use `ai-sdk-6`. For unknown versions, use
-`ai-sdk` first to inspect `node_modules/ai/package.json` and local docs.
+Apply this skill to `ai@7`; use `ai-sdk` to resolve unknown versions and
+`ai-sdk-6` for v6 maintenance. Match provider and UI package versions to the
+project. AI SDK 7 requires Node.js 22+ and AI SDK packages are ESM-only.
 
-## First Checks
+Read the resolved `ai/docs/`, provider docs and installed source/types first.
+Use [official docs](https://ai-sdk.dev/docs) or the matching repository tag
+when local docs are unavailable. Experimental package APIs need a fresh check
+before adding long-lived wrappers.
 
-1. Inspect `package.json`, lockfiles, and `node_modules/ai/package.json`.
-2. Confirm the installed `ai` major version is 7 before applying this guide.
-3. Search local docs first: `node_modules/ai/docs/` and `node_modules/ai/src/`.
-4. In monorepos, check app/package workspaces such as `apps/*/node_modules/ai/`
-   and `packages/*/node_modules/ai/`.
-5. If local docs are missing or ambiguous, verify against `ai-sdk.dev` or the
-   Vercel AI repository docs source before coding.
+## Important boundaries
 
-AI SDK 7 requires Node.js >=22 and AI SDK packages are ESM-only. Convert
-`require()` imports to `import` syntax before chasing downstream type errors.
+- Text functions and ToolLoopAgent use `instructions`; loop limits use
+  `isStepCount`. Check callback scope before renaming core `onFinish` to
+  `onEnd`; React `useChat.onFinish` is separate.
+- `prepareStep` instruction/message overrides carry forward. Results such as
+  `usage` and tool arrays aggregate all steps; `finalStep` preserves final-step
+  access, and is awaited for streams.
+- Use `runtimeContext` for server loop state and schema-validated
+  `toolsContext` for per-tool state. Neither is model-visible merely by being
+  context.
+- Approval, persistence and lifecycle differ across ToolLoopAgent,
+  WorkflowAgent, HarnessAgent and provider-executed tools. Choose the runtime
+  for the actual durability/permission requirements.
+- Resolve model IDs and capabilities from the configured provider. Avoid
+  overlapping reasoning settings: provider options can override top-level
+  `reasoning`.
 
-## Install
+## Read for the feature
 
-Use the project's package manager and install only packages needed by the task:
+- [Agents](references/agents.md): in-memory/durable execution and context.
+- [Harnesses](references/harnesses.md): runtime-owned sessions and permissions.
+- [Core functions](references/core-functions.md): output, stream and result contracts.
+- [Tools](references/tools.md): approval boundaries, MCP Apps and sandbox handles.
+- [UI hooks](references/ui-hooks.md): UI streams, approval and resumption.
+- [Migration](references/migration-v6-to-v7.md): semantic changes and codemods.
+- [Telemetry](references/telemetry.md): registration and data controls.
+- [Media/files](references/media-and-files.md): provider references and capability gates.
+- [Examples](references/examples.md): current official implementations.
 
-```bash
-bun add ai@7 @ai-sdk/react
-bun add @ai-sdk/openai # or the provider already used by the project
-```
-
-For durable agents, add `@ai-sdk/workflow` and `workflow`. For harness agents,
-add `@ai-sdk/harness`, one harness adapter, and a sandbox provider.
-
-## Core v7 Patterns
-
-| Task | Prefer in AI SDK 7 |
-| --- | --- |
-| Text generation | `generateText` / `streamText` |
-| System prompt | top-level `instructions`, not `system` |
-| Structured output | `output: Output.object(...)` on text functions |
-| Loop limit | `stopWhen: isStepCount(n)` |
-| Shared server state | `runtimeContext` |
-| Per-tool state/secrets | tool `contextSchema` + `toolsContext` |
-| Sensitive tools | `toolApproval` on `generateText`, `streamText`, or `ToolLoopAgent` |
-| Durable long-running agents | `WorkflowAgent` from `@ai-sdk/workflow` |
-| Running Claude Code/Codex/Pi | `HarnessAgent` from `@ai-sdk/harness/agent` |
-| Observability | `registerTelemetry(new OpenTelemetry())` |
-| Stalled calls | `timeout` number or object |
-
-In examples, `__MODEL__` is a placeholder: resolve a current model via the
-project's provider package (e.g. `anthropic('...')`) or a gateway model string,
-following the model-ID guidance in the `ai-sdk` skill. Never hard-code a model
-ID from memory.
-
-```ts
-import { generateText, isStepCount, Output } from 'ai';
-import { z } from 'zod';
-
-const result = await generateText({
-  model: __MODEL__,
-  instructions: 'Answer concisely.',
-  prompt: 'Classify this support ticket.',
-  reasoning: 'high',
-  stopWhen: isStepCount(3),
-  timeout: { totalMs: 60_000, stepMs: 15_000 },
-  output: Output.object({
-    schema: z.object({
-      priority: z.enum(['low', 'medium', 'high']),
-      summary: z.string(),
-    }),
-  }),
-});
-
-console.log(result.output);
-```
-
-## Documentation Routing
-
-Read only the reference needed for the current task:
-
-- [agents.md](references/agents.md) - `ToolLoopAgent`, `WorkflowAgent`, context, approvals.
-- [harnesses.md](references/harnesses.md) - `HarnessAgent`, sessions, adapters, sandboxing, UI.
-- [core-functions.md](references/core-functions.md) - `generateText`, `streamText`, output, result shape.
-- [tools.md](references/tools.md) - tools, context, approvals, MCP Apps, sandbox handles.
-- [ui-hooks.md](references/ui-hooks.md) - `useChat`, typed tool parts, approvals, harness/workflow UI.
-- [migration-v6-to-v7.md](references/migration-v6-to-v7.md) - codemod and breaking-change checklist.
-- [telemetry.md](references/telemetry.md) - OpenTelemetry, tracing channel, lifecycle telemetry.
-- [media-and-files.md](references/media-and-files.md) - `uploadFile`, `uploadSkill`, realtime, video.
-- [examples.md](references/examples.md) - how to fetch canonical examples from `vercel/ai`.
-
-## Gotchas
-
-- Do not rely on memory for AI SDK APIs. Verify against local docs/source or
-  official docs before writing code.
-- Harness packages are experimental. Keep adapter/package details easy to change
-  and re-check docs before adding long-lived abstractions.
-- `result.usage` now aggregates all steps. Use `result.finalStep.usage` for
-  previous final-step-only behavior.
-- For `streamText`, await `result.finalStep` before reading final-step-only
-  metadata.
-- Harness sessions own conversation history. Persist resume state from
-  `detach()` or `stop()` instead of replaying the entire UI message history.
-- `WorkflowAgent` is stream-first and durable; use `ToolLoopAgent` for simple
-  in-memory agents.
-- `toolApproval` applies to AI SDK-executed tools. Provider-executed tools and
-  harness built-ins have separate approval/permission behavior.
-- Always fetch or verify current model IDs from the project's config or provider
-  docs before hard-coding a model string.
+Typecheck and exercise the changed multi-turn, tool, stream or resume path.
+A successful compile does not prove approval policy or persistence behavior.

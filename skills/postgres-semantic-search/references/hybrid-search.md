@@ -8,6 +8,7 @@ language other than the corpus, or expanding queries with synonyms.
 
 - [Fusion](#fusion)
 - [Hybrid does not automatically beat vector search](#hybrid-does-not-automatically-beat-vector-search)
+- [Where each arm fails: long questions and short terms](#where-each-arm-fails-long-questions-and-short-terms)
 - [Chunks and context](#chunks-and-context)
 - [Time-coded transcripts](#time-coded-transcripts)
 - [Queries in another language](#queries-in-another-language)
@@ -16,9 +17,8 @@ language other than the corpus, or expanding queries with synonyms.
 ## Fusion
 
 Reciprocal rank fusion needs no score normalization: each arm adds
-`weight / (k + rank)`, with `k = 60` by convention. Weight the arms rather than
-switching to a linear mix of raw scores, which needs calibrated, comparable
-scores to mean anything. Take each arm's candidates with `ORDER BY ... LIMIT`
+`weight / (k + rank)`, with `k = 60` by convention. RRF is a useful baseline when scores are not comparable. A linear score mix
+is also possible, but needs calibration/normalization and evaluation. Take each arm's candidates with `ORDER BY ... LIMIT`
 and number them afterwards; a window function beside the `LIMIT` has to see
 every row first, which rules out a top-N sort when the arm is not served by an
 index. [scripts/hybrid_search_fts.sql](../scripts/hybrid_search_fts.sql) shows
@@ -36,12 +36,34 @@ On a ~54,000-chunk single-language corpus with 92 graded questions:
 | Keyword only (FTS) | 33.7 % | 0.144 | 602 ms |
 
 - **Do not add the keyword arm on faith.** Equal weights were 10 points worse
-  than vector alone. If you fuse, weight the vector side and compare with a
-  vector-only baseline.
+  than vector alone. Compare fusion weights with the appropriate single-arm baseline rather than
+  assuming that the vector side must always dominate.
 - **Do not delete it on these numbers either.** Its job is exact identifiers:
   part numbers, section references, names, product codes. A "find the chunk
   this question was generated from" eval set rarely contains them. Judge the arm
   on queries that need it.
+
+## Where each arm fails: long questions and short terms
+
+A Finnish lecture-transcript search measured live, reranker off, right moment
+first:
+
+| Mode | 70 long questions | 15 short terms |
+| --- | ---: | ---: |
+| Vector only | 52.9 % | 53.3 % |
+| Keyword only (prefix FTS) | 24.3 % | 80.0 % |
+| Hybrid (weighted RRF) | 52.9 % | **93.3 %** |
+
+- **Keyword alone is weak on long questions**: a question's words spread over
+  many segments, and the arm ranks by overlap, not meaning.
+- **Vector alone is weak on short terms**: it missed the first result for 7
+  of 15, though 14 were in its top ten. The exact term is what a short query
+  has, and only the keyword arm rewards it.
+- **Hybrid was the only mode strong on both**, so the long-question tie with
+  vector search is no reason to drop the keyword arm. Evaluate modes on both
+  sets ([evaluation.md](evaluation.md)).
+- Part of the short-term lead came from the app around the arms (title-row
+  handling, synonyms, a trigram fallback), not from fusion alone.
 
 ## Chunks and context
 
@@ -54,11 +76,10 @@ On a ~54,000-chunk single-language corpus with 92 graded questions:
   the BM25 index as well. In a keyword index the repeated title words can also
   make every chunk of a document match a title term, so measure both
   placements on your own set. Regenerate prefixes when chunking changes.
-- **Cap chunks by the language's token rate.** Finnish runs about 2.5
-  characters per token against English's 4, so a character cap tuned on
-  English is about twice too generous, the embedding endpoint rejects the
-  chunk, and often the whole document's batch fails with it. Cap every chunk,
-  whichever code path produced it.
+- **Cap chunks with the embedding model's tokenizer and documented input
+  limit.** Language/text-specific token density can make an English-derived
+  character cap overflow a different corpus. Apply the limit on every ingest
+  path and define oversized-chunk/batch handling.
 - **Translated content**: add a `language_code` to the chunk table, include it
   in the uniqueness key, and scope ingest writes and deletes to one language.
 
@@ -79,8 +100,9 @@ Measured on a Finnish lecture-transcript corpus (70 questions, 15 short terms):
 
 When the corpus is one language and a query arrives in another:
 
-- **Hybrid silently becomes vector search.** A single-language FTS index scores
-  near zero, so the fused list equals the vector ranking, with extra latency.
+- **The lexical arm can contribute little.** A single-language FTS index may
+  not match another-language query, making fusion effectively vector-only with
+  extra latency. Names, codes and shared words can still match.
 - **An off-language query costs about 12 points** even with a multilingual
   embedding model (Recall@15 73.9 % native, 62.0 % untranslated).
 - **Translate into a sentence, not a keyword list.** A translated question
