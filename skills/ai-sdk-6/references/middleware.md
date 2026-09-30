@@ -13,5 +13,5 @@ prompts or multi-tenant results.
 Use app/context APIs for request state where available rather than smuggling it
 into provider options. Verify the relevant provider's accepted options.
 
-Read [middleware docs](https://ai-sdk.dev/docs/ai-sdk-core/middleware) set to v6
+Read [v6 middleware](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/03-ai-sdk-core/40-middleware.mdx)
 and the installed source for an implementation matching this release.

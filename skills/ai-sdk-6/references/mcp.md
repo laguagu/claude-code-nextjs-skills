@@ -16,5 +16,5 @@ immediately after returning the response.
 Check provider/SDK support for resources, prompts and elicitation separately
 from ordinary tool discovery. Set explicit bounds where remote calls can stall.
 
-Read [MCP tools](https://ai-sdk.dev/docs/ai-sdk-core/mcp-tools) set to v6 and
+Read [v6 MCP tools](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/03-ai-sdk-core/16-mcp-tools.mdx) and
 the installed `@ai-sdk/mcp` docs/source.

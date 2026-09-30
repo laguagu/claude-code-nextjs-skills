@@ -22,6 +22,5 @@ durability or resumption automatically.
 Resumption and abort behavior can conflict; verify the chosen recovery contract.
 Stop the active stream before resetting or switching a conversation.
 
-Read [chatbot persistence](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-message-persistence)
-and [resumable streams](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams)
-with v6 selected.
+Read [v6 chatbot persistence](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/04-ai-sdk-ui/03-chatbot-message-persistence.mdx)
+and [v6 resumable streams](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/04-ai-sdk-ui/03-chatbot-resume-streams.mdx).

@@ -30,7 +30,7 @@ Read this file when writing or reviewing a skill's content quality.
 - 1–1024 characters, non-empty
 - **Third person only**: "Processes files" not "I process files" or "You can use this to..."
 - Include BOTH what the skill does AND when to use it
-- Be **pushy** — agents under-trigger, so list contexts explicitly
+- Name concrete use contexts; adjust breadth from observed misses and false positives
 - Include keywords users might say even without naming the skill
 
 Good example:
@@ -58,15 +58,15 @@ description: I can help you process Excel files.
 
 ### What makes a description trigger reliably
 
-1. **Use imperative framing**: "Use this skill when..." tells the agent when to act
+1. **Start with a third-person capability summary**, then concrete "Use when..." contexts
 2. **Focus on user intent**: What is the user trying to achieve, not implementation details
-3. **Be pushy**: Explicitly list contexts including non-obvious ones
+3. **Match scope**: Include relevant non-obvious contexts without expanding into adjacent tasks
 4. **Include near-miss disambiguation**: Help agents distinguish this skill from adjacent ones
-5. **Keep under 1024 chars** — the spec enforces this limit
+5. **Use at most 1024 chars** — the spec enforces this limit
 
 ### Testing descriptions
 
-Create 20 eval queries (8-10 should-trigger, 8-10 should-not-trigger):
+When evaluating trigger behavior, use representative should-trigger and should-not-trigger queries:
 - Vary phrasing: formal, casual, typos, abbreviations
 - Vary explicitness: direct mentions vs. implicit needs
 - Should-not-trigger: focus on **near-misses**, not obviously irrelevant queries
@@ -78,12 +78,12 @@ Create 20 eval queries (8-10 should-trigger, 8-10 should-not-trigger):
 
 | Level | What loads | When | Budget |
 |-------|-----------|------|--------|
-| L1 Metadata | name + description | Always (all skills) | ~100 tokens |
-| L2 Instructions | Full SKILL.md body | When triggered | <5000 tokens / <500 lines |
-| L3 Resources | references/, scripts/, assets/ | On demand | Unlimited |
+| L1 Metadata | name + description | Client discovery/selection | Client-dependent |
+| L2 Instructions | Full SKILL.md body | When triggered | Concise core; 500 lines is a recommendation |
+| L3 Resources | references/, scripts/, assets/ | On demand | Loaded text and results still use context |
 
-### Rules
-- SKILL.md body under **500 lines** — split into references when approaching
+### Guidance
+- Aim for a concise core; **500 lines** is guidance, not a validation limit
 - References **one level deep** from SKILL.md (no A → B → C chains)
 - **Table of contents** in reference files >100 lines
 - Tell the agent **when** to load each reference: "Read X if condition Y"
@@ -224,10 +224,10 @@ Run with: `uv run scripts/extract.py`
 | Anti-pattern | Why it's bad | Fix |
 |-------------|-------------|-----|
 | Vague description | Skill won't trigger on relevant prompts | Be specific, include trigger contexts |
-| SKILL.md >500 lines | Wastes context, agent struggles to extract relevant info | Split into references |
+| Unfocused or repetitive body | Hides useful instructions | Cut duplication; link genuinely separate topics |
 | Deeply nested refs (A→B→C) | Agent partially reads, misses info | One level deep only |
 | Windows paths (`\`) | Breaks on Unix systems | Always use `/` |
-| Time-sensitive info | Becomes stale | Use "old patterns" section |
+| Volatile claims without a current source | Become stale | Link current docs; retain needed version bounds or dated observations |
 | Inconsistent terminology | Confuses agent | Pick one term per concept |
 | Too many options | Agent can't choose | Provide default + escape hatch |
 | Magic constants | Nobody knows why | Document every value |
@@ -245,19 +245,19 @@ Run with: `uv run scripts/extract.py`
 
 ### Core quality
 - [ ] `name` matches directory, lowercase+hyphens, 1–64 chars
-- [ ] `description`: specific, third person, includes triggers, <1024 chars
-- [ ] SKILL.md body under 500 lines
-- [ ] Additional detail in `references/` files
-- [ ] No time-sensitive information
+- [ ] `description`: specific, third person, includes triggers, at most 1024 chars
+- [ ] Concise core with useful local knowledge preserved; 500 lines is guidance
+- [ ] Separate references only where the task needs them
+- [ ] Necessary version boundaries/dates have an appropriate scope and source
 - [ ] Consistent terminology
-- [ ] Concrete examples (not abstract)
+- [ ] Examples only when they clarify a non-obvious contract or required output
 - [ ] File references one level deep
 - [ ] Progressive disclosure used appropriately
 
 ### Scripts (if applicable)
 - [ ] Handle errors explicitly with helpful messages
 - [ ] No magic constants
-- [ ] Dependencies listed and version-pinned
+- [ ] Dependencies and necessary compatibility bounds identified; follow the project's lockfile/policy
 - [ ] Forward slashes in all paths
 - [ ] Validation steps for critical operations
 - [ ] `--help` output for each script

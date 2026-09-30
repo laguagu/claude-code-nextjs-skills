@@ -10,9 +10,12 @@ packages from the existing manifest/lockfile. Use `ai-sdk` when the major is
 unknown and `ai-sdk-7` for an authorized upgrade.
 
 Read the resolved `ai/docs/`, provider docs and source/types for the exact minor
-release. In a monorepo, resolve from the app using the dependency. The default
-[online docs](https://ai-sdk.dev/docs) and repository main may describe v7;
-select v6 documentation or a matching repository tag.
+release. In a monorepo, resolve from the app using the dependency. Default web
+docs and repository main can describe v7. If installed docs are unavailable,
+select the `ai@<resolved-version>` tag in `vercel/ai` and read `content/docs/`.
+Feature links here use a checked [v6 documentation snapshot](https://github.com/vercel/ai/tree/ai%406.0.297/content/docs)
+as a fallback; match the project's release when available. This tag selects
+documentation, not an application dependency version.
 
 ## Boundaries that differ from old and new code
 

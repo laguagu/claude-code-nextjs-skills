@@ -45,7 +45,9 @@ default. Use the `icons` skill for icon choice and `nextjs-shadcn` for the surro
 
 Follow streamed output while the reader is at the bottom; preserve their place
 when they scroll away or load earlier history. Use an existing compatible
-scroll primitive when it fits. Render Markdown through the application's
+scroll primitive when it fits; shadcn's
+[Message Scroller](https://ui.shadcn.com/docs/react/message-scroller) is one option.
+Render Markdown through the application's
 renderer and verify nested lists, long links and code blocks.
 
 Derive turn completion from chat-level status rather than a momentary gap

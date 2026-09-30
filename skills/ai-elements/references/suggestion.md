@@ -142,7 +142,7 @@ import { Spinner } from '@/components/ui/spinner';
 )}
 ```
 
-See the `/ai-app` skill's [chatbot.md](../../ai-app/references/chatbot.md) for the full suggestions flow including the API route and `useSuggestions` hook.
+See [suggestion behavior and lifecycle](../../nextjs-chatbot/suggestions.md) for grounded next actions, stale-result handling and conversation boundaries.
 
 ## Props
 

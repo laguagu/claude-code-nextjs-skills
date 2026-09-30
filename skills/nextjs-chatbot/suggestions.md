@@ -4,6 +4,9 @@ Add suggestions when they help the user take a plausible next step. They are
 optional; an answer does not need a fresh chip row every time. Existing tool
 choices or unanswered options often work better than an extra model call.
 
+When the assistant asks for a choice or confirmation, suggest valid replies to
+that request. Offer new follow-up questions after a completed answer.
+
 Ground suggestions in the available answer, source records and supported
 actions. Preserve names and options accurately, and do not invent categories
 or promise unavailable data. A suggested question and a button that executes

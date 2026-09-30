@@ -14,5 +14,5 @@ runtime added through a separate package in v7. Do not silently upgrade the
 SDK to introduce it.
 
 Use the installed agent docs or
-[workflow patterns](https://ai-sdk.dev/docs/agents/workflows) set to v6 for a
+[v6 workflow patterns](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/03-agents/03-workflows.mdx) for a
 matching official example.

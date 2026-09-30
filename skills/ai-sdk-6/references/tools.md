@@ -20,5 +20,4 @@ approvals are ready; avoid a custom loop that resubmits indefinitely.
 Provider-executed tools have provider-owned execution and permission semantics.
 
 See the installed tool source and
-[tool calling guide](https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling)
-with v6 selected.
+[v6 tool calling guide](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/03-ai-sdk-core/15-tools-and-tool-calling.mdx).

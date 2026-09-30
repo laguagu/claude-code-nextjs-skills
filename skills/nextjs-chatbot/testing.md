@@ -6,8 +6,10 @@ Choose checks for the changed behavior, using the project's existing tooling.
 ## Interface and transport
 
 Drive representative typed messages through the actual installed renderer and
-chat lifecycle. If a compatible test helper exists, inspect its current API;
-do not assume a named helper/package is installed.
+chat lifecycle. For deterministic `useChat` UI tests, consider the optional
+[`createChat` helper](https://ui.shadcn.com/docs/helpers/ai-sdk) from
+`@shadcn/helpers/ai-sdk`; check compatibility with the installed SDK. It exercises
+the UI lifecycle without a model or API key, while backend checks remain separate.
 
 Exercise partial input, tool completion, approval/denial, empty results,
 safe errors, cancellation, restored history and rapid conversation switching.

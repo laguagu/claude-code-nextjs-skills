@@ -18,5 +18,5 @@ semantics; `totalUsage` and `steps` provide aggregates/history. Match the field
 to the app's accounting or persistence requirement.
 
 Resolve provider options, callbacks and structured-stream behavior from the
-installed docs/types or [AI SDK Core](https://ai-sdk.dev/docs/ai-sdk-core/overview)
-with v6 selected.
+installed docs/types or the
+[v6 Core guide](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/03-ai-sdk-core/01-overview.mdx).

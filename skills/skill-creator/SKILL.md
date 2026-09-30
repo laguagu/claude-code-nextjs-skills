@@ -53,7 +53,7 @@ Check available MCPs - if useful for research (searching docs, finding similar s
 Based on the user interview, fill in these components:
 
 - **name**: Skill identifier (1–64 chars, lowercase a-z/0-9/hyphens, must match directory name)
-- **description**: When to trigger, what it does (1–1024 chars, third person). This is the primary triggering mechanism - include both what the skill does AND specific contexts for when to use it. All "when to use" info goes here, not in the body. Note: currently Claude has a tendency to "undertrigger" skills -- to not use them when they'd be useful. To combat this, please make the skill descriptions a little bit "pushy". So for instance, instead of "How to build a simple fast dashboard to display internal Anthropic data.", you might write "How to build a simple fast dashboard to display internal Anthropic data. Make sure to use this skill whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any kind of company data, even if they don't explicitly ask for a 'dashboard.'"
+- **description**: What it does and when to use it (1–1024 chars, third person). Name concrete use contexts and distinguish adjacent skills. Adjust its breadth from observed trigger misses and false positives rather than assuming every description should trigger more often.
 - **argument-hint** (optional, Claude Code extension — not part of the agentskills.io spec; other-client support varies and strict validators flag it): Shown in the skill list to guide users (e.g., `"[file or directory]"`)
 - **compatibility** (optional): Platform/environment requirements, 1–500 chars
 - **the rest of the skill :)**
@@ -64,8 +64,8 @@ Based on the user interview, fill in these components:
 
 Reference: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices — the full checklist lives in `references/best-practices.md`; read it before writing or reviewing skill content. The four principles that matter most while drafting:
 
-- **Claude is already very smart.** Only add context Claude lacks. For every line ask "can it figure this out by reading the code?" — if yes, cut it. File trees, schemas, and script lists are discoverable with Glob/Read; duplicating them in the skill just burns context.
-- **Concise is key.** Once SKILL.md loads, every token competes with the conversation. Be ruthless.
+- **Claude is already very smart.** Add what the agent lacks: local decisions, non-obvious contracts and useful source routes. Keep a short resource map or exact schema when it prevents a real mistake; avoid duplicating the codebase or teaching routine discovery.
+- **Concise is key.** Cut repetition and basics while preserving the task's useful knowledge and finish line.
 - **Match freedom to fragility.** Text guidelines where many approaches work; exact scripts where consistency is critical. Most skills land in between.
 - **Descriptions in third person.** "Processes Excel files", not "I can help you process Excel files" — the description is injected into the system prompt, and mixed point-of-view hurts discovery.
 
@@ -85,14 +85,14 @@ skill-name/
 #### Progressive Disclosure
 
 Skills use a three-level loading system:
-1. **Metadata** (name + description) - Always in context (~100 words)
+1. **Metadata** (name + description) - Client discovery/selection; listing behavior varies
 2. **SKILL.md body** - In context whenever skill triggers (<500 lines ideal)
-3. **Bundled resources** - As needed (unlimited, scripts can execute without loading)
+3. **Bundled resources** - As needed; loaded text and script results still use context
 
 These word counts are approximate and you can feel free to go longer if needed.
 
 **Key patterns:**
-- Keep SKILL.md under 500 lines; if you're approaching this limit, move detail into directly linked reference files with clear pointers about where the model using the skill should go next to follow up.
+- Aim for a concise core; 500 lines is a recommendation, not a format limit. Link separate topics with when-to-read guidance, after removing duplication.
 - Reference files clearly from SKILL.md with guidance on when to read them
 - For large reference files (>300 lines), include a table of contents
 
@@ -139,7 +139,7 @@ Include non-obvious pitfalls when they prevent a plausible mistake: environment 
 
 #### Pre-publish Checklist
 
-Before declaring a skill done, verify: `name` matches directory (lowercase+hyphens, 1–64 chars); `description` is specific, third person, includes triggers, < 1024 chars; SKILL.md under 500 lines; all referenced files exist; forward slashes in all paths; no time-sensitive info; description triggers correctly.
+Before declaring a skill done, verify the format and referenced files: `name` matches the directory (lowercase+hyphens, 1–64 chars), and `description` is specific, third person and at most 1024 characters. Assess size, reference structure and trigger behavior against the task. Preserve necessary version bounds or dated local observations with a current source; avoid volatile claims without one.
 
 ### Writing Style
 

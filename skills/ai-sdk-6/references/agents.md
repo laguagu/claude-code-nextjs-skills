@@ -17,5 +17,5 @@ Use `createAgentUIStreamResponse` with `uiMessages` for an SDK UI route.
 Validate/authenticate before execution and infer the agent's UI message type.
 In-memory execution does not make a run durable across restarts.
 
-Find details in the installed `docs/agents/` and `ToolLoopAgent` source or the
-[official agent guide](https://ai-sdk.dev/docs/agents/building-agents) set to v6.
+Find details in the installed agent docs and `ToolLoopAgent` source or the
+[v6 agent guide](https://github.com/vercel/ai/blob/ai%406.0.297/content/docs/03-agents/02-building-agents.mdx).
