@@ -1,9 +1,13 @@
 # AI SDK 6 chat UI and persistence
 
 `useChat` manages messages, stream status and conversation operations. Keep form
-input in the UI, and configure HTTP/body behavior through the transport. Confirm
-the installed callback signatures rather than treating core `onFinish` and
-client `onFinish` as one API.
+input in the UI, and configure HTTP/body behavior through the transport:
+`DefaultChatTransport({ api, headers, body, prepareSendMessagesRequest })`,
+`TextStreamChatTransport` for plain text streams (no tool parts) or
+`DirectChatTransport({ agent })` without HTTP. Confirm the installed callback
+signatures rather than treating core `onFinish` and client `onFinish` as one API.
+UI stream helpers send reasoning by default but sources only with
+`sendSources: true`.
 
 Use inferred UI-message/tool types and narrow part state before reading
 input/output. Validate restored UI messages on the server and use the SDK's
@@ -14,9 +18,10 @@ Stable message IDs connect client rendering, storage and feedback. When sending
 only the new message, load and authorize the canonical history on the server.
 Client-provided history and chat IDs are untrusted.
 
-Decide what client disconnect and cancellation mean. If server completion/save
-must continue after disconnect, follow the documented stream consumption
-pattern and the hosting runtime's lifetime limits. This does not provide
+Decide what client disconnect and cancellation mean. By default a disconnect
+aborts the model stream and the save in `onFinish` never runs. If completion/save
+must continue, call `result.consumeStream()` (not awaited) before returning the
+response, within the hosting runtime's lifetime limits. This does not provide
 durability or resumption automatically.
 
 Resumption and abort behavior can conflict; verify the chosen recovery contract.

@@ -10,10 +10,10 @@ source first. Use `ai-sdk-6` for an existing v6 project and `ai-sdk-7` for v7.
 Read installed SDK types and version-matched docs before composing the transport,
 response helper or lifecycle callbacks.
 
-For v6, `convertToModelMessages` is asynchronous; await it before passing its
-result as model messages. The
-[v6 migration guide](https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0)
-documents this change. Do not transplant v7 helpers into v6 without migration.
+`convertToModelMessages` is asynchronous in v6 and v7; await it.
+`createAgentUIStreamResponse({ agent, uiMessages })` validates against the
+agent tools and converts messages itself. Do not transplant v7 helpers into
+v6 without migration.
 
 ## Own the message contract
 
@@ -29,7 +29,9 @@ supports them.
 
 Keep one message container per message, with stable identity, and compose its
 parts inside it. Match generated component props rather than assuming every
-tool part exposes `toolName` or every source supports the same props.
+tool part exposes `toolName` or every source supports the same props. The
+bundled `ToolHeader` takes `type` and `state`, plus `toolName` only for
+`dynamic-tool` parts.
 
 ## Server and browser responsibilities
 
@@ -39,12 +41,19 @@ server-side allowlist; a TypeScript assertion on request JSON is not validation.
 
 Use the chosen SDK major's UI stream protocol and transport. Include reasoning
 or sources only when the provider returns them and the product should display
-them. Keep cancellation, retries, approval decisions and persistence consistent
-with that protocol; controls must affect the actual request.
+them; the SDK's UI stream helpers send reasoning by default but sources only
+with `sendSources: true`, so an empty `Sources` block may be a server option.
+Keep cancellation, retries, approval decisions and persistence consistent with
+that protocol; controls must affect the actual request.
 
-Check how the generated prompt input serializes attachments. Local blob URLs
-need conversion or upload before a remote server can consume them. Validate
-file type, size and access, and handle missing or failed uploads.
+The bundled `Confirmation` renders controls for `approval-requested` parts.
+In v7, skip those controls when `part.approval.isAutomatic` is true.
+
+The bundled `PromptInput` converts `blob:` URLs to data URLs before `onSubmit`,
+retaining the blob URL if conversion fails. Handle that failure before sending;
+a remote server cannot consume a browser-local URL. Attachments otherwise
+travel inline. `accept`, `maxFiles` and `maxFileSize` are client-side checks:
+validate type, size and access on the server; upload large files separately.
 
 ## Verify the interaction
 

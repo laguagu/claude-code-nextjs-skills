@@ -8,15 +8,22 @@ external executor; it is not automatically a server action.
 V6 manual approval uses tool-level `needsApproval` and the UI's
 `addToolApprovalResponse`. Do not replace it with SDK 7's `toolApproval`.
 Bind browser-round-tripped approval to trusted server state for sensitive
-operations. Approval does not replace tenant/role checks or idempotency.
+operations. Late v6 (verified in 6.0.298) accepts
+`experimental_toolApprovalSecret` on core functions and `ToolLoopAgent` for
+HMAC-signed approvals; check installed types before using it. Approval does
+not replace tenant/role checks or idempotency.
 
 Render the installed union, including `input-streaming`, `input-available`,
 `approval-requested`, `approval-responded`, `output-available`,
 `output-denied` and `output-error`. Typed parts use `tool-{name}`; runtime
 schemas use dynamic tool parts. Partial input is not completed input.
 
-Use the documented automatic-send predicates when all client tool outputs or
-approvals are ready; avoid a custom loop that resubmits indefinitely.
+Continue with `sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls`
+or `...WithApprovalResponses` when all client tool outputs or approvals are
+ready; avoid a custom loop that resubmits indefinitely. Client-executed tools
+answer from `onToolCall`: check `toolCall.dynamic` first for type narrowing,
+and call `addToolOutput({ tool, toolCallId, output })` (or `state:
+'output-error'` with `errorText`) without awaiting it there, which can deadlock.
 Provider-executed tools have provider-owned execution and permission semantics.
 
 See the installed tool source and

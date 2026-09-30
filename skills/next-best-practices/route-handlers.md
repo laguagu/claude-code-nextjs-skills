@@ -7,9 +7,13 @@ Set auth, validation, response content type, cache policy and cancellation for
 the actual endpoint. Do not assume every Route Handler has Node.js APIs if the
 project selected another runtime.
 
-GET caching behavior depends on installed Next.js and Cache Components mode.
-A request-time endpoint may still call a suitable cached read helper.
-Non-GET side effects must not be cached as results by accident.
+GET caching depends on the installed version and Cache Components mode.
+It is uncached by default from 15; without Cache Components,
+`dynamic = 'force-static'` opts it in. With Cache Components, GET can prerender
+until request or uncached data access, and `use cache` belongs in a helper,
+not the handler export/body. A request-time endpoint may still call a cached
+read helper; do not cache its side effects. Non-GET methods run per request. Generated
+`RouteContext<'/users/[id]'>` supplies the async params type.
 
 For a streamed response, proxies and terminal errors matter after HTTP headers
 are sent. Returning an async stream is not itself a durable job.

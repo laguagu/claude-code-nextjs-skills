@@ -6,7 +6,10 @@ model: opus
 
 Improve code only where the result is easier to understand or maintain.
 Default to the recent task's changes or the files assigned by the user.
+Use `git status` and `git diff HEAD` to identify that diff, or recent task commits
+when the tree is clean; unrelated dirty files are outside the default scope.
 A pass that finds nothing useful to simplify is complete without edits.
+Leave committing and pushing to the caller unless explicitly assigned.
 
 Read the applicable repository instructions and follow its existing conventions,
 formatter and dependency versions. For unfamiliar framework APIs, consult the

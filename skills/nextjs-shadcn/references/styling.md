@@ -8,25 +8,13 @@ Choose type for the actual product: a reading surface needs comfortable paragrap
 
 No font family is universally required or forbidden. A familiar family can be the right choice. Judge the rendered result: wrapping, line length, weights, loading behavior and hierarchy.
 
-For Next.js, use `next/font` where appropriate or the project's existing font setup. Set the chosen fonts through the theme so components inherit them. Choose a preset through [shadcn/create](https://ui.shadcn.com/create), using its current options rather than a fixed list in this skill.
+For Next.js, use `next/font` where appropriate or the project's existing font setup. Set the chosen fonts through the theme so components inherit them. Choose a preset through [shadcn/create](https://ui.shadcn.com/create), using its current options rather than a fixed list in this skill. Offline, `shadcn preset decode <code>` shows a code's style, fonts, icon library and radius, and the installed `shadcn/preset` module exports the option lists (`PRESET_STYLES`, `PRESET_FONTS`, `PRESET_ICON_LIBRARIES`).
 
 ## Theme ownership
 
 Use semantic colors such as `bg-background`, `text-foreground` and `text-muted-foreground`. Customize the generated theme and component variants rather than restyling each instance.
 
-With Tailwind v4, a custom CSS variable needs an `@theme` mapping to generate utilities. For example:
-
-```css
-:root {
-  --brand: oklch(0.55 0.2 260);
-}
-
-@theme inline {
-  --color-brand: var(--brand);
-}
-```
-
-The value is illustrative; choose the actual color for the product. Follow the generated theme's conventions for dark mode and existing projects on older Tailwind versions.
+With Tailwind v4, a custom variable generates utilities only through a theme mapping: `--brand` in `:root`/`.dark` needs `@theme inline { --color-brand: var(--brand); }` before `bg-brand` exists. For other token mappings, read the [Tailwind theme guidance](https://tailwindcss.com/docs/theme). Preserve the generated theme's conventions for dark mode and existing projects on older Tailwind versions.
 
 Theme modes, accent colors and corner radii follow the brief and component hierarchy. Do not add a second mode or force a single radius onto every component just to satisfy a template.
 
@@ -54,7 +42,7 @@ Use available generation tools when an original illustration, image or video wou
 
 For video backgrounds, preserve readability, reserve space and provide a useful poster or static fallback. Avoid unsolicited audio and excessive media weight. Prefer an actual UI preview when the visitor needs to understand how the product works.
 
-Choose motion for feedback, focus or narrative. CSS transitions can handle simple interactions; use an existing animation library or a richer tool when the effect warrants it. Read `vercel-react-view-transitions` for route or shared-element motion and check the installed framework's support.
+Start with the project's existing result, disclosure and navigation components. For size/position changes or a moving active selection, consult [Motion's layout documentation](https://motion.dev/docs/react-layout-animations) when that library fits the project. For route or shared-element continuity, use `vercel-react-view-transitions` and the current [React ViewTransition reference](https://react.dev/reference/react/ViewTransition); check support in the installed framework's docs. No particular animation library is required.
 
 Respect reduced motion. Keep essential content visible without animation, stop continuous work when offscreen or hidden, and check touch behavior. A pointer-following light, scroll sequence or canvas is an intentional feature, not a routine finishing step.
 

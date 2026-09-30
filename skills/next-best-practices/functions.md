@@ -14,3 +14,5 @@ Generated metadata/image/sitemap handlers have their own parameter contracts.
 
 `after` can defer work until the response lifecycle, but hosting duration and
 failure limits still apply; it is not a durable queue.
+`refresh()` from `next/cache` is Server Action-only and refreshes the client
+router; it does not invalidate server data caches.

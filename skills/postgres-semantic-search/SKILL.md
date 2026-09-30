@@ -29,8 +29,10 @@ error.
 5. Add a reranker last, over the head of a good shortlist
    ([reranking.md](references/reranking.md)).
 
-Change one thing at a time. Predefine the acceptance rule, measure run-to-run
-spread and inspect wins/losses for the query populations the change affects.
+Change one thing at a time. Predefine the acceptance rule; by default require
+a gain beyond measured run-to-run spread on the affected query population,
+without a material loss on the other eval set. Inspect per-query wins/losses
+and require the agreed latency and cost budget to hold.
 The numerical findings below are corpus-specific observations, not universal
 performance guarantees.
 
@@ -44,9 +46,10 @@ performance guarantees.
 - **Models change every few months.** Pick embedding and reranker models from
   the provider's current docs, prefer multilingual models for non-English text,
   and evaluate on the target language before committing.
-- **Hybrid when users type both questions and terms.** On a Finnish corpus
+- **Hybrid when users type both questions and terms.** On a Finnish transcript corpus
   keyword alone was weak on long questions (24 % right first), vector alone on
-  short terms (53 %), and hybrid led on both (53 % and 93 %;
+  short terms (53 %); hybrid tied vector on long questions and led on short
+  terms (53 % and 93 %;
   [hybrid-search.md](references/hybrid-search.md#where-each-arm-fails-long-questions-and-short-terms)).
 - **BM25 is not available everywhere**: managed hosts differ (Neon removed
   `pg_search`). Plain FTS with the fixes below is often enough.
@@ -95,18 +98,21 @@ Keyword ([keyword-search.md](references/keyword-search.md)):
 ## Non-English and chunking
 
 - **Cap chunks with the selected embedding model's tokenizer and input limit.**
-  Character-to-token ratios vary by model, language and text. An English-derived
-  character cap can overflow other-language input and fail the whole batch.
-- **Off-language queries** can make the lexical arm ineffective. Evaluate
-  sentence translation and two-pass fusion against untranslated queries; a
-  keyword-list translation regressed one measured corpus.
+  Ratios vary by model and text: with OpenAI's `cl100k_base` (text-embedding-3),
+  Finnish runs about 2.5 characters per token against 4 or more for English,
+  so an English-tuned character cap is about twice too generous. The endpoint
+  rejects the chunk and often fails the whole batch.
+- **Off-language queries** can make the lexical arm ineffective and cost about
+  12 points even with a multilingual embedding model. Translate into a
+  sentence, not a keyword list (a keyword list scored 14 points below no
+  translation on one corpus), and consider two-pass fusion.
 - **A multi-word synonym expansion** enters the tsquery as independent words,
   and its generic word takes over the ranking. Trim parts an order of
   magnitude commoner than the rest of their own phrase.
-- **Inflection**: compare model and lexical behavior on actual inflected queries.
-  One Finnish corpus benefited from stemming in keyword-only search, with no
-  significant hybrid gain; dictionary coverage and compound expansion need
-  measurement on the target text.
+- **Inflection**: on one Finnish corpus embeddings absorbed it; a stemmed
+  arm (Postgres `finnish`) lifted keyword-only search but not hybrid; a
+  dictionary lemmatizer did worse than the stemmer on spoken and domain text;
+  compound splitting flooded the arm. Re-measure on the target text.
   Prefix matching never reaches the base form of an inflected query
   ([keyword-search.md](references/keyword-search.md#stemmer-lemmatizer-or-neither)).
 - **Transcripts**: chunk length barely changed which video was found. A second,
@@ -117,17 +123,23 @@ Details and measurements: [hybrid-search.md](references/hybrid-search.md).
 
 ## Reranking
 
-- **Evaluate rerank depth on short terms and full questions.** On one Finnish
-  transcript corpus, shallow reranking preserved topical-term results better
-  than reordering all 30. Compare no reranking and several depths; that result
-  does not establish a universal top-5 rule or cross-encoder behavior.
+- **Start by reranking only the head (top 5) of a ~30-candidate shortlist**,
+  and deepen only if the short-term set holds. Cross-encoders score "mentions
+  X" rather than "is about X" and promote passing mentions of short terms: on
+  a Finnish transcript corpus, reordering all 30 cut short-term Hit@1 from
+  0.93 to 0.60–0.80, the top 10 still cost some models a term or two, and the
+  top 5 cost none for six rerankers. Re-measure depth on your own sets.
 - **The relevance question's wording can matter more than the model** (about
   thirty points on one corpus). Every criterion must be checkable from the text
   sent, and the source title belongs in the reranker input.
-- **Choose by the deployment/data policy and measured latency.** Model size,
-  quantization, batching and hardware affect CPU/GPU suitability; do not infer
-  a universal latency cutoff from parameter count. Hosted reranking sends
-  candidate text to that provider. Define a timeout fallback.
+- **Choose by where it can run and whether text may leave the network.**
+  Measured on a 2-core CPU: a ~120M multilingual cross-encoder added about
+  0.3 s, while 568M–600M models took 10–25 s. On a data-centre GPU,
+  Qwen3-Reranker-8B was the only model clearly more accurate than that small
+  CPU model ([reranking.md](references/reranking.md)). Hosted rerankers need
+  no infrastructure but receive the candidate text. A GPU that comes and goes
+  can serve first, with the CPU model as the timeout fallback. Measure p95 on
+  the target hardware.
 - **Measure the shortlist ceiling first**: a reranker cannot recover what the
   first stage missed.
 - Make the backend/depth configurable when operationally useful; choose the
@@ -187,7 +199,9 @@ await db.execute(sql`SELECT * FROM match_documents(${JSON.stringify(embedding)}:
 
 ## Versions (checked 2026-09)
 
-- **pgvector**: 0.8.0+ for iterative scans. Check current stable releases: 0.8.2 fixed a
+- **pgvector**: inspect the installed version with
+  `SELECT extversion FROM pg_extension WHERE extname = 'vector'`. 0.8.0+ for
+  iterative scans. Check current stable releases: 0.8.2 fixed a
   buffer overflow in parallel HNSW builds, 0.8.3 and 0.8.4 HNSW vacuum
   corruption and errors. Read the current index-fix and upgrade notes before
   upgrading. Releases ship as git tags only, so read the

@@ -18,6 +18,7 @@ Keep the user's task clear:
 - Cut decorative badges, repeated headings, empty marketing claims and helper text that explains the obvious.
 - Keep useful status, navigation, explanations and disclosures.
 - Use cards, sections and CTAs because the content needs them, rather than filling a template.
+- Use brief motion to connect an action with its result, expanded details or active navigation. Reuse existing interaction components; [styling.md](references/styling.md) points to current motion sources.
 - Reuse the project's icon family. Use `icons` when sourcing new icons or brand assets; an icon does not automatically replace a clear label.
 
 ## Use atmosphere when it helps
@@ -32,14 +33,11 @@ Read [styling.md](references/styling.md) when deciding on fonts, theme customiza
 
 Use Bun for new projects. In existing projects, follow `packageManager`, the lockfile, component conventions and configured aliases.
 
-Inspect `components.json` and the installed components before editing. The `shadcn` skill covers component composition, CLI and registries. With the project's package runner:
+Inspect `components.json` and the installed components before editing. Use the `shadcn` skill and the CLI's `info`/`docs` commands for project metadata, component documentation and registry guidance.
 
-```bash
-bunx --bun shadcn@latest info --json
-bunx --bun shadcn@latest docs <component>
-```
+Component APIs depend on the primitive base (`init --base base|radix|aria`; Base UI is the default): Base UI uses `render` where Radix commonly uses `asChild`. Preserve the existing base and consult its docs.
 
-Component APIs depend on the primitive base: Base UI uses `render` where Radix commonly uses `asChild`. Preserve the existing base and consult its docs.
+`shadcn docs`, `add` and `view` need the registry over the network; `docs` returns URLs rather than text. Offline, the project's own `components/ui` source and the primitive package's type definitions are the API reference, and `shadcn <command> --help`, `preset decode`, `migrate --list` and the installed `shadcn/tailwind.css` still work.
 
 Prefer documentation matching the installed Next.js version, including `node_modules/next/dist/docs/` when present. Use available Next.js dev tools for runtime errors and route context rather than relying on remembered APIs.
 

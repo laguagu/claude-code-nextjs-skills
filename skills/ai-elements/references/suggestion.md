@@ -94,7 +94,7 @@ export default SuggestionDemo;
 
 - Horizontal row of clickable suggestion buttons
 - Customizable styling with variant and size options
-- Flexible layout that wraps suggestions on smaller screens
+- Single non-wrapping row: `Suggestions` uses a horizontal `ScrollArea` with a hidden scrollbar; edit generated source if wrapping is needed
 - onClick callback that emits the selected suggestion string
 - Support for both individual suggestions and suggestion lists
 - Clean, modern styling with hover effects

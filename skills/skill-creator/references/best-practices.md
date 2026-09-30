@@ -80,7 +80,7 @@ When evaluating trigger behavior, use representative should-trigger and should-n
 |-------|-----------|------|--------|
 | L1 Metadata | name + description | Client discovery/selection | Client-dependent |
 | L2 Instructions | Full SKILL.md body | When triggered | Concise core; 500 lines is a recommendation |
-| L3 Resources | references/, scripts/, assets/ | On demand | Loaded text and results still use context |
+| L3 Resources | references/, scripts/, assets/ | On demand | Nothing until read; what is read or printed uses context |
 
 ### Guidance
 - Aim for a concise core; **500 lines** is guidance, not a validation limit
@@ -120,6 +120,14 @@ Challenge each piece of content:
 - "Does this paragraph justify its token cost?"
 
 Don't explain what PDFs are, how HTTP works, or general programming concepts.
+
+Keep what the agent cannot rediscover: the user's decisions and reasons,
+measured results with their conditions, environment quirks and commands that
+took effort to find. A link to web docs is not a substitute for a fact the task
+depends on: some clients run without network or web search (API code
+execution, sandboxed CLIs, denied web tools). Keep such a fact inline or bundle
+it in a reference, script or `--help` output. Prefer version-matched installed
+package docs, types or source when available, with web docs as the fallback.
 
 ### Match specificity to fragility
 
@@ -249,8 +257,9 @@ Run with: `uv run scripts/extract.py`
 - [ ] Concise core with useful local knowledge preserved; 500 lines is guidance
 - [ ] Separate references only where the task needs them
 - [ ] Necessary version boundaries/dates have an appropriate scope and source
+- [ ] Facts the task depends on are reachable without web access
 - [ ] Consistent terminology
-- [ ] Examples only when they clarify a non-obvious contract or required output
+- [ ] Exact names or short examples where they clarify a non-obvious contract or required output
 - [ ] File references one level deep
 - [ ] Progressive disclosure used appropriately
 

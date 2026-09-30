@@ -14,6 +14,8 @@ read [parallel-routes.md](parallel-routes.md) when introducing a modal.
 Next.js 16 renamed Middleware to Proxy. `proxy.ts` sits alongside app/pages
 (including inside `src`) and runs Node.js; do not set a `runtime` option
 there. Existing Edge middleware needs its own supported migration path.
+The named export becomes `proxy` (a default export also works), and
+`skipMiddlewareUrlNormalize` becomes `skipProxyUrlNormalize`.
 
 Scope the matcher so static/image/public traffic is handled deliberately.
 Proxy is suitable for routing/optimistic checks; keep authoritative data

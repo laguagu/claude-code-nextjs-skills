@@ -1,20 +1,30 @@
 # Cache diagnostics
 
 Reproduce with the installed version and actual caching configuration.
-Use Next.js development diagnostics/MCP when available, then verify with the
-production build and runtime. Build success does not prove freshness,
-authorization or runtime-only helper paths.
+Use Next.js development diagnostics when available: `next-devtools-mcp` reaches
+the dev server's `/_next/mcp` (`get_errors`, `get_logs`, `get_page_metadata`;
+`get_compilation_issues`/`compile_route` with Turbopack),
+`NEXT_PRIVATE_DEBUG_CACHE=1` logs cache activity, and
+`next build --debug-prerender` keeps server source maps (not for deployment).
+Then verify with the production build and runtime. Build success does not
+prove freshness, authorization or runtime-only helper paths.
 
 | Symptom | Inspect before changing policy |
 | --- | --- |
 | Blocking/dynamic access | Where uncached I/O, unknown params or request APIs are awaited relative to Suspense |
-| Request data inside cache | The whole helper call stack, not only the visible cached function |
-| Build stalls/timeouts | Slow/unavailable build services, request-dependent promises, isolated request storage |
+| `next-request-in-use-cache` | The whole helper call stack, not only the visible cached function; a dynamic route may pass build and fail under `next start`. Read outside and pass resolved values, or use a suitable private cache |
+| Build stalls/timeouts | Slow/unavailable build services or a request promise passed/captured into the isolated cached scope; await request values outside |
 | Repeated reads | Key inputs, handler lifetime, process/deploy identity and deliberate bypasses |
 | Stale after mutation | Write completion, tag/path coverage, invalidation profile and client freshness |
 | Different values across instances | Backing store and cross-instance invalidation; one-process tests cannot prove it |
 | Cross-account output | Authorized identity/filter keying, global mutable state and policy changes |
 | Metadata or sitemap stale | Its own data loader and refresh path, not merely the page's cache |
+
+With Cache Components, `empty-generate-static-params` means the export returned
+`[]`; supply at least one real param. A `dynamicParams` compatibility error
+requires removing that legacy export and using `notFound()` for rejected
+unknown params. A short-lived nested-cache prerender error requires an explicit
+outer `cacheLife`, including when the inner read comes from a dependency.
 
 A timeout is not proof of user-specific data. Such data may be cached with
 correctly scoped keys when policy permits. Removing caching or adding build-time

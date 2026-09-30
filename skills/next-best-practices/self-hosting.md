@@ -16,6 +16,9 @@ Multiple instances need deliberate cache storage and invalidation coordination.
 The legacy ISR `cacheHandler` and Cache Components `cacheHandlers` are different
 contracts. Use a maintained adapter or implement against current types; a toy
 Redis/S3 get/set example omits important tags/expiry semantics.
+For Cache Components, `updateTags()` writes shared invalidation events and
+`refreshTags()` synchronizes them before requests. A shared entry store alone
+does not synchronize each instance's tag state.
 
 Coordinate build IDs, action encryption keys and deployment skew where the app
 needs it. Preserve streaming through the real proxy/load balancer. Readiness

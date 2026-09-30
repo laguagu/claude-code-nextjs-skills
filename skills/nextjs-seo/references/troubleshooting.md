@@ -43,10 +43,14 @@ production browser and test buttons, forms and Suspense content. Inspect
 console errors, streamed RSC responses, failed assets, client/server initial
 state and the deployed proxy.
 
-A previous app exhibited correct SEO HTML with stalled PPR boundaries; that
-observation is a reason to test, not a universal Next.js defect or proof of a
-particular repair. Preserve a reproducible case and investigate the installed
-framework/configuration.
+A previous app exhibited correct SEO HTML with stalled PPR boundaries: a
+partially prerendered route (typically reading `searchParams`) never hydrated
+its Suspense content on a direct production load, while the same component
+worked on a static route and after client navigation. That observation is a
+reason to test both entry paths, not a universal Next.js defect or proof of a
+particular repair. An inactive browser tab can also delay streamed reveal;
+rule that out before reporting a failure. Preserve a reproducible case and
+investigate the installed framework/configuration.
 
 Use [URL Inspection documentation](https://support.google.com/webmasters/answer/9012289)
 for report semantics. State missing credentials, reports or verified bot logs

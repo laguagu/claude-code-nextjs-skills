@@ -11,8 +11,10 @@ unknown and `ai-sdk-7` for an authorized upgrade.
 
 Read the resolved `ai/docs/`, provider docs and source/types for the exact minor
 release. In a monorepo, resolve from the app using the dependency. Default web
-docs and repository main can describe v7. If installed docs are unavailable,
-select the `ai@<resolved-version>` tag in `vercel/ai` and read `content/docs/`.
+docs and repository main can describe v7. `ai` bundles `docs/` from 6.0.32; the
+tree mirrors the website paths (mapping in `ai-sdk`). If installed docs are
+unavailable, select the `ai@<resolved-version>` tag in `vercel/ai` and read
+`content/docs/`.
 Feature links here use a checked [v6 documentation snapshot](https://github.com/vercel/ai/tree/ai%406.0.297/content/docs)
 as a fallback; match the project's release when available. This tag selects
 documentation, not an application dependency version.
@@ -20,11 +22,15 @@ documentation, not an application dependency version.
 ## Boundaries that differ from old and new code
 
 - Text functions use `system`; `ToolLoopAgent` uses `instructions`.
-- Loop limits use `stopWhen: stepCountIs(...)`.
+- Loop limits use `stopWhen: stepCountIs(...)`. Text functions default to one
+  step (tool execution without a follow-up answer); `ToolLoopAgent` defaults
+  to 20.
+- `convertToModelMessages` is async; await it.
 - Use text functions with `Output` for new schema output; legacy object
   functions are deprecated.
 - Tools use `inputSchema`; SDK-executed approval is tool-level `needsApproval`.
-  V7 agent-level `toolApproval` is not a v6 substitute.
+  V6 does not know v7's `toolApproval`: unless a typecheck rejects it, it is
+  ignored and the tool runs without approval.
 - React `useChat` owns messages and stream status, not form input. Use the
   appropriate transport and UI-message response protocol.
 - Core completion callbacks are `onFinish`; result `usage` is final-step usage,

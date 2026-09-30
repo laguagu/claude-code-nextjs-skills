@@ -15,13 +15,16 @@ major. Read `ai-sdk` to resolve the installed version, then the appropriate
 `ai-sdk-6` or `ai-sdk-7` guidance. AI Elements and AI SDK versions can change
 independently.
 
-Find current component documentation through the
-[AI Elements site](https://ai-sdk.dev/elements), the available AI Elements MCP,
-or the matching component file in `references/`. Load only the relevant
-component references; verify older bundled examples against installed source.
+Read generated `components/ai-elements/<component>.tsx` first, then the
+matching `references/` file and its `scripts/` examples. Use the
+[AI Elements site](https://elements.ai-sdk.dev) or available AI Elements MCP
+for current documentation. Load only relevant references; verify bundled
+examples against installed source.
 
 For installation, use the project's runner with `ai-elements@latest add <component>`
-or `shadcn@latest add @ai-elements/<component>`. Check installed components and
+or `shadcn@latest add @ai-elements/<component>`. Components land in
+`components/ai-elements/` under the alias configured in `components.json`; that
+installed source is the offline API reference. Check installed components and
 review generated files before replacing local customization. Use `shadcn` for
 registry, preset and primitive-base details.
 

@@ -10,6 +10,41 @@ pages before changing framework behavior. Those docs and project configuration
 take precedence; use a matching online version/source tag when local docs are
 unavailable. The original Next-skills upstream is archived.
 
+Docs are bundled from 16.2; in a monorepo, read the app's own `next` package.
+The nextjs.org links in these files have local equivalents with numbered
+folders, so search by file name (`find node_modules/next/dist/docs -name proxy.md`).
+`01-app/02-guides/upgrading/version-16.md` lists the breaking changes.
+Per-error pages (`/docs/messages/*`) are only online; the dev/build output
+carries the error's fix options.
+Exact exports are also in `node_modules/next/{server,navigation,headers,cache}.d.ts`.
+
+## Next.js 16 changes older examples miss
+
+- Sync request access is removed: `cookies()`, `headers()`, `draftMode()`,
+  `params` (including image-metadata routes), `searchParams` and sitemap `id`
+  are promises. `next typegen` generates global `PageProps<'/route'>`,
+  `LayoutProps` and `RouteContext` types.
+- `middleware.ts` is deprecated: `proxy.ts` exporting `proxy` (or default)
+  runs on Node.js only and rejects a `runtime` option; code that needs Edge
+  stays in `middleware.ts`. Codemod: `npx @next/codemod@latest middleware-to-proxy .`.
+- Turbopack is the default for `dev` and `build`; a custom `webpack` config
+  fails the build unless `--webpack` keeps it or explicit `--turbopack` ignores
+  it. `next lint` is removed and
+  `next build` no longer lints. `serverRuntimeConfig`/`publicRuntimeConfig`
+  are removed.
+- Every parallel-route slot needs `default.tsx`, or the build fails.
+- `next/image`: `priority` is deprecated for `preload`; `qualities` defaults to
+  `[75]` (other `quality` values are coerced); local `src` with a query string
+  needs `images.localPatterns`; `images.domains` is deprecated for
+  `remotePatterns`.
+- `revalidateTag(tag)` is deprecated; pass a profile such as `'max'` or
+  `{ expire: 0 }` for immediate expiry. `updateTag` and `refresh` are Server
+  Action-only. Caching details: `cache-components`.
+
+The `upgrade` codemod does not migrate synchronous request-API access; run
+`next-async-request-api` separately when migrating that code. Use the project's
+package runner and review the resulting types and runtime behavior.
+
 Review the actual failure or feature, rather than applying every optimization.
 Keep the project's router, caching mode, runtime and package manager unless
 migration is requested.
@@ -32,6 +67,7 @@ migration is requested.
 Use `cache-components` when that mode is enabled and relevant to the task.
 Tag invalidation can also operate on fetch caches outside that mode.
 
-Validate a production build and the changed route's behavior. A dev render can
+Validate with the project's lint/typecheck scripts and a production build,
+then exercise the changed route under `next start`. A dev render can
 hide prerender/Suspense issues; a build cannot prove authorization, hydration,
 freshness or cross-instance behavior. Report what was actually exercised.

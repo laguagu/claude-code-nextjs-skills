@@ -32,8 +32,12 @@ answer once. Keep both:
 - **Long set**: sample chunks with enough real text (a few hundred
   characters), from documents still in use, and have a cheap model write one
   natural question each chunk answers. Store question, expected document and
-  expected chunk. Choose set size for the effect and coverage you need; a fixed question
-  count cannot by itself establish statistical reliability.
+  expected chunk. At 50 questions each result moves the score by 2 points;
+  at a ~50 % hit rate the independent-binomial standard error is about 7 points.
+  Size the set for the effect you need to detect and use paired wins/losses or
+  a paired interval when comparing the same queries. A few hundred gave a
+  useful signal here; a small deterministic fixture set still has uncertainty
+  about the wider query population.
 - **Bias**: a question generated from a chunk is unusually close to that chunk
   in embedding space. Vector and RRF baselines look better than in production,
   and rerankers and query rewriters look worse, because they reshuffle a

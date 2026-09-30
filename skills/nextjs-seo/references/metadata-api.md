@@ -4,12 +4,18 @@ Use the installed Next.js docs and
 [Metadata API](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)
 for signatures. Metadata exports run in Server Components; choose
 `metadata` or `generateMetadata` in the same route segment, not both.
-Export `viewport` / `generateViewport` for viewport-related fields.
+Export `viewport` / `generateViewport` for viewport-related fields;
+`themeColor`, `colorScheme` or `viewport` inside `metadata` emit no tag, only
+a build warning.
+Google ignores the `keywords` meta tag; do not tune it for Google visibility.
+See [supported meta tags](https://developers.google.com/search/docs/crawling-indexing/special-tags).
 
 ## URL resolution and inheritance
 
 Set `metadataBase` to the intended public origin when using relative metadata
 URLs. It applies to canonical/language alternates as well as social images.
+An absolute field URL ignores `metadataBase`. An unset child canonical inherits
+the parent's, so a root homepage canonical needs deliberate per-page overrides.
 Missing-base behavior can differ between versions, fields and hosts; current
 docs require a base for relative URL-based fields. Inspect emitted production
 URLs rather than treating a development fallback or warning as the contract.
@@ -38,8 +44,10 @@ use URL strings rather than `URL` instances where required.
 
 Next.js can stream metadata to capable clients and block for HTML-limited
 bots. Check the installed `htmlLimitedBots` behavior and the complete response
-for relevant agents before diagnosing “missing head tags”. Do not broaden bot
-overrides without evidence.
+for relevant agents before diagnosing “missing head tags”. The streamed tags
+can appear in `<body>`; the default HTML-limited list includes Twitterbot,
+Bingbot and Slackbot. Configuring `htmlLimitedBots` replaces that list rather
+than extending it. Do not broaden overrides without evidence.
 
 ## Social images, icons and manifest
 
@@ -50,8 +58,11 @@ convention before adding an export or file.
 
 For generated images, follow
 [ImageResponse](https://nextjs.org/docs/app/api-reference/functions/image-response)
-rendering, font and bundle limitations. Test the actual generated URL and
-image, including fonts and long titles.
+rendering, font and bundle limitations: Satori supports flexbox but not
+`display: grid`, the bundle (JSX, fonts, images) is capped at 500 KB, and
+fonts must be ttf/otf/woff. Static `opengraph-image` files over 8 MB and
+`twitter-image` files over 5 MB fail the build. Test the actual generated URL
+and image, including fonts and long titles.
 
 A web manifest is useful for an installable web app; it is not a generic SEO
 requirement. Avoid duplicating equivalent icon/social-image definitions merely

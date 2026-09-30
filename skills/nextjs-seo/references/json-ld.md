@@ -6,6 +6,16 @@ and Google rich-result eligibility are different checks. Consult the current
 and the selected feature's documentation before choosing a type; supported
 features and restrictions change.
 
+Retired Google rich results that older examples still add (as of 2026-09):
+FAQ (gone for all sites from 2026-05-07), HowTo (2023), Course Info, Claim
+Review, Estimated Salary, Learning Video, Special Announcement and Vehicle
+Listing (2025), Practice Problems (2025-11). Dataset markup serves Dataset
+Search only. Such markup can remain for other consumers but yields no Google
+rich result.
+
+Google's [May 2026 notice](https://developers.google.com/search/updates)
+confirms the FAQ removal; keep eligibility separate from Schema.org validity.
+
 Mark up only facts users can verify on the page or through its legitimate
 associated content. Do not invent reviews, ratings, prices, stock, authors,
 credentials or organization details. An optional FAQ section does not justify
@@ -19,7 +29,8 @@ it does not require executable-script loading strategies.
 
 Serialize data safely. JSON text inside an HTML script can contain
 `</script>`; escape `<` after JSON serialization or use an established safe
-serializer. Do not concatenate untrusted strings into markup. See the
+serializer, for example `JSON.stringify(data).replace(/</g, '\\u003c')`.
+Do not concatenate untrusted strings into markup. See the
 [Next.js JSON-LD guide](https://nextjs.org/docs/app/guides/json-ld).
 
 Validate the served production markup with the relevant consumer's validator.

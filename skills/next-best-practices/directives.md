@@ -9,7 +9,8 @@ Server Component. Treat exported actions as endpoints requiring their own
 authorization.
 
 `use cache` is Next.js caching, with its own async/serialization and request
-API constraints. Confirm Cache Components configuration before introducing it.
+API constraints. It and the `private`/`remote` variants require
+`cacheComponents: true`; use `cache-components` for those contracts.
 
 Read [React use client](https://react.dev/reference/rsc/use-client),
 [use server](https://react.dev/reference/rsc/use-server) and

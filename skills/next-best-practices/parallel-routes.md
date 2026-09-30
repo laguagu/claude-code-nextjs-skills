@@ -2,8 +2,9 @@
 
 Slots render in the owning layout. Provide documented fallback/default behavior
 for hard navigation and unmatched slots, including implicit children where
-needed. Check installed build validation instead of assuming soft navigation
-covers all cases.
+needed. In Next.js 16, every named slot requires `default.tsx` or the build
+fails; return `null` or call `notFound()` for the intended fallback. An unmatched
+implicit `children` slot without a default returns 404 on hard navigation.
 
 Interceptors count route segments, not filesystem folders. A direct visit to an
 intercepted URL normally renders its full page; a client transition can show a

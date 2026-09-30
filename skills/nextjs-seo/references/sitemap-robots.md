@@ -19,14 +19,18 @@ Do not stamp every URL with the current build/request time. Google ignores
 Each sitemap is limited to 50,000 URLs and 50 MB uncompressed. Split large
 sets, verify the generated endpoint paths and expose all children through a
 sitemap index or their submission/discovery mechanism. Next.js
-`generateSitemaps` does not itself create a sitemap index; its route/ID
-contract is version-sensitive.
+`generateSitemaps` does not itself create a sitemap index. In 15+, children are
+served at `<segment>/sitemap/<id>.xml` in dev and production; in 16 the sitemap
+function receives `id: Promise<string>`. Expose the children through the
+`robots` sitemap array or a separately served index, and verify those URLs.
 
 Localized entries need absolute reciprocal language alternates including
 themselves. Image/video extensions should describe actual media and meet the
 consumer's requirements.
 
-A database-backed sitemap may otherwise run only at build time. Verify that a
+`sitemap.ts`/`robots.ts` are cached by default unless request-time APIs or
+supported dynamic configuration change that. A database-backed sitemap may
+therefore run only at build time. Verify that a
 publication update reaches the served sitemap using the configured cache,
 invalidation or rebuild path. See
 [Google sitemap guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap).

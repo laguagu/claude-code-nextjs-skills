@@ -27,6 +27,10 @@ An isolated session with optional telemetry disabled:
 ```
 
 Inspect the available tool schema; namespace prefixes depend on the client.
+For offline/version-matched lookup, use the installed
+`chrome-devtools-mcp --help` for flags and its `build/src/tools/` definitions
+for tool contracts. In a source checkout, use `docs/tool-reference.md` and
+`src/tools/`; the online reference tracks current upstream.
 
 | Need | Tools |
 |---|---|
@@ -35,9 +39,9 @@ Inspect the available tool schema; namespace prefixes depend on the client.
 | Console failures | `list_console_messages`, `get_console_message` |
 | HTTP failures/payloads | `list_network_requests`, `get_network_request` |
 | Styles | `get_css_styles` (matched rules, cascade, CSS variables); `evaluate_script` with `getComputedStyle` for final values |
-| Visual evidence | `take_screenshot`, `resize_page` |
-| Performance | `performance_start_trace`, `performance_stop_trace`, `performance_analyze_insight` |
-| Automated accessibility/SEO checks | `lighthouse_audit` (does not audit performance) |
+| Visual evidence | `take_screenshot`, `resize_page`; `emulate` for mobile/touch viewport and color scheme |
+| Performance | `performance_start_trace`, `performance_stop_trace`, `performance_analyze_insight`; `emulate` for CPU/network throttling |
+| Automated accessibility/SEO/best-practice checks | `lighthouse_audit` (does not audit performance) |
 
 ## Workflow
 

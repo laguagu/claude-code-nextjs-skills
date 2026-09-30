@@ -5,7 +5,16 @@ description: Debug AI SDK calls by inspecting captured runs and steps.
 
 # AI SDK DevTools
 
-Use DevTools when captured model requests, responses and steps would help diagnose a development issue. Choose an `@ai-sdk/devtools` release compatible with the project's installed AI SDK major; inspect its current exports, middleware setup and CLI rather than copying a pinned provider model.
+Use DevTools when captured model requests, responses and steps would help diagnose a development issue. Match `@ai-sdk/devtools` to the installed SDK major:
+
+| SDK | Capture setup |
+| --- | --- |
+| v6 | `wrapLanguageModel({ model, middleware: devToolsMiddleware() })` |
+| v7 | `registerTelemetry(DevToolsTelemetry())`, or `telemetry.integrations` per call |
+
+Read `ai/docs/03-ai-sdk-core/65-devtools.mdx`. The viewer defaults to
+`http://localhost:4983`; captures are `.devtools/generations.json` in the app
+working directory and can be inspected directly without the viewer.
 
 Keep instrumentation development-only. Captures can contain prompts, retrieved documents, tool arguments, outputs and provider metadata. Exclude capture files from Git and public artifacts; apply the same data policy as application logs.
 

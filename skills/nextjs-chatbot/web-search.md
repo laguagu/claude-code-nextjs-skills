@@ -16,7 +16,10 @@ destinations, redirects and response size to prevent access to private network
 resources or unbounded downloads. Apply timeouts and bound source counts.
 
 Preserve source URLs, relevant timestamps and citation metadata through the
-tool/UI path. Answer with useful sources and distinguish fresh evidence,
+tool/UI path. Provider source parts reach `useChat` as `source-url` or
+`source-document` only when the UI stream sets `sendSources: true` (default
+`false`); custom tool citations need their own typed result path. Answer with
+useful sources and distinguish fresh evidence,
 stale evidence, missing coverage and tool failure.
 
 Cache by source/query policy and the required freshness, not a universal

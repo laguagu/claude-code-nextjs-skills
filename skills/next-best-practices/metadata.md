@@ -9,7 +9,10 @@ descriptions or robot fields. Homepage canonical/social URLs should not
 misidentify child pages. File-based metadata has priority over matching config.
 
 Viewport settings have a separate export. Async route params, image IDs and
-sitemap IDs need the installed signature. Cache Components also imposes
+sitemap IDs need the installed signature. In 16, the image-generating function
+receives `params` and `id` as promises, but `generateImageMetadata` itself
+continues to receive synchronous `params`. The sitemap generator receives
+`id: Promise<string>`. Cache Components also imposes
 serialization/freshness requirements on cached metadata output.
 
 Use `ImageResponse` only when generated images are useful. Its CSS/fonts/bundle

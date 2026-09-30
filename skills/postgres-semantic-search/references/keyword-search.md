@@ -56,9 +56,9 @@ almost everything.
   `saastaa`, "filth" in the partitive), and the stemmer receives forms it was
   not built for.
   Handle accentless typing with a trigram fallback instead.
-- **Normalize unwanted zero-width export artifacts** consistently at ingest and
-  query time. Do not indiscriminately delete ZWNJ/ZWJ from every language or
-  field: they can carry meaningful shaping or text information. Postgres does not treat
+- **Strip zero-width export artifacts** (U+200B, U+FEFF; also U+200C/U+200D
+  unless the text uses them, as Persian, Indic scripts and emoji sequences do)
+  from text and every metadata field at ingest, and from queries. Postgres does not treat
   them as whitespace, so the glued token skips stemming:
   `to_tsvector('finnish', 'kirjanpidossa')` gives `kirjanpido`, the same word
   followed by U+200B stays whole and never matches. A CMS export had them in 10

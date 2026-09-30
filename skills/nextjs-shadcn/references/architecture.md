@@ -28,7 +28,7 @@ Authenticate, authorize and validate each mutation. Decide whether data may be s
 
 - `"use cache"`, `cacheTag` and `cacheLife` use Cache Components and require `cacheComponents: true`.
 - `updateTag` is restricted to Server Actions and immediately expires a tag for read-your-own-writes. It also works with `fetch` tags and does not itself require Cache Components.
-- `revalidateTag(tag, "max")` uses stale-while-revalidate and can also be called from Route Handlers.
+- `revalidateTag(tag, "max")` uses stale-while-revalidate and can also be called from Route Handlers. The one-argument form is deprecated; `{ expire: 0 }` provides immediate expiry when needed there.
 - Read request-specific values outside shared cached scopes and pass suitable values as arguments. Never accidentally share a user's private result across users.
 
 Choose request-time APIs and Suspense boundaries according to the installed version's rendering model rather than adding `connection()` to every read.

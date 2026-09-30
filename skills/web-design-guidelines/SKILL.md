@@ -25,7 +25,7 @@ Fetch fresh guidelines before each review:
 https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md
 ```
 
-Use WebFetch to retrieve the latest rules. The fetched content contains all the rules and output format instructions.
+Retrieve the complete rules with an available web or shell tool. A summary may omit rules; use the raw file when checking the full set. Without web access, use the pinned snapshot [references/command.md](references/command.md) and say in the review that it used the snapshot and its date.
 
 ## Usage
 

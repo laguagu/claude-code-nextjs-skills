@@ -64,8 +64,8 @@ Based on the user interview, fill in these components:
 
 Reference: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices — the full checklist lives in `references/best-practices.md`; read it before writing or reviewing skill content. The four principles that matter most while drafting:
 
-- **Claude is already very smart.** Add what the agent lacks: local decisions, non-obvious contracts and useful source routes. Keep a short resource map or exact schema when it prevents a real mistake; avoid duplicating the codebase or teaching routine discovery.
-- **Concise is key.** Cut repetition and basics while preserving the task's useful knowledge and finish line.
+- **Claude is already very smart.** Add what the agent lacks: local decisions and their reasons, measured findings, non-obvious contracts and source routes that work where the skill runs (a URL is not reachable in every client). Keep a short resource map or exact schema when it prevents a real mistake; avoid duplicating the codebase or teaching routine discovery.
+- **Concise is key.** Cut repetition and basics while preserving the task's useful knowledge and finish line. Prefer an exact name or short snippet when it clarifies a non-obvious API contract or required output; ordinary APIs do not need an example each.
 - **Match freedom to fragility.** Text guidelines where many approaches work; exact scripts where consistency is critical. Most skills land in between.
 - **Descriptions in third person.** "Processes Excel files", not "I can help you process Excel files" — the description is injected into the system prompt, and mixed point-of-view hurts discovery.
 
@@ -87,7 +87,7 @@ skill-name/
 Skills use a three-level loading system:
 1. **Metadata** (name + description) - Client discovery/selection; listing behavior varies
 2. **SKILL.md body** - In context whenever skill triggers (<500 lines ideal)
-3. **Bundled resources** - As needed; loaded text and script results still use context
+3. **Bundled resources** - As needed; nothing loads until read, and scripts can run without loading their source. Bundled files also work where the agent has no web access
 
 These word counts are approximate and you can feel free to go longer if needed.
 

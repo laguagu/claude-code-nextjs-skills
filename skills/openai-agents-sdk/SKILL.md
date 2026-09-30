@@ -10,6 +10,16 @@ Resolve the installed package and its provider integrations before implementing
 an API. Current [SDK documentation](https://openai.github.io/openai-agents-python/)
 and a matching source tag take precedence over static examples.
 
+The wheel ships no docs. Offline, read the installed source: the version from
+`importlib.metadata.version("openai-agents")`, public exports in
+`agents/__init__.py`, docstrings and types in the package directory
+(`python -c "import agents; print(agents.__file__)"`). The documentation
+source is `docs/` at repository tag `v<version>`.
+
+`Runner.run_sync` raises inside a running event loop (async handlers and
+notebooks); use `await Runner.run(...)`. `Runner.run_streamed(...)` itself
+is not awaited; consume its `stream_events()` async iterator to completion.
+
 ## Integration decisions
 
 - Keep the project's provider, model and storage unless the task requires a
@@ -38,11 +48,16 @@ and a matching source tag take precedence over static examples.
 - [Orchestration/tracing](references/patterns.md): run limits and observability.
 - [Sandbox](references/sandbox.md): beta workspace execution and resume state.
 
-Use the Developer Docs MCP if available for current OpenAI API/provider behavior;
-use the Python SDK's own reference for SDK signatures. Read selected
+Use the OpenAI Developer Docs MCP (`https://developers.openai.com/mcp`) if
+available for current OpenAI API/provider behavior, or its plain-text index
+`https://developers.openai.com/api/docs/llms.txt`; use the Python SDK's own
+reference for SDK signatures. Read selected
 [official examples](https://github.com/openai/openai-agents-python/tree/main/examples)
 from a compatible tag, not a copied catalog of demos.
 
 Verify changed tools, multi-turn history, approval/denial and failure recovery.
-Run the project's checks; report missing provider access separately from verified
-SDK behavior.
+Use installed `agents.testing` (verified in 0.22.3) for offline orchestration:
+`ScriptedModel`, `ModelStep`, `assistant_message`, `function_call` and
+`model.assert_complete()`, with `RunConfig(tracing_disabled=True)`. Run the
+project's checks; report missing provider access separately from verified SDK
+behavior.

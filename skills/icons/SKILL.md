@@ -31,13 +31,16 @@ Search at [Iconify's catalog](https://icon-sets.iconify.design/) or through its
 [search API](https://iconify.design/docs/api/search.html). Results use
 `prefix:name` identifiers; `prefixes` limits a query to selected sets.
 Collection metadata gives licensing information. Fetch individual SVGs through
-`https://api.iconify.design/{prefix}:{name}.svg`.
+`https://api.iconify.design/{prefix}/{name}.svg` (the identifier remains `prefix:name`).
+The public API needs no key; `https://api.iconify.design/collections?prefixes=<sets>`
+returns metadata and licences for comma-separated sets.
 
-Flag sets often use country codes rather than country names. Inspect the set's
-naming convention and aspect-ratio variants; examples include `circle-flags:fi`
-and `flag:fi-4x3`. Use real SVG flags when consistent rendering across platforms
-matters. For a language selector, language names usually communicate the choice
-better than national flags.
+These flag sets use lowercase ISO 3166-1 alpha-2 codes; a country-name search
+can miss them and return emoji sets instead. Build the id directly: `circle-flags:fi`,
+`flagpack:fi`; `flag` needs a ratio suffix (`flag:fi-4x3`, `flag:fi-1x1`), and
+bare `flag:fi` is a 404. Use SVG flags rather than emoji: Windows' emoji font
+has no flag glyphs and shows the letters (`FI`). For a language selector,
+language names usually communicate the choice better than national flags.
 
 Use local SVGs or build-time icon data by default. A string identifier passed to
 `@iconify/react` can load missing data from the public API at runtime; merely
@@ -48,8 +51,14 @@ for the project's chosen integration.
 ## svgl
 
 Use [svgl's API docs](https://svgl.app/docs/api) to find exact titles, categories
-and asset routes. Category names and registry identifiers must come from the
-current catalog; lowercasing a display title is not a reliable identifier rule.
+and asset routes. It primarily holds software and brand marks, with some file
+marks such as `PDF`; use Iconify for flag families and consistent file-type sets.
+`?search=` matches titles; a missing title returns "SVG not found". Browse
+categories through `/categories`, whose names are case-sensitive
+(`/category/AI`, not `ai`). Registry names are currently slugified titles, not
+asset filenames (`Hugging Face` → `hugging-face`, `Next.js` → `nextjs`,
+`shadcn/ui` → `shadcnui`); confirm with `https://svgl.app/r/<name>.json`
+before adding. Entries may carry light/dark routes and a separate wordmark.
 
 For a shadcn project, its
 [registry guide](https://svgl.app/docs/shadcn-ui) defines the `@svgl` namespace
@@ -57,11 +66,22 @@ at `https://svgl.app/r/{name}.json`. Follow the project's package manager and
 existing registry configuration. If shadcn is absent, use the raw asset rather
 than initializing a component system just to add a logo.
 
+## Without network
+
+Iconify and svgl are online services. Offline, search the installed icon
+library (for example `node_modules/lucide-react/dist/esm/icons/`) or any
+installed `@iconify-json/<prefix>/icons.json`, and reuse assets already in the
+repo. For a missing brand mark, ask for the official file or use a neutral
+placeholder; do not draw one.
+
 ## Integration gotchas
 
-- Match stroke/fill, optical size and alignment to surrounding UI. Mix by role
-  when needed: one family for controls, one set for flags, one for file types.
-  Preserve brand colours where appropriate rather than tinting every mark.
+- Match stroke/fill, optical size and alignment to surrounding UI. Lucide uses
+  a 24 px grid and 2 px stroke; Tabler and Hugeicons sit close, Material and
+  Carbon read thinner. Colour file-type marks carry their own padding and often
+  need one size step up. Mix by role when needed: one family for controls, one
+  set for flags, one for file types. Preserve brand colours where appropriate
+  rather than tinting every mark.
 - Choose the variant for its actual background. Check dark and light surfaces
   if both are supported.
 - Inline SVG masks, gradients and clip paths need IDs unique per rendered

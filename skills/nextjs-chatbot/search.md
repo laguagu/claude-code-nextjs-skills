@@ -6,9 +6,15 @@ paraphrases and unstructured passages. Neither choice guarantees grounded
 answers or should be imposed on every chatbot.
 
 Parse supported structured filters into a validated schema and enforce them
-deterministically on the server. Keep authorization and tenant predicates
-independent of model-generated filters. Return stable record/source IDs and
-only the fields needed for the answer.
+deterministically on the server. Measured on one `gpt-5.4` catalog chatbot: a
+free-text `query` tool input with FTS AND-matching and silent "0 rows → drop
+filters / shorten the query" retries gave 11 % stability on "What X are
+available?" (4-6 different items across 5 runs); `tags: string[]` with array
+overlap and no silent fallback gave 100 %.
+
+Keep authorization and tenant predicates independent of model-generated
+filters. Return stable record/source IDs and only the fields needed for the
+answer.
 
 Parameterize queries. Allowlist columns/operators for dynamic sorting or
 filtering, bound result counts and set timeouts. Distinguish no matches,

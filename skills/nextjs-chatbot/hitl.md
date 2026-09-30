@@ -6,16 +6,24 @@ permission to act.
 
 ## Version and policy
 
-Read [Tool Approvals](https://ai-sdk.dev/docs/agents/tool-approvals) and
-[policy-based approvals](https://ai-sdk.dev/docs/agents/policy-tool-approvals)
-for the installed version. Core v7 uses `toolApproval`; v6 uses tool-level
-`needsApproval`. V7 retains the latter as a deprecated fallback, while the
-separate WorkflowAgent contract still uses it.
+| Contract | v7 core | v6 core |
+| --- | --- | --- |
+| Configure | `toolApproval` on `ToolLoopAgent`, `generateText` or `streamText`: per-tool map (for example `{ deleteFile: 'user-approval' }`), per-tool input function or a function for all calls | `needsApproval` on `tool()`: boolean or an input function returning a boolean |
+| Outcomes | `'not-applicable'` (or `undefined`), `'approved'`, `'denied'`, `'user-approval'`; object form allows a `reason` on the last three statuses | Approval required or not |
+| Boundary | `needsApproval` is a deprecated core fallback; `WorkflowAgent` still uses it | `toolApproval` gates nothing; without a type error v7-style config can execute the tool without asking |
+
+Local docs: v7 `node_modules/ai/docs/03-agents/06-tool-approvals.mdx`, v6
+`node_modules/ai/docs/03-ai-sdk-core/15-tools-and-tool-calling.mdx`. Online:
+[Tool Approvals](https://ai-sdk.dev/docs/agents/tool-approvals) and
+[policy-based approvals](https://ai-sdk.dev/docs/agents/policy-tool-approvals).
 
 Derive per-request policy from trusted server context. Make denials final for
 that operation, and avoid repeating information already presented in a tool
-card. Use `addToolApprovalResponse` and the compatible automatic-send helper
-when a manual decision should continue a `useChat` conversation.
+card. Reply with
+`addToolApprovalResponse({ id: part.approval.id, approved })` (optional `reason`)
+and use
+`sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses`
+when the conversation should continue after all manual decisions are recorded.
 
 ## Render transitions
 
@@ -33,18 +41,28 @@ object. The ordinary state set includes:
 | `output-error` | Safe error and supported recovery |
 
 V7 can emit completed input before the approval request. Automatic decisions
-and manual ones must not produce duplicate approval controls. Ensure an exiting
-loading animation cannot block the decision controls; verify transitions in the
-UI instead of banning an animation library based on one integration failure.
+also pass through `approval-requested`, with `approval.isAutomatic: true`;
+show decision controls only for manual requests. A manual request's policy
+reason is `approval.requestReason`; the decision reason (automatic or supplied
+by the user) is `approval.reason`.
+Check the generated component's behavior rather than assuming it distinguishes
+these states. Ensure an exiting loading animation cannot block the decision
+controls; verify transitions in the UI.
 
 ## Replay security
 
 A client can modify round-tripped history. Bind approval to the server-issued
-operation, validated inputs, user and conversation. Where the installed SDK
-supports signed approvals, use its signing/verification contract and preserve
-the signature through history conversion. Core agents and WorkflowAgent have
-different secret configuration; verify the actual API and pending-key behavior
-in [current approval docs](https://ai-sdk.dev/docs/agents/tool-approvals).
+operation, validated inputs, user and conversation. For sensitive tools set
+`experimental_toolApprovalSecret` on core agents/`generateText`/`streamText`
+(verified in `ai@6.0.298` and `ai@7.0.124`; check earlier installed versions).
+The server HMAC-signs the tool name, call ID and input; unsigned or altered
+approvals are rejected. All instances need the same secret; reject missing
+configuration when signing is required, since `undefined` disables it.
+`WorkflowAgent` takes `{ environmentVariable: 'TOOL_APPROVAL_SECRET' }` instead
+of a raw secret.
+Preserve the signature and `inputSchemaInput` through persistence/conversion:
+transformed schemas need the original input to reconstruct the approved value,
+and fields removed by a transform can still be present in approval metadata.
 
 Recheck authorization when execution resumes. Keep signing secrets on the
 server, and make irreversible operations idempotent. Test denial, missing or

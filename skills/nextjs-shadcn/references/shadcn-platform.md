@@ -10,9 +10,11 @@ Base UI's `render` and Radix's `asChild` are different composition APIs. Preserv
 
 Use the existing alias convention, including Node package imports when configured. Prefer logical spacing utilities for RTL-aware layouts.
 
+To switch icon family across installed components, `shadcn migrate icons --from <id> --to <id>` takes the library ids `lucide`, `tabler`, `hugeicons`, `phosphor` and `remixicon`. Hugeicons now ships as `@hugeicons/react` with `@hugeicons/core-free-icons`; `hugeicons-react` is deprecated.
+
 ## Rendered markdown and loading
 
-[Typeset](https://ui.shadcn.com/docs/typeset) provides owned CSS for rendered markdown, docs or streaming content. Generate the stylesheet in its builder and import it; it is not installed by `init`. Use it when it fits the content rather than recreating a typography system for every message.
+[Typeset](https://ui.shadcn.com/docs/typeset) provides owned CSS for rendered markdown, docs or streaming content. Generate `typeset.css` in its builder, import it after Tailwind and use the builder's `typeset`/preset wrapper classes; it is not installed by `init`. Use it when it fits the content rather than recreating a typography system for every message.
 
 The `shimmer` and `scroll-fade` utilities come from `shadcn/tailwind.css` in projects that import it:
 

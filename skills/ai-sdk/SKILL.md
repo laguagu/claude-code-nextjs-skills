@@ -12,19 +12,30 @@ upgrade is requested.
 - AI SDK 7 implementation or migration: use `ai-sdk-7`.
 - AI SDK 6 maintenance: use `ai-sdk-6`.
 - Unknown, mixed or older versions: resolve them before applying either API set.
-- New apps: verify the current release and package compatibility in the
-  [official docs](https://ai-sdk.dev/docs).
+- New apps: start on the current major (7 when written; `npm view ai dist-tags`
+  confirms). Majors move together: `ai@7` with `@ai-sdk/react@4` and
+  `@ai-sdk/<provider>@4`; `ai@6` with `@ai-sdk/react@3` and providers `@3`.
 
 ## Find the API that matches the app
 
-Search the resolved package's `docs/` and `src/` first, including provider
-packages. Monorepo hoisting and Yarn PnP may change the paths; do not install
-or upgrade a dependency solely to obtain docs.
+Search the resolved package's `docs/`, types and `src/` (when shipped) first;
+they work without network. `ai` bundles docs from 6.0.32 and in 7.x;
+6.0.0-6.0.31 have no docs, and 6.0.32 still has no `src/`. The docs tree
+mirrors the website: `ai-sdk.dev/docs/<section>/<page>`
+is `ai/docs/<nn>-<section>/<nn>-<page>.mdx`, so an `ai-sdk.dev/docs` link in
+these skills can be read from the installed major's copy. Provider packages
+ship `docs/<nn>-<provider>.mdx`. `@ai-sdk/react`, `@ai-sdk/workflow`,
+`@ai-sdk/harness`, `@ai-sdk/otel` and `@ai-sdk/mcp` ship no docs; their guides
+are in `ai/docs` and their API in `dist/*.d.ts`. Monorepo hoisting and
+Yarn PnP may change the paths; do not install or upgrade a dependency solely
+to obtain docs.
 
-When local documentation is unavailable, use the matching docs version or
-repository tag. The [documentation search](https://ai-sdk.dev/api/search-docs?q=useChat)
+When local documentation is unavailable, use the matching repository tag
+(`vercel/ai`, tag `ai@<version>`, `content/docs/`) or docs version. The
+[documentation search](https://ai-sdk.dev/api/search-docs?q=useChat)
 and Markdown page variants help locate the relevant feature. Repository main
-and the default website can target a newer major than the app.
+and the default website can target a newer major than the app. With neither
+local docs nor network, say which API facts remain unverified.
 
 Choose model IDs from the app's provider configuration or current provider
 catalog. The [Gateway catalog](https://ai-gateway.vercel.sh/v1/models) can aid

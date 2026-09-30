@@ -10,16 +10,29 @@ Apply this skill to `ai@7`; use `ai-sdk` to resolve unknown versions and
 `ai-sdk-6` for v6 maintenance. Match provider and UI package versions to the
 project. AI SDK 7 requires Node.js 22+ and AI SDK packages are ESM-only.
 
-Read the resolved `ai/docs/`, provider docs and installed source/types first.
-Use [official docs](https://ai-sdk.dev/docs) or the matching repository tag
-when local docs are unavailable. Experimental package APIs need a fresh check
-before adding long-lived wrappers.
+Read the resolved `ai/docs/`, provider docs and installed source/types first;
+each `ai-sdk.dev/docs/...` link in this skill has an offline copy under `ai/docs/`
+(path mapping in `ai-sdk`). Harness, WorkflowAgent and migration guides live
+in `ai/docs/03-ai-sdk-harnesses/`, `03-agents/07-workflow-agent.mdx` and
+`08-migration-guides/23-migration-guide-7-0.mdx`; the companion packages ship
+only types. Use [official docs](https://ai-sdk.dev/docs) or the matching
+repository tag when local docs are unavailable. Experimental package APIs need
+a fresh check before adding long-lived wrappers.
+
+| Need | Entry point |
+| --- | --- |
+| In-memory agent loop | `ToolLoopAgent` from `ai` |
+| Durable agent | `WorkflowAgent` from `@ai-sdk/workflow` + `workflow` 5 |
+| Claude Code/Codex/Pi runtime | `HarnessAgent` from `@ai-sdk/harness/agent` + adapter + sandbox package |
+| OpenTelemetry | `registerTelemetry(new OpenTelemetry())`, `@ai-sdk/otel` |
+| Stalled calls | `timeout`: ms or `{ totalMs, stepMs, firstChunkMs, chunkMs, toolMs }` |
 
 ## Important boundaries
 
 - Text functions and ToolLoopAgent use `instructions`; loop limits use
-  `isStepCount`. Check callback scope before renaming core `onFinish` to
-  `onEnd`; React `useChat.onFinish` is separate.
+  `isStepCount`. Core, agent and server UI-stream helpers use `onEnd`/`onStepEnd`
+  (`onFinish` remains a deprecated alias); client `useChat`/`Chat` keeps
+  `onFinish`.
 - `prepareStep` instruction/message overrides carry forward. Results such as
   `usage` and tool arrays aggregate all steps; `finalStep` preserves final-step
   access, and is awaited for streams.

@@ -11,7 +11,11 @@ dataclass replacement) rather than reconstructing the structure field by field.
 
 Filter only what the specialist should not receive. Keep tool-call/result and
 provider protocol context valid. Use built-in filters when they meet the
-contract and inspect their effect on the actual conversation.
+contract and inspect their effect on the actual conversation. The recipient
+gets full conversation history by default; handoff `input_type` supplies
+model-written metadata to `on_handoff`, not replacement conversation input.
+`remove_all_tools` removes tool items but not text already copied into messages;
+`nest_handoff_history` summarizes history and is not a redaction boundary.
 
 Local run context is separate from model-visible history. Authorization,
 guardrail coverage and tool permissions need checking in the receiving path too.

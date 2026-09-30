@@ -7,8 +7,10 @@ description: Next.js App Router SEO implementation and audits. Use for metadata 
 
 Start from the page's task, production response and observed search behavior.
 Read the installed Next.js version and relevant `node_modules/next/dist/docs/`
-pages; otherwise use matching official documentation. Keep framework APIs,
-caching mode and deployment policy consistent with the project.
+pages (bundled from 16.2); otherwise use matching official documentation.
+`Metadata`, `Viewport` and `MetadataRoute` types are also in
+`node_modules/next/dist/lib/metadata/types/metadata-interface.d.ts`. Keep
+framework APIs, caching mode and deployment policy consistent with the project.
 
 Useful, distinct content matters more than a longer page. Give titles,
 headings and descriptions separate jobs; add a FAQ, summary, badges or extra

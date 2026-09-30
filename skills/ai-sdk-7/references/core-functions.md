@@ -14,9 +14,11 @@ for trusted history, not browser-controlled instructions.
 receive boundary, lifecycle and terminal parts as well as text/tool data.
 Narrow the part before processing it.
 
-Prefer stateless UI/text response helpers for new v7 code. The server output
-must match the client transport. Provider-executed tools and file/reasoning
-parts need handling beyond text deltas.
+Result response helpers are deprecated. Use
+`createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream, originalMessages, onEnd }) })`
+for UI messages, or `toTextStream` + `createTextStreamResponse` for plain text.
+The server output must match the client transport. Provider-executed tools
+and file/reasoning parts need handling beyond text deltas.
 
 Top-level usage/content/tool arrays aggregate all steps. Use `finalStep`
 (awaited for a stream) for final-step metadata and usage. Choose intentionally

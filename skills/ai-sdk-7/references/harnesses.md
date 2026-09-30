@@ -32,3 +32,10 @@ credentials and host tools scoped to the session.
 Skill bundles use skill-relative POSIX paths and are separate from provider
 `uploadSkill`. Verify file-change/compaction dynamic parts in UI renderers and
 exercise restart, resume, denial and cleanup in the selected adapter.
+
+Names to look up in `ai/docs/03-ai-sdk-harnesses/` (all experimental):
+`agent.createSession({ sessionId, resumeFrom })`, `session.destroy()`/
+`detach()`/`stop()`/`suspendTurn()`, `continueStream()`/`continueGenerate()`
+for an unfinished turn, `permissionMode` (`allow-all`, `allow-edits`,
+`allow-reads`) for built-in tools, `sandboxConfig` (`workDir`, `onBootstrap` +
+`bootstrapHash`, `onSession`), `prepareHarnessSandboxTemplate()`.
