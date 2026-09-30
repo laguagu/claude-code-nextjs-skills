@@ -1,9 +1,9 @@
 # Parallel and intercepted navigation
 
-Slots render in the owning layout. Provide documented fallback/default behavior
-for hard navigation and unmatched slots, including implicit children where
-needed. Check installed build validation instead of assuming soft navigation
-covers all cases.
+Slots render in the owning layout. In 16 every named `@slot` needs a
+`default.tsx` (return `null`, or call `notFound()` to keep the old 404), or the
+build fails. Hard navigation renders `default` for unmatched slots; without a
+`default` for the implicit `children` slot, it 404s.
 
 Interceptors count route segments, not filesystem folders. A direct visit to an
 intercepted URL normally renders its full page; a client transition can show a
@@ -16,5 +16,5 @@ routes where needed. A persistent modal is not always caused by using push.
 Test open, close, forward/back, direct load and refresh, including nested
 slots and route groups. Respect accessibility/focus behavior of the chosen dialog.
 
-Read [Parallel Routes](https://nextjs.org/docs/app/api-reference/file-conventions/parallel-routes)
-and [Intercepting Routes](https://nextjs.org/docs/app/api-reference/file-conventions/intercepting-routes).
+Read `parallel-routes.md`, `intercepting-routes.md` and `default.md` in
+`03-api-reference/03-file-conventions/`.

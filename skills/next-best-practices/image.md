@@ -8,12 +8,17 @@ Reserve layout space with intrinsic dimensions or a sized `fill` container.
 Use accurate responsive `sizes`; placeholders do not reserve space on their
 own. Set useful alt text or empty alt for decoration.
 
-Restrict remote patterns to intended sources. Verify loader, SVG and quality
-allowlist behavior in the installed version. Static export needs an appropriate
-loader or unoptimized delivery.
+Restrict `images.remotePatterns` to intended sources (`images.domains` is
+deprecated). Static export needs an appropriate loader or unoptimized delivery.
 
-Load the actual LCP image early without preloading every hero candidate. Current
-Next.js favors eager/fetchPriority in many cases and deprecates `priority`;
-choose from the installed [Image reference](https://nextjs.org/docs/app/api-reference/components/image).
+Next.js 16 defaults: `images.qualities` is `[75]`, so another `quality` prop is
+coerced to the nearest allowed value unless configured; local `src` with a
+query string needs `images.localPatterns[].search`; `minimumCacheTTL` is 4 h;
+local-IP upstreams are blocked; at most 3 redirects.
+
+Load the actual LCP image early without preloading every hero candidate.
+`priority` is deprecated (16) in favor of `preload`; usually prefer
+`loading="eager"` or `fetchPriority="high"`. Read
+`03-api-reference/02-components/image.md`.
 
 Measure delivered dimensions/bytes and layout shift in the real responsive view.

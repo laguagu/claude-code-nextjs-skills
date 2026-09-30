@@ -1,84 +1,95 @@
 # Cache API boundaries
 
-Use installed Next.js docs for signatures, profile values and feature flags.
-The upstream Next-skills collection is archived; this file is a focused guide,
-not a replacement API reference.
+Doc paths are relative to `node_modules/next/dist/docs/01-app/` (see SKILL.md
+for the web fallback). Signatures: `node_modules/next/cache.d.ts`.
 
 ## Keys and serialization
 
-`use cache` functions/components must be async with the directive in the
-directive prologue. Cache identity includes function/build identity,
-serializable inputs and captured outer variables. Do not assume a global,
-unkeyed tenant or user value is safe.
+`use cache` functions/components must be async, with the directive first in the
+body or file. A file-level directive caches every export, including
+`generateMetadata`/`generateStaticParams`, which must then be async; in a
+`page`/`layout` it caches only that segment, not its `children`.
 
-Argument and return serialization differ. Dates, Maps and Sets are supported
-in documented forms; arbitrary class instances and URL objects are not.
-Non-serializable children or Server Actions may pass through unchanged, without
-being read/invoked inside the cached scope. See
-[use cache](https://nextjs.org/docs/app/api-reference/directives/use-cache).
+The key is build ID (or `deploymentId`) + function ID + serialized arguments +
+captured outer variables. Keys and `cacheTag` values are stored in plain text:
+key on stable IDs, never tokens, passwords or raw emails.
 
-Cached functions have an isolated scope. Request storage and outer
-`React.cache` deduplication are not a reliable cross-boundary dependency.
-Resolve request-dependent promises outside the cached function and pass values.
+Arguments and returns: primitives, plain objects, arrays, Date, Map, Set,
+typed arrays. Not class instances, URL objects, symbols or functions.
+`children` and Server Actions may pass through if never read or invoked inside.
+Source: `03-api-reference/01-directives/use-cache.md`.
+
+Each cached scope has its own `React.cache` store, so outer request
+deduplication and values set outside are invisible inside. Resolve
+request-dependent promises outside and pass values.
 
 ## Lifetimes
 
-`stale` governs client freshness, `revalidate` the background-refresh window,
-and `expire` when a later read must wait for new content. When both are set,
-`expire` must exceed `revalidate`. Omitted values inherit the default profile.
+`stale` is client-router freshness (minimum 30 s enforced), `revalidate` the
+background-refresh window, `expire` when a later read must wait. `expire` must
+exceed `revalidate`; omitted fields inherit `default` (stale 5 min, revalidate
+15 min, expire never). Built-in names can be redefined in `next.config.*`.
 
-Named built-ins can be overridden. Short lifetimes can exclude content from
-prerenders or the App Shell; read the installed
-[cacheLife reference](https://nextjs.org/docs/app/api-reference/functions/cacheLife)
-rather than equating every cached component with static output.
+Prerender thresholds (`03-api-reference/04-functions/cacheLife.md`):
 
-Inner cache lifetimes/tags affect surrounding cached output. Define an outer
-lifetime when it should be tighter; verify the resulting refresh behavior.
+| Profile value | Result |
+| --- | --- |
+| `revalidate: 0` or `expire` < 5 min | Dynamic hole, resolved per request; needs Suspense |
+| `stale` < 30 s | Excluded from prerenders |
+| 30 s ≤ `stale` < 5 min | Prerendered, but not in the App Shell |
+
+Of the presets only `seconds` crosses a threshold.
+
+Nesting: an explicit outer `cacheLife` always wins, longer or shorter than
+inner ones. Without one, the outer uses `default`, and a shorter inner lifetime
+lowers it. A short-lived inner cache inside an outer `use cache` without
+`cacheLife` is a prerender error, even from a dependency.
 
 ## Invalidation
 
-`updateTag` expires a tag for read-your-writes and is restricted to Server
-Actions. `revalidateTag` supports profiles or an `expire` object; its behavior
-depends on that second argument, so it is not uniformly lazy.
-`revalidatePath` targets a route and does not replace an entity tag across
-unrelated pages. Refreshing a client tree alone does not invalidate persistent
-data caches.
+- `updateTag(tag)`: Server Actions only; next read waits for fresh data.
+- `revalidateTag(tag, profile)`: Server Actions and Route Handlers; only the
+  profile's `expire` is read. `'max'` serves stale while refreshing;
+  `{ expire: 0 }` blocks the next read. Refresh happens per visited page, not
+  at the call.
+- `revalidatePath('/p/1')` or `revalidatePath('/p/[slug]', 'page')`: the type
+  is required for a pattern; with rewrites pass the destination. Route-scoped:
+  it does not reach the same entity on unrelated routes.
+- Tags are case-sensitive, max 256 chars; one `cacheTag` call keeps at most 128.
+  Oversized tags are dropped with a warning, so revalidating them does nothing.
 
-Read [updateTag](https://nextjs.org/docs/app/api-reference/functions/updateTag),
-[revalidateTag](https://nextjs.org/docs/app/api-reference/functions/revalidateTag)
-and [revalidatePath](https://nextjs.org/docs/app/api-reference/functions/revalidatePath)
-for the call context and client-cache effects in the installed version.
+Any of these, or `refresh()`, called from a Server Action clears the whole
+client router cache. Draft Mode re-executes cached scopes and saves nothing;
+`draftMode().isEnabled` is readable inside `use cache`.
 
 ## Storage and variants
 
-Default runtime storage is per-instance memory unless a handler changes it;
-serverless memory is ephemeral, but warm reuse can occur. Do not assume every
-invocation is cold or that every host persists cache entries.
+| Directive | Server storage | Request APIs inside |
+| --- | --- | --- |
+| `'use cache'` | `cacheHandlers.default`; in-memory LRU per instance | No |
+| `'use cache: remote'` | `cacheHandlers.remote`; the same in-memory LRU unless the host or project configures one | No |
+| `'use cache: private'` | None; per-request dedupe plus browser memory for `stale` | `cookies`, `headers`, `searchParams` (not `connection`) |
 
-`use cache: remote` selects a remote handler with network/storage costs and
-deployment-specific guarantees. Configure the real handler; a directive alone
-does not install a backing store.
+Serverless memory rarely survives between requests. No directive survives a
+deploy. Use remote for rate-limited or slow upstreams and low-cardinality keys;
+per-user or per-filter keys waste it. Private runs at request time, is excluded
+from the static shell and cannot use a custom handler; `cacheLife({ stale:
+Infinity })` keeps a dedupe-only private function from lowering route stale time.
+Sources: `use-cache-remote.md`, `use-cache-private.md` in
+`03-api-reference/01-directives/`, and
+`03-api-reference/05-config/01-next-config-js/cacheHandlers.md`.
 
-`use cache: private` permits request API access with request/client-scoped
-reuse, rather than cross-request shared server storage. Check current feature
-support, retention and preview behavior. No variant establishes privacy policy
-by itself.
+## Routes, params and metadata
 
-## Routing and runtime
-
-Cache Components changes which segment configuration and runtime options are
-supported. Do not mix legacy `dynamic`/`revalidate`/`fetchCache` policies
-into an enabled app without checking the migration guide.
-
-GET handlers may prerender when their work permits it; their response and helper
-caching are separate decisions. Do not put `use cache` directly in the handler
-where unsupported; use an eligible helper. Non-GET execution is request-time,
-but reusable read helpers can still have their own cache policy.
-
-`generateStaticParams` and unknown params affect shell composition. Verify
-partial/unknown routes and the installed empty-array behavior. For
-non-deterministic work, use the documented `io` or request-time boundary where
-supported; do not freeze a per-request value accidentally.
-
-[Official caching guide](https://nextjs.org/docs/app/getting-started/caching)
-routes to private/remote directives, handlers, ISR and instant navigation.
+- GET Route Handlers prerender unless they read the request, uncached data or
+  non-deterministic values. `use cache` cannot go on the `GET` export or in its
+  body; call a cached helper. The bail-out throws, so an existing `try/catch`
+  catches and logs it as build noise. Non-GET methods run per request.
+- `generateMetadata`/`generateViewport` follow component rules: `use cache`
+  for external data; runtime data there errors unless the page is otherwise
+  dynamic. Their entries are separate from the page's, so reuse its tags.
+- Unlisted params are served from a shell and streamed; sending that App Shell
+  before a full server render needs 16.3+, and `partialPrefetching: true`
+  upgrades it after the first visit. Deleting `generateStaticParams` makes the
+  route render on every request, even with cached data. See
+  `02-guides/incremental-static-regeneration-cache-components.md`.

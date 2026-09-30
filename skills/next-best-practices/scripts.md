@@ -12,5 +12,5 @@ Add analytics/marketing integrations only when requested or part of the app's
 existing policy. Consent, duplicate page-view tracking and SPA navigation need
 the actual vendor contract, not a generic setup snippet.
 
-Read [Script](https://nextjs.org/docs/app/api-reference/components/script)
-and the current integration's documentation.
+Read `02-guides/scripts.md`, `03-api-reference/02-components/script.md` and
+the current integration's documentation.

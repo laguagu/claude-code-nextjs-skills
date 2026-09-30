@@ -8,9 +8,8 @@ a server parent.
 Server Component. Treat exported actions as endpoints requiring their own
 authorization.
 
-`use cache` is Next.js caching, with its own async/serialization and request
-API constraints. Confirm Cache Components configuration before introducing it.
+`use cache` (and `use cache: private`/`remote`) is Next.js caching and
+requires `cacheComponents: true`; see the `cache-components` skill.
 
-Read [React use client](https://react.dev/reference/rsc/use-client),
-[use server](https://react.dev/reference/rsc/use-server) and
-[Next.js use cache](https://nextjs.org/docs/app/api-reference/directives/use-cache).
+Read `03-api-reference/01-directives/` (`use-client.md`, `use-server.md`,
+`use-cache.md`).

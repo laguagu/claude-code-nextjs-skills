@@ -1,66 +1,69 @@
 # Cache composition decisions
 
-## Public shell with request-time work
+Doc paths are relative to `node_modules/next/dist/docs/01-app/`.
 
-Keep stable navigation/content outside the parts that wait on request data.
-Place meaningful fallbacks around those parts; their scope determines what can
-render immediately. A synchronous operation can still run during prerendering
-inside Suspense.
+## Shell and params
 
-Cache the shared read rather than the whole page when personalization or
-freshness differs by section. Cache short-lived output only when the resulting
-request-time boundary fits the UI.
+Keep stable navigation/content outside the parts that wait on request data, and
+make each fallback a meaningful placeholder: its scope sets what ships in the
+shell. A Suspense boundary high in a layout still blocks navigation into that
+segment; push it down to the data read.
+
+Do not await `params` above the boundary, even for params
+`generateStaticParams` lists: that ties the layout's shell to one URL. Pass the
+promise into the Suspense-wrapped child. Client URL hooks follow the same rule
+(see `02-guides/instant-navigation.md`).
+
+A root-layout `<html lang|dir|data-theme>` read from a cookie makes the whole
+tree request-bound. Set it with an inline `<head>` script instead
+(`02-guides/preventing-flash-before-hydration.md`).
+
+In 16.3 dev validates every page for instant navigation by default.
+`export const instant = false` lets a segment block and opts it out of
+static-shell validation; use it to adopt incrementally, not to silence a route
+permanently. It does not clear synchronous-value errors.
 
 ## Mutations and related reads
 
 Authorize and validate first, commit the mutation, then invalidate the affected
-entity/collection or path. Choose immediate freshness versus stale-while-revalidate
-from the product contract. Publishing a legal or availability change may require
-immediate freshness even if an administrator initiated it.
-
-Use shared loaders/tags for page content, metadata and related views when they
-represent the same data. Their caches are not guaranteed to invalidate merely
-because they appear on one page.
+entity/collection or path. Choose `updateTag` versus `revalidateTag` from the
+product contract: a legal or availability change may need immediate freshness
+even when an administrator made it. Metadata, sitemaps and related views share
+freshness only if they share loaders or tags.
 
 ## Tenant and user data
 
-Authenticate outside a shared cache boundary. Pass the authorized identity and
-all output-relevant filters into its key. Keep permission changes, account
-deletion and retention requirements in the invalidation design.
-
-Test two identities with overlapping resource IDs. Private caching is an
-alternative when supported and suitable; it does not replace execution-time
-authorization or prevent server logging.
+Authenticate outside a shared cache boundary and pass the authorized identity
+plus every output-relevant filter as arguments. Keep the per-user cached
+function unexported and resolve the user inside the exported getter, so no
+caller can pass another user's ID. Keys and tags are plain text; never key on
+tokens or emails. Keep permission changes, account deletion and retention in
+the invalidation design. Test two identities with overlapping resource IDs.
+Walkthrough: `02-guides/authentication-with-cache-components.md`.
 
 ## Nested caches and pass-through
 
-Use nested cached reads when they have distinct lifetimes or consumers.
-Do not depend on outer request `React.cache` storage inside a `use cache`
-scope. If the outer output embeds stale data, refreshing only its inner source
-may be insufficient; verify dependency/tag propagation.
+Nest cached reads when they have distinct lifetimes or consumers, and give the
+outer scope an explicit `cacheLife`. Inner tags propagate to the outer entry,
+so tag invalidation reaches both; time-based refresh does not, since the outer
+entry keeps the embedded inner output until its own lifetime ends.
 
-Pass dynamic children or Server Actions through a cached wrapper unchanged.
-Do not inspect children or invoke the action there; pass-through values do not
-become ordinary cache-key inputs.
+A cached wrapper may pass dynamic `children` or a Server Action through
+unchanged; reading children or invoking the action inside breaks the contract.
 
-## Dynamic params and navigation
+## Navigation state
 
-Read unknown params deeper in the tree when that preserves a useful shared
-shell. Resolve request-dependent values before invoking cached functions; a
-promise awaiting a nonexistent build-time request can stall prerendering.
-
-For `generateStaticParams`, use real representative values and check both
-listed and unlisted paths. Shell/partial-param behavior varies with version.
-Use the installed instant-navigation diagnostics where available.
+With `cacheComponents`, Next.js hides routes you navigate away from with React
+`<Activity>` instead of unmounting them: `useState`, form values and open dropdowns survive
+back navigation, and effects re-run. Reset explicitly where the UI assumed
+unmount (`02-guides/preserving-ui-state.md`).
 
 ## Deployment
 
-Choose the actual backing store and invalidation mechanism for the deployment.
-Multiple instances need coordinated data/cache behavior where shared freshness
-is required. Do not implement a generic Redis/S3 handler from a tutorial: use
-the installed Next.js handler contract and a maintained adapter or a tested
-project implementation.
-
-Read the [caching guide](https://nextjs.org/docs/app/getting-started/caching)
-and [self-hosting guide](https://nextjs.org/docs/app/guides/self-hosting) for
-matching implementations.
+Choose the actual backing store and invalidation path for the deployment.
+Multiple instances need a shared `cacheHandlers` store and tag sync through the
+handler's `refreshTags()`; one-process tests cannot show that. Every deploy
+starts with empty `use cache` entries. Use a maintained adapter or the
+installed handler contract
+(`03-api-reference/05-config/01-next-config-js/cacheHandlers.md`,
+`02-guides/how-revalidation-works.md`) rather than a tutorial Redis/S3 handler.

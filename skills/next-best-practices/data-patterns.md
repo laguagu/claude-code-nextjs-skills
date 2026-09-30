@@ -20,6 +20,6 @@ read-your-writes or stale-while-revalidate deliberately.
 Parallelize genuinely independent reads, and stream meaningful sections when
 latency requires it. Preserve data dependencies and failure semantics.
 
-Read [data security](https://nextjs.org/docs/app/guides/data-security),
-[fetching data](https://nextjs.org/docs/app/getting-started/fetching-data)
-and the installed caching model.
+Read `02-guides/data-security.md`, `01-getting-started/06-fetching-data.md`
+and `01-getting-started/07-mutating-data.md`; without Cache Components,
+`02-guides/caching-without-cache-components.md`.

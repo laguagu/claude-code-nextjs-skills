@@ -18,5 +18,6 @@ A type-only import can share server-derived contracts without importing runtime
 execution. Authorize Server Functions at their entry point; being passed as a
 prop does not make them private.
 
-Read [use client](https://react.dev/reference/rsc/use-client)
-and the installed Next.js server/client guide for supported types.
+Read `01-getting-started/05-server-and-client-components.md` and
+`02-guides/server-and-client-boundary.md`. The complete type list is in
+the React docs (`https://react.dev/reference/rsc/use-client#serializable-types`).
