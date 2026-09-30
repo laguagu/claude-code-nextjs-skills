@@ -12,24 +12,29 @@ upgrade is requested.
 - AI SDK 7 implementation or migration: use `ai-sdk-7`.
 - AI SDK 6 maintenance: use `ai-sdk-6`.
 - Unknown, mixed or older versions: resolve them before applying either API set.
-- New apps: verify the current release and package compatibility in the
-  [official docs](https://ai-sdk.dev/docs).
+- New apps: default to AI SDK 7 (`ai@7`, `@ai-sdk/react@4`, providers `@4`;
+  Node 22+) and `ai-sdk-7`.
 
 ## Find the API that matches the app
 
-Search the resolved package's `docs/` and `src/` first, including provider
-packages. Monorepo hoisting and Yarn PnP may change the paths; do not install
-or upgrade a dependency solely to obtain docs.
+Grep the installed, version-matched sources first:
 
-When local documentation is unavailable, use the matching docs version or
-repository tag. The [documentation search](https://ai-sdk.dev/api/search-docs?q=useChat)
-and Markdown page variants help locate the relevant feature. Repository main
-and the default website can target a newer major than the app.
+- `node_modules/ai/docs/` (guides, reference, `08-migration-guides/`) and
+  `node_modules/ai/src/`. Guides for `@ai-sdk/react`, `workflow`, `harness`,
+  `otel`, `mcp` and `devtools` live here; those packages ship types/src only.
+- `node_modules/@ai-sdk/<provider>/docs/` for provider options.
+- `ai` < 6.0.32 (including v5) ships no `docs/`: read `content/docs/` at the
+  `ai@<version>` tag of `vercel/ai`.
+
+Monorepo hoisting and Yarn PnP may change the paths; do not install or upgrade
+a dependency solely to obtain docs. Web fallback: the
+[official docs](https://ai-sdk.dev/docs) (current major; `/v6/docs/...` for
+v6; append `.md` for Markdown). Repository main also targets the newest major.
 
 Choose model IDs from the app's provider configuration or current provider
 catalog. The [Gateway catalog](https://ai-gateway.vercel.sh/v1/models) can aid
 discovery; its IDs and capability availability do not imply that another
-provider accepts them. Choose capability, latency and cost for the task.
+provider accepts them.
 
 ## Targeted references
 

@@ -5,14 +5,15 @@ description: Fetch current examples from the Vercel AI repository on demand.
 
 # Official implementations
 
-Use installed docs first, then fetch the smallest relevant file from the
-[Vercel AI examples](https://github.com/vercel/ai/tree/main/examples).
-Match its SDK/provider versions to the app; main changes continuously.
+Optional, web-only; use installed docs first. Fetch the smallest relevant file
+from the [Vercel AI examples](https://github.com/vercel/ai/tree/main/examples):
 
-Examples are useful for provider caching/grounding, harness lifecycle,
-telemetry, file upload, realtime and video. Search by feature and inspect the
-imports/configuration before adapting.
+- `examples/ai-functions/src/<function>/<provider>/<feature>.ts`; v7 feature
+  dirs include `harness-agent`, `workflow-agent`, `realtime`, `generate-video`,
+  `upload-file`, `upload-skill`, `telemetry`. List before guessing a filename.
+- Apps: `examples/next-agent`, `next-workflow`, `harness-e2e-next`.
 
-Replace example model IDs with the configured provider's verified IDs.
-Keep application authorization, storage and lifecycle decisions explicit;
-a working demo is not a production contract.
+`main` changes continuously; match its SDK/provider versions to the app (or read
+the `ai@<version>` tag). Replace example model IDs with the configured
+provider's verified IDs; a working demo is not a production auth/storage
+contract.

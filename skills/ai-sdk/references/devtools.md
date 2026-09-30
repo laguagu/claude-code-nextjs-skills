@@ -5,10 +5,20 @@ description: Debug AI SDK calls by inspecting captured runs and steps.
 
 # AI SDK DevTools
 
-Use DevTools when captured model requests, responses and steps would help diagnose a development issue. Choose an `@ai-sdk/devtools` release compatible with the project's installed AI SDK major; inspect its current exports, middleware setup and CLI rather than copying a pinned provider model.
+Development only. Setup differs by major:
 
-Keep instrumentation development-only. Captures can contain prompts, retrieved documents, tool arguments, outputs and provider metadata. Exclude capture files from Git and public artifacts; apply the same data policy as application logs.
+| `ai` | Package | Capture setup |
+| --- | --- | --- |
+| 6 | `@ai-sdk/devtools@ai-v6` | `wrapLanguageModel({ model, middleware: devToolsMiddleware() })` |
+| 7 | `@ai-sdk/devtools` | `registerTelemetry(DevToolsTelemetry())` (or per call via `telemetry.integrations`) |
 
-Find setup and capture format in the [official DevTools guide](https://ai-sdk.dev/docs/ai-sdk-core/devtools) or the installed package docs/source. Follow the repository's package manager. Verify where the selected release stores captures and which address its viewer binds to before opening or sharing it.
+`latest` depends on `ai@7`; do not add it to a v6 app.
 
-DevTools describes what happened in a call; it does not replace testing authorization, restored conversation replay or the production stream path.
+Runs and steps are written to `.devtools/generations.json` in the working
+directory; read it directly (`jq`) to inspect prompts, tool calls, usage and
+steps without the UI. `npx @ai-sdk/devtools` from the workspace that runs the
+code serves a viewer on `http://localhost:4983`.
+
+Captures contain prompts, retrieved documents, tool arguments/outputs and
+provider metadata. Keep `.devtools` out of Git and public artifacts (the package
+adds it to `.gitignore`; verify). Details: `node_modules/ai/docs/03-ai-sdk-core/65-devtools.mdx`.

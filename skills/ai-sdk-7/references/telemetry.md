@@ -5,22 +5,23 @@ description: OpenTelemetry registration, tracing channel, context filtering, and
 
 # Telemetry boundaries
 
-Register a telemetry integration once at app startup. For OpenTelemetry use
-`@ai-sdk/otel` with `registerTelemetry`; a Next.js app may register from its
-instrumentation entry point.
+OpenTelemetry is no longer built into `ai`. Register once at startup:
+`registerTelemetry(new OpenTelemetry())` (`registerTelemetry` from `ai`,
+`OpenTelemetry` from `@ai-sdk/otel`; custom tracer goes in its constructor). In
+Next.js, do it in `instrumentation.ts` next to the OTel provider setup.
 
-Once registered, telemetry is enabled by default; per-call `telemetry.isEnabled`
-can opt out. Without a registered integration it is disabled. Verify input and
-output capture settings for the app's data policy.
+Once an integration is registered, every call emits telemetry; opt out per call
+with `telemetry: { isEnabled: false }`. With none registered, nothing is
+emitted. `recordInputs`/`recordOutputs` default to true, so prompts and outputs
+reach the exporter unless disabled; match the app's data policy.
 
-Runtime/tool context is not included automatically. Context field filtering is
-shallow and affects telemetry only; execution, callbacks and result objects
-can still receive full values. Do not treat filtering as redaction everywhere.
+Context is excluded unless allow-listed with `telemetry.includeRuntimeContext`
+/ `includeToolsContext`. That filtering is shallow and telemetry-only;
+execution, callbacks and result objects still see full values.
 
 Request/response bodies are excluded by default; opt in only where needed and
 safe. Callback sets differ by core function/agent type. Custom integrations can
-use the SDK's diagnostics tracing channel rather than per-call wrappers.
+subscribe to `AI_SDK_TELEMETRY_TRACING_CHANNEL` rather than wrapping calls.
 
-Read installed `@ai-sdk/otel` docs/types and
-[telemetry docs](https://ai-sdk.dev/docs/ai-sdk-core/telemetry) for exact capture
-defaults and integration options.
+Read `node_modules/ai/docs/03-ai-sdk-core/60-telemetry.mdx` (`@ai-sdk/otel`
+ships types only) or the [telemetry docs](https://ai-sdk.dev/docs/ai-sdk-core/telemetry).

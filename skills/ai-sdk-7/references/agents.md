@@ -7,7 +7,8 @@ description: Build ToolLoopAgent and WorkflowAgent agents with AI SDK 7.
 
 Choose `ToolLoopAgent` for an in-memory request lifecycle, `WorkflowAgent`
 from `@ai-sdk/workflow` for durable workflow-backed execution, and
-`HarnessAgent` for a runtime such as Claude Code or Codex.
+`HarnessAgent` from `@ai-sdk/harness/agent` for a runtime such as Claude Code
+or Codex.
 
 ToolLoopAgent accepts generation/streaming calls and infers UI message types
 with `InferAgentUIMessage`. Request state belongs in per-call options or
@@ -17,16 +18,17 @@ with `InferAgentUIMessage`. Request state belongs in per-call options or
 state through `contextSchema`. Put information the model needs in instructions
 or messages, not only context.
 
-WorkflowAgent is stream-first, writes model chunks to a workflow writable and
-uses a conversion at the UI boundary. Durable tool work uses `'use step'`;
-context must be serializable. Its approval API remains tool-level
-`needsApproval`, while ToolLoopAgent uses `toolApproval`. Inference and
-callback APIs also differ. Read the workflow package's peer/runtime requirements;
-the current guide requires Workflow 5 (beta), rather than any installed
-Workflow release. Signed approvals use an environment-variable reference so
-raw keys are not serialized into durable steps.
+WorkflowAgent has `stream()` only (no `generate()`), runs inside a
+`'use workflow'` function, writes `ModelCallStreamPart`s to
+`getWritable()` from `workflow`, and has no default step limit. Convert at the
+route with `run.readable.pipeThrough(createModelCallToUIChunkTransform())`.
+Durable tool work uses `'use step'`; context must be serializable. Approval
+stays tool-level `needsApproval` (ToolLoopAgent uses `toolApproval`); signed
+approvals take `experimental_toolApprovalSecret: { environmentVariable }` so
+raw keys are not serialized into durable steps. Install `@ai-sdk/workflow`
+with `workflow@beta` (Workflow 5 peer), not whatever `workflow` is installed.
 
 Read installed workflow types before adapting core agent helpers. Start from
-[agent docs](https://ai-sdk.dev/docs/agents/building-agents) and
-[WorkflowAgent docs](https://ai-sdk.dev/docs/agents/workflow-agent);
+`docs/03-agents/` (`02-building-agents`, `07-workflow-agent`) or the
+[agent docs](https://ai-sdk.dev/docs/agents/building-agents);
 for runtime-owned history see [harnesses.md](harnesses.md).

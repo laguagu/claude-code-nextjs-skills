@@ -10,25 +10,30 @@ Apply this skill to `ai@7`; use `ai-sdk` to resolve unknown versions and
 `ai-sdk-6` for v6 maintenance. Match provider and UI package versions to the
 project. AI SDK 7 requires Node.js 22+ and AI SDK packages are ESM-only.
 
-Read the resolved `ai/docs/`, provider docs and installed source/types first.
-Use [official docs](https://ai-sdk.dev/docs) or the matching repository tag
-when local docs are unavailable. Experimental package APIs need a fresh check
-before adding long-lived wrappers.
+Read `node_modules/ai/docs/` first: `03-agents/`, `03-ai-sdk-core/`,
+`03-ai-sdk-harnesses/`, `04-ai-sdk-ui/`, `08-migration-guides/`. `@ai-sdk/react`,
+`workflow`, `harness`, `otel` and `mcp` ship types/src only; their guides are
+there. Provider options: `node_modules/@ai-sdk/<provider>/docs/`. Web fallback:
+the [official docs](https://ai-sdk.dev/docs). Experimental package APIs need a
+fresh check before adding long-lived wrappers.
 
 ## Important boundaries
 
 - Text functions and ToolLoopAgent use `instructions`; loop limits use
-  `isStepCount`. Check callback scope before renaming core `onFinish` to
-  `onEnd`; React `useChat.onFinish` is separate.
+  `isStepCount`. Defaults: text functions 1 step (tools run, no follow-up
+  text), ToolLoopAgent 20, WorkflowAgent unbounded. Check callback scope before
+  renaming core `onFinish` to `onEnd`; React `useChat.onFinish` is separate.
 - `prepareStep` instruction/message overrides carry forward. Results such as
   `usage` and tool arrays aggregate all steps; `finalStep` preserves final-step
-  access, and is awaited for streams.
+  access, and is awaited for streams. `step.response.messages` holds only that
+  step's messages; persist `result.responseMessages`.
 - Use `runtimeContext` for server loop state and schema-validated
   `toolsContext` for per-tool state. Neither is model-visible merely by being
   context.
-- Approval, persistence and lifecycle differ across ToolLoopAgent,
-  WorkflowAgent, HarnessAgent and provider-executed tools. Choose the runtime
-  for the actual durability/permission requirements.
+- Default to `ToolLoopAgent` (`ai`). Use `WorkflowAgent` (`@ai-sdk/workflow`)
+  only when a run must survive restarts or wait on approval, and `HarnessAgent`
+  (`@ai-sdk/harness/agent`) to drive Claude Code, Codex, Pi and similar
+  runtimes. Approval and persistence APIs differ across the three.
 - Resolve model IDs and capabilities from the configured provider. Avoid
   overlapping reasoning settings: provider options can override top-level
   `reasoning`.

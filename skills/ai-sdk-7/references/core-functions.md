@@ -14,18 +14,25 @@ for trusted history, not browser-controlled instructions.
 receive boundary, lifecycle and terminal parts as well as text/tool data.
 Narrow the part before processing it.
 
-Prefer stateless UI/text response helpers for new v7 code. The server output
-must match the client transport. Provider-executed tools and file/reasoning
-parts need handling beyond text deltas.
+Result response methods (`toUIMessageStreamResponse` etc.) are deprecated.
+Use `createUIMessageStreamResponse({ stream: toUIMessageStream({ stream:
+result.stream, originalMessages, onEnd }) })`, or `toTextStream` +
+`createTextStreamResponse` for plain text. The server output must match the
+client transport. Provider-executed tools and file/reasoning parts need
+handling beyond text deltas.
 
 Top-level usage/content/tool arrays aggregate all steps. Use `finalStep`
-(awaited for a stream) for final-step metadata and usage. Choose intentionally
-for accounting, storage and rendering.
+(awaited for a stream) for final-step metadata and usage, and
+`result.responseMessages` (not `step.response.messages`) for the full
+assistant/tool history. Request/response bodies are omitted unless
+`include: { requestBody, responseBody }` (`responseBody`: `generateText` only).
 
-Use top-level `reasoning` only when supported; overlapping provider settings
-take precedence. Configure timeouts for the actual operation, distinguishing
-total, step, chunk and tool deadlines where the installed API supports them.
+Use top-level `reasoning` (`'none'` … `'xhigh'`, default
+`'provider-default'`) only when supported; overlapping provider settings take
+precedence. `timeout` takes ms or `{ totalMs, stepMs, chunkMs, toolMs,
+tools: { <name>Ms } }`; a tool timeout becomes a tool error.
 
-Find exact options/defaults in installed docs/types and
+Find exact options/defaults in `docs/03-ai-sdk-core/` (`25-settings`,
+`26-reasoning`), `docs/07-reference/01-ai-sdk-core/` or
 [AI SDK Core](https://ai-sdk.dev/docs/ai-sdk-core/overview). For renamed fields
 or changed semantics read the [migration reference](migration-v6-to-v7.md).

@@ -9,24 +9,28 @@ Use `inputSchema` and keep server authorization in the executor. Shared loop
 state uses `runtimeContext`; each `toolsContext` entry is validated by that
 tool's `contextSchema`. Context is not model-visible by default.
 
-ToolLoopAgent/core generation use `toolApproval`; rules may approve, deny,
-request manual approval or be not applicable. WorkflowAgent instead uses
-tool-level `needsApproval` for durable suspension. Subagent, provider-executed
-and harness built-in tools have separate constraints.
+ToolLoopAgent/core generation use `toolApproval`: a per-tool map or one
+function returning `'not-applicable'` (default; also `undefined`),
+`'approved'`, `'denied'` (or `{ type: 'denied', reason }`) or
+`'user-approval'`. Tool-level `needsApproval` is deprecated there but still
+the WorkflowAgent API. Subagent tools cannot use approval at all;
+provider-executed and harness built-in tools follow provider/adapter policy.
 
-Browser history can fabricate an approval response. Bind sensitive decisions to
-server-issued state. Where the installed core API supports
-`experimental_toolApprovalSecret`, verify its signed approval contract;
-do not assume all agent classes accept it. Recheck authorization at execution.
+Browser history can fabricate an approval response. For sensitive tools set
+`experimental_toolApprovalSecret` (string/bytes on core functions and
+ToolLoopAgent; env-var reference on WorkflowAgent) so replayed approvals are
+HMAC-verified. Recheck authorization at execution.
 
-Update context through supported preparation hooks, rather than mutating
-shared tool state. Workflow context must serialize; a live
+Update context by returning `runtimeContext`/`toolsContext` from
+`prepareStep`, rather than mutating shared tool state. Workflow context must serialize; a live
 `experimental_sandbox` handle belongs to execution, not persisted context.
 
-MCP Apps use an experimental React renderer and app-only resource/tool metadata.
-Validate server identity/resource loading and distinguish app-only tools from
-model-visible ones.
+MCP Apps render with `experimental_MCPAppRenderer` (`@ai-sdk/react`) and use
+app-only resource/tool metadata. Validate server identity/resource loading and
+distinguish app-only tools from model-visible ones. v7 MCP transports reject
+redirects by default (`redirect: 'error'`).
 
-Read installed package types and
-[tool calling docs](https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling)
+Read `docs/03-ai-sdk-core/` (`15-tools-and-tool-calling`,
+`17-runtime-and-tool-context`, `17-mcp-apps`), `docs/03-agents/06-tool-approvals.mdx`
+or the [tool calling docs](https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling)
 for policy signatures, dynamic tool parts, timeouts and approvals.

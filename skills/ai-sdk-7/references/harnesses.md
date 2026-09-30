@@ -9,15 +9,20 @@ description: Use HarnessAgent to run Claude Code, Codex, Pi, and other agent har
 tools, permissions, compaction, workspace and conversation history belong to
 that runtime. Packages/adapters are experimental; verify installed docs/types.
 
-Choose an adapter and compatible sandbox from
-[harness docs](https://ai-sdk.dev/docs/ai-sdk-harnesses/overview). Bridge-backed
-adapters require a reachable network sandbox; lighter host runtimes may differ.
-Do not copy sandbox runtime strings or broad permission defaults from a demo.
+Packages: `@ai-sdk/harness` (`HarnessAgent` from `@ai-sdk/harness/agent`), one
+adapter `@ai-sdk/harness-<runtime>` (`claude-code`, `codex`, `pi`, ...) and a
+sandbox adapter. Bridge-backed adapters (Claude Code, Codex) need a real
+network sandbox such as `@ai-sdk/sandbox-vercel`; host runtimes like Pi can use
+`@ai-sdk/sandbox-just-bash`. Guides: `node_modules/ai/docs/03-ai-sdk-harnesses/`
+or the [harness docs](https://ai-sdk.dev/docs/ai-sdk-harnesses/overview). Do not
+copy sandbox runtime strings or broad permission defaults from a demo.
 
-Configuration belongs to the reusable agent; live state belongs to a session.
-Every session needs an explicit lifecycle: destroy discards resumability,
-detach/stop produce opaque resume state with different runtime behavior.
-Persist that state per authorized chat/session. Continue an unfinished resumed
+Configuration belongs to the reusable agent; live state belongs to a session
+(`agent.createSession({ sessionId, resumeFrom?, sandboxSession? })`). Every
+session needs an explicit lifecycle: `session.destroy()` discards
+resumability; `detach()` (parks the runtime) and `stop()` (stops it) return
+opaque resume state. Persist that state per authorized chat/session. A supplied
+`sandboxSession` stays the caller's to destroy. Continue an unfinished resumed
 turn before accepting a new prompt.
 
 A harness consumes the latest user input against its own history. Replaying the
