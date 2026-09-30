@@ -13,15 +13,18 @@ or promise unavailable data. A suggested question and a button that executes
 a side effect need distinct behavior; execution still requires authorization
 and any required approval.
 
-If a model generates suggestions, use a small validated output schema and
+If a model generates suggestions, use a small validated output schema (e.g.
+`generateText` with `output: Output.array({ element: z.string() })`) and
 choose a supported model from measured quality/cost/latency. Tie the request
 to the conversation and answer IDs, cancel or discard stale results after a
 new turn, and allow generation failure to leave no suggestions.
 
 Keep labels readable at the actual viewport and language. Wrap or lay them out
 without clipping; fixed word counts and mandatory single-line chips do not
-generalize. Suggestions should complement the answer instead of duplicating
-it or displacing the composer.
+generalize. AI Elements `Suggestions` is one non-wrapping row (horizontal
+`ScrollArea`, hidden scrollbar); edit the generated `suggestion.tsx` to wrap.
+Suggestions should complement the answer instead of duplicating it or
+displacing the composer.
 
 Verify unavailable entities, incomplete answers, conversation switching,
 screen-reader names and narrow layouts.

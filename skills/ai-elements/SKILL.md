@@ -15,19 +15,21 @@ major. Read `ai-sdk` to resolve the installed version, then the appropriate
 `ai-sdk-6` or `ai-sdk-7` guidance. AI Elements and AI SDK versions can change
 independently.
 
-Find current component documentation through the
-[AI Elements site](https://ai-sdk.dev/elements), the available AI Elements MCP,
-or the matching component file in `references/`. Load only the relevant
-component references; verify older bundled examples against installed source.
+Sources, in order: the generated `components/ai-elements/<component>.tsx`
+(the installed truth), this skill's `references/<component>.md` with its
+`scripts/` examples, then the [AI Elements docs](https://elements.ai-sdk.dev).
+Load only the relevant component references; verify bundled examples against
+the installed source.
 
-For installation, use the project's runner with `ai-elements@latest add <component>`
-or `shadcn@latest add @ai-elements/<component>`. Check installed components and
-review generated files before replacing local customization. Use `shadcn` for
-registry, preset and primitive-base details.
+Install with the project's runner: `ai-elements@latest add <component...>` or
+`shadcn@latest add @ai-elements/<component>`. Name the components; the
+`ai-elements` CLI installs every component when none is given. Check installed
+components and review generated files before replacing local customization.
+Use `shadcn` for registry, preset and primitive-base details.
 
 ## Integration
 
-[Integration](references/integration.md) covers the UI/SDK boundary and v6
+[Integration](references/integration.md) covers the UI/SDK boundary and its
 pitfalls. Keep stable message IDs and render supported message parts with the
 generated compound components. Keep model choice, tools, credentials and
 authorization on the server.

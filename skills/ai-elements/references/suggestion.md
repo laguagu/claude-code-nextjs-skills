@@ -94,7 +94,7 @@ export default SuggestionDemo;
 
 - Horizontal row of clickable suggestion buttons
 - Customizable styling with variant and size options
-- Flexible layout that wraps suggestions on smaller screens
+- Single non-wrapping row: `Suggestions` is a horizontal `ScrollArea` with a hidden scrollbar; edit the generated source to wrap
 - onClick callback that emits the selected suggestion string
 - Support for both individual suggestions and suggestion lists
 - Clean, modern styling with hover effects
@@ -158,4 +158,4 @@ See [suggestion behavior and lifecycle](../../nextjs-chatbot/suggestions.md) for
 |------|------|---------|-------------|
 | `suggestion` | `string` | Required | The suggestion string to display and emit on click. |
 | `onClick` | `(suggestion: string) => void` | - | Callback fired when the suggestion is clicked. |
-| `...props` | `Omit<React.ComponentProps<typeof Button>, ` | - | Any other props are spread to the underlying shadcn/ui Button component. |
+| `...props` | `Omit<React.ComponentProps<typeof Button>, "onClick">` | `variant="outline"`, `size="sm"` | Any other props are spread to the underlying shadcn/ui Button component. Children replace the label. |
