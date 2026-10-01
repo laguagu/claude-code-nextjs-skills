@@ -18,6 +18,18 @@ bunx --bun shadcn@latest init --preset <CODE> --template next
 
 Pass the code through unchanged. Use the CLI's `preset decode` command when you need to inspect it. Choose fonts, style and primitive base for the product; retain an existing project's base.
 
+For example, `b0` selects Nova, neutral colors, Lucide and Inter, with headings inheriting the body font (checked against the preset source on 2026-10-01):
+
+```bash
+bunx --bun shadcn@latest init --preset b0 --template next
+```
+
+This is an installation example, not the preset to use for every product. Choose the code for the brief in [shadcn/create](https://ui.shadcn.com/create); the available styles, fonts and icon families are summarized in [styling.md](styling.md).
+
+Keep Bun in the scaffolded project's package setup and record the convention in its agent instructions so later sessions retain it. Preserve any framework-generated instruction block when adding that local rule.
+
+Use `@/` as the import alias for a new standalone app unless the project calls for another convention. Follow configured aliases and shared-package boundaries in existing apps and monorepos.
+
 ## Existing project
 
 Inspect `components.json`, theme CSS, installed components and package metadata before changing them. Use the `shadcn` skill for current CLI details.

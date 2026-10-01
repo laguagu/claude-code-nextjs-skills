@@ -8,7 +8,15 @@ Choose type for the actual product: a reading surface needs comfortable paragrap
 
 No font family is universally required or forbidden. A familiar family can be the right choice. Judge the rendered result: wrapping, line length, weights, loading behavior and hierarchy.
 
-For Next.js, use `next/font` where appropriate or the project's existing font setup. Set the chosen fonts through the theme so components inherit them. Choose a preset through [shadcn/create](https://ui.shadcn.com/create), using its current options rather than a fixed list in this skill. Offline, `shadcn preset decode <code>` shows a code's style, fonts, icon library and radius, and the installed `shadcn/preset` module exports the option lists (`PRESET_STYLES`, `PRESET_FONTS`, `PRESET_ICON_LIBRARIES`).
+For Next.js, use `next/font` where appropriate or the project's existing font setup. Set the chosen fonts through the theme so components inherit them. Choose a preset through [shadcn/create](https://ui.shadcn.com/create).
+
+Current choices (checked against the [preset source](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/preset/preset.ts) on 2026-10-01):
+
+- **Component styles:** Nova, Vega, Maia, Lyra, Mira, Luma, Sera and Rhea. Compare their previews for the product's density, shape and hierarchy; these are starting points, not industry-specific prescriptions.
+- **Fonts:** choose body and heading fonts separately, or let headings inherit. Options include Inter, Geist, DM Sans, Manrope, Space Grotesk, Lora and Instrument Serif; use the current picker for the complete list and `next/font` beyond the preset list when needed.
+- **Icon families:** Lucide, Tabler Icons, Hugeicons, Phosphor Icons and Remix Icon. Choose a family that fits the typography and keep it consistent; use `icons` for sourcing and real brand marks.
+
+Style, base color, theme, chart palette, fonts, icons, radius and menu treatment are separate choices. Preview them together with actual product content rather than choosing a style by its name alone. Current CLI options take precedence over this snapshot. Offline, `shadcn preset decode <code>` shows a code's choices, and the installed `shadcn/preset` module exports the option lists (`PRESET_STYLES`, `PRESET_FONTS`, `PRESET_ICON_LIBRARIES`).
 
 ## Theme ownership
 
@@ -42,7 +50,18 @@ Use available generation tools when an original illustration, image or video wou
 
 For video backgrounds, preserve readability, reserve space and provide a useful poster or static fallback. Avoid unsolicited audio and excessive media weight. Prefer an actual UI preview when the visitor needs to understand how the product works.
 
-Start with the project's existing result, disclosure and navigation components. For size/position changes or a moving active selection, consult [Motion's layout documentation](https://motion.dev/docs/react-layout-animations) when that library fits the project. For route or shared-element continuity, use `vercel-react-view-transitions` and the current [React ViewTransition reference](https://react.dev/reference/react/ViewTransition); check support in the installed framework's docs. No particular animation library is required.
+Start with the project's existing result, disclosure and navigation components. Choose the animation tool for the interaction:
+
+| Need | Useful route |
+|---|---|
+| Simple hover, focus or disclosure feedback | Existing component transitions or CSS |
+| Size/position changes, a moving active selection or gesture-driven UI | [Motion's layout documentation](https://motion.dev/docs/react-layout-animations) |
+| Coordinated timelines, SVG sequences or scroll-driven storytelling | GSAP and [ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) when needed |
+| Route continuity, shared elements or state changes through React transitions | `vercel-react-view-transitions` and the current [React ViewTransition reference](https://react.dev/reference/react/ViewTransition) |
+
+For GSAP in React, use `gsap` with `@gsap/react` and scoped `useGSAP()` in the interactive Client Component; the hook reverts recorded animations on cleanup. Delayed or event-handler animations need `contextSafe()` or explicit cleanup. See the [official React integration](https://gsap.com/resources/React/) for the current API. Keep continuous or scroll-driven work local to the effect rather than turning the whole page into a Client Component.
+
+For View Transitions, read `vercel-react-view-transitions` and check the installed framework's support before adding configuration or changing React versions. Its shared-element, list and navigation patterns are available when they serve the interaction. No particular animation library is required.
 
 Respect reduced motion. Keep essential content visible without animation, stop continuous work when offscreen or hidden, and check touch behavior. A pointer-following light, scroll sequence or canvas is an intentional feature, not a routine finishing step.
 

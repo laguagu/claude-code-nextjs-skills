@@ -5,3 +5,5 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
 <!-- END:nextjs-agent-rules -->
+
+Use Bun for JavaScript packages and scripts in new projects (`bun add`, `bun run <script>`, `bunx --bun`). In an existing project, follow its lockfile and `packageManager` field instead.

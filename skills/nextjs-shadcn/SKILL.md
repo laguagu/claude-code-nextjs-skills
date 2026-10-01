@@ -11,14 +11,14 @@ Build an interface with a visual identity that fits its content, audience and ta
 
 For a new view or substantial redesign, use `frontend-design` to choose the typography, palette and composition before building. Preserve a working visual system during smaller edits.
 
-Choose fonts for the product's tone, reading density and language support. Choose a shadcn preset as a foundation, then make deliberate choices about type scale, spacing and hierarchy. Neither the default preset nor an unusual font guarantees a good design.
+Choose fonts for the product's tone, reading density and language support. Use [shadcn/create](https://ui.shadcn.com/create) to choose the component style, body and heading fonts, icon family and theme together. Compare the preview with representative content, then make deliberate choices about type scale, spacing and hierarchy. Neither the default preset nor an unusual font guarantees a good design.
 
 Keep the user's task clear:
 
 - Cut decorative badges, repeated headings, empty marketing claims and helper text that explains the obvious.
 - Keep useful status, navigation, explanations and disclosures.
 - Use cards, sections and CTAs because the content needs them, rather than filling a template.
-- Use brief motion to connect an action with its result, expanded details or active navigation. Reuse existing interaction components; [styling.md](references/styling.md) points to current motion sources.
+- Use brief motion to connect an action with its result, expanded details or active navigation. Reuse existing interaction components; [styling.md](references/styling.md) covers Motion, GSAP and `vercel-react-view-transitions` for different animation needs.
 - Reuse the project's icon family. Use `icons` when sourcing new icons or brand assets; an icon does not automatically replace a clear label.
 
 ## Use atmosphere when it helps
@@ -31,7 +31,7 @@ Read [styling.md](references/styling.md) when deciding on fonts, theme customiza
 
 ## Work from the actual project
 
-Use Bun for new projects. In existing projects, follow `packageManager`, the lockfile, component conventions and configured aliases.
+Use Bun for packages and scripts in new projects: `bun install`, `bun add`, `bun run <script>` and `bunx --bun <cli>`. This is the user's default; do not ask them to choose a package manager again. In existing projects, follow `packageManager`, the lockfile, component conventions and configured aliases.
 
 Inspect `components.json` and the installed components before editing. Use the `shadcn` skill and the CLI's `info`/`docs` commands for project metadata, component documentation and registry guidance.
 
