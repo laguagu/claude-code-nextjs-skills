@@ -2,6 +2,8 @@
 
 API differences between `base` and `radix`. Check the `base` field from `npx shadcn@latest info`.
 
+This comparison covers those two bases. For `aria`, read the React Aria component docs returned by `shadcn docs <component>`; do not substitute the Base UI or Radix composition API. React Aria is a supported third base ([official announcement](https://ui.shadcn.com/docs/changelog/2026-07-react-aria)).
+
 ## Contents
 
 - Composition: asChild vs render

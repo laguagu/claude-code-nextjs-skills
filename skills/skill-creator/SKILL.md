@@ -94,7 +94,7 @@ These word counts are approximate and you can feel free to go longer if needed.
 **Key patterns:**
 - Aim for a concise core; 500 lines is a recommendation, not a format limit. Link separate topics with when-to-read guidance, after removing duplication.
 - Reference files clearly from SKILL.md with guidance on when to read them
-- For large reference files (>300 lines), include a table of contents
+- Add a compact table of contents to long, multi-topic references when it helps locate the relevant section; a line count alone does not require one.
 
 **Domain organization**: When a skill supports multiple domains/frameworks, organize by variant:
 ```
@@ -115,10 +115,10 @@ This goes without saying, but skills must not contain malware, exploit code, or 
 
 Prefer using the imperative form in instructions.
 
-**Defining output formats** - You can do it like this:
+**Defining output formats** - Specify an exact template when a downstream workflow or parser requires it. For open-ended work, name the information needed and use the project's format. For a fixed report contract:
 ```markdown
 ## Report structure
-ALWAYS use this exact template:
+Use this structure when producing the report required by this workflow:
 # [Title]
 ## Executive summary
 ## Key findings

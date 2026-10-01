@@ -216,7 +216,7 @@ Displays project info and `components.json` configuration. Run this first to dis
 
 | Field                | Type      | Meaning                                                                                    |
 | -------------------- | --------- | ------------------------------------------------------------------------------------------ |
-| `base`               | `string`  | Primitive library (`radix` or `base`) — determines component APIs and available props      |
+| `base`               | `string`  | Primitive library (`radix`, `base` or `aria`) — determines component APIs and available props |
 | `style`              | `string`  | Visual style (e.g. `nova`, `vega`)                                                         |
 | `rsc`                | `boolean` | RSC flag from config                                                                       |
 | `tsx`                | `boolean` | TypeScript flag                                                                            |
@@ -287,4 +287,4 @@ Ask the user first: **overwrite**, **merge**, or **skip** existing components?
 - **Merge** → `npx shadcn@latest init --preset <code> --force --no-reinstall`, then run `npx shadcn@latest info` to get the list of installed components and use the [smart merge workflow](./SKILL.md#updating-components) to update them one by one, preserving local changes. Use when the user has customized components.
 - **Skip** → `npx shadcn@latest init --preset <code> --force --no-reinstall`. Only updates config and CSS variables, leaves existing components as-is.
 
-Always run preset commands inside the user's project directory. `apply` only works in an existing project with a `components.json` file. The CLI automatically preserves the current base (`base` vs `radix`) from `components.json`. If you must use a scratch/temp directory (e.g. for `--dry-run` comparisons), pass `--base <current-base>` explicitly — preset codes do not encode the base.
+Always run preset commands inside the user's project directory. `apply` only works in an existing project with a `components.json` file. The CLI automatically preserves the current base (`base`, `radix` or `aria`) from `components.json`. If you must use a scratch/temp directory (e.g. for `--dry-run` comparisons), pass `--base <current-base>` explicitly — preset codes do not encode the base.

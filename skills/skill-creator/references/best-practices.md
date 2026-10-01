@@ -84,8 +84,8 @@ When evaluating trigger behavior, use representative should-trigger and should-n
 
 ### Guidance
 - Aim for a concise core; **500 lines** is guidance, not a validation limit
-- References **one level deep** from SKILL.md (no A → B → C chains)
-- **Table of contents** in reference files >100 lines
+- Keep essential task entry points directly reachable from SKILL.md; avoid long reference chains needed to find the core instructions.
+- Add a compact table of contents to long, multi-topic references when it helps locate the relevant section; a line count alone does not require one.
 - Tell the agent **when** to load each reference: "Read X if condition Y"
 - Name files descriptively: `form_validation_rules.md` not `doc2.md`
 
@@ -139,7 +139,7 @@ package docs, types or source when available, with web docs as the fallback.
 
 ### Explain the why
 
-Reasoning-based instructions outperform rigid directives:
+Explain the reason for a constraint so the agent can apply it in context:
 - Good: "Filter test accounts because production reports include them otherwise, which inflates metrics"
 - Bad: "ALWAYS filter test accounts. NEVER skip this step."
 
@@ -148,6 +148,8 @@ Reasoning-based instructions outperform rigid directives:
 Write instructions as commands: "Run the validator", "Check the output", "Read the schema".
 
 ## Writing patterns
+
+Use tables for comparisons across the same fields, bullets for independent constraints and numbered steps when order matters. Use headings and when-to-read links for navigation. Keep longer explanations in prose rather than packing several paragraphs into a table cell; no single layout is required for every skill.
 
 ### Gotchas section (highest value)
 Environment-specific facts that defy reasonable assumptions:
