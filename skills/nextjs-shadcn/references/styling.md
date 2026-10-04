@@ -57,6 +57,8 @@ Start with the project's existing result, disclosure and navigation components. 
 | Simple hover, focus or disclosure feedback | Existing component transitions or CSS |
 | Size/position changes, a moving active selection or gesture-driven UI | [Motion's layout documentation](https://motion.dev/docs/react-layout-animations) |
 | Coordinated timelines, SVG sequences or scroll-driven storytelling | GSAP and [ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) when needed |
+| A purpose-made vector animation | A suitable Lottie/LottieFiles asset and compatible player; check provenance, payload, reduced motion and fallback |
+| A spatial product scene or interactive 3D presentation | Available Three.js guidance and a useful static fallback |
 | Route continuity, shared elements or state changes through React transitions | `vercel-react-view-transitions` and the current [React ViewTransition reference](https://react.dev/reference/react/ViewTransition) |
 
 For GSAP in React, use `gsap` with `@gsap/react` and scoped `useGSAP()` in the interactive Client Component; the hook reverts recorded animations on cleanup. Delayed or event-handler animations need `contextSafe()` or explicit cleanup. See the [official React integration](https://gsap.com/resources/React/) for the current API. Keep continuous or scroll-driven work local to the effect rather than turning the whole page into a Client Component.

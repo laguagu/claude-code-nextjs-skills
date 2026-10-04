@@ -13,13 +13,15 @@ For a new view or substantial redesign, use `frontend-design` to choose the typo
 
 Choose fonts for the product's tone, reading density and language support. Use [shadcn/create](https://ui.shadcn.com/create) to choose the component style, body and heading fonts, icon family and theme together. Compare the preview with representative content, then make deliberate choices about type scale, spacing and hierarchy. Neither the default preset nor an unusual font guarantees a good design.
 
+Record the chosen preset, theme, fonts and icon family in the project's design notes; preserve that direction unless the brief changes. References and images are project-specific. Component style and icon family are separate choices; [styling.md](references/styling.md) covers them.
+
 Keep the user's task clear:
 
 - Cut decorative badges, repeated headings, empty marketing claims and helper text that explains the obvious.
 - Keep useful status, navigation, explanations and disclosures.
 - Use cards, sections and CTAs because the content needs them, rather than filling a template.
 - Use brief motion to connect an action with its result, expanded details or active navigation. Reuse existing interaction components; [styling.md](references/styling.md) covers Motion, GSAP and `vercel-react-view-transitions` for different animation needs.
-- Reuse the project's icon family. Use `icons` when sourcing new icons or brand assets; an icon does not automatically replace a clear label.
+- Reuse the project's icon family. Use `icons` when sourcing new UI icons, file-type icons or official brand assets; an icon does not automatically replace a clear label.
 
 ## Use atmosphere when it helps
 
@@ -52,7 +54,7 @@ Read [architecture.md](references/architecture.md) for routing, Server/Client bo
 
 ## Verify the result
 
-Inspect the rendered view at relevant mobile and desktop widths. Check composition, wrapping, overflow, controls and the states affected by the change. Preserve accessibility, focus and reduced-motion behavior; screenshots and DOM inspection answer different questions.
+Inspect the rendered view at relevant mobile and desktop widths. Check composition, wrapping, overflow, controls and the states affected by the change. Preserve accessibility, focus and reduced-motion behavior; screenshots and DOM inspection answer different questions. Own the visual finish: compare the real view and animation intermediates with the project's direction, and fix observed defects before delivery.
 
 Run the project's checks. If `@shadcn/lint` is configured, use its feedback to keep the design system coherent. For a new Tailwind v4 project, or recurring theme drift, consider integrating it with the existing linter. Configure rules for the intended design; custom backgrounds and media may need deliberate exceptions. See [shadcn-platform.md](references/shadcn-platform.md) for lint setup and optional shadcn utilities.
 
