@@ -116,6 +116,9 @@ setup is in the [browser testing skill](skills/chrome-devtools/SKILL.md).
 [CLAUDE.md](CLAUDE.md) references it. These root files guide work on the
 repository; installing the plugin does not load them as project context.
 
+[examples/global-agents.md](examples/global-agents.md) is a user-wide instruction
+file for long autonomous runs: when to keep going, when to stop, and how to report.
+
 ## 🔄 Updating
 
 In Claude Code, run `/plugin marketplace update laguagu`, then
