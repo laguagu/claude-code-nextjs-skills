@@ -179,11 +179,14 @@ ParadeDB's API changes between releases. For query syntax, use the official
 ParadeDB agent skill ([paradedb/agent-skills](https://github.com/paradedb/agent-skills))
 if it is installed, or fetch the docs index at
 `https://www.paradedb.com/docs/llms.txt`. Points that are easy to get wrong
-from memory (checked 2026-09):
+from memory (checked 2026-09; key-field rules updated 2026-10-11):
 
-- The index is `CREATE INDEX ... USING paradedb (...) WITH (key_field = 'id')`
+- The index is `CREATE INDEX ... USING paradedb (...)`
   since 0.25.0; `USING bm25` is a backwards-compatible alias, and
-  `CALL paradedb.create_bm25` is gone. The key field is unique and listed first.
+  `CALL paradedb.create_bm25` is gone. Before 0.26.0, add `WITH (key_field = 'id')`:
+  the key field must be unique and listed first. In [0.26+](https://www.paradedb.com/docs/reference/indexing/create-index),
+  `key_field` is deprecated and ignored; no designated key field or unique first
+  column is required. The bundled SQL keeps the option for 0.25 compatibility.
 - One ParadeDB index per table, covering every column you search, filter, sort
   or aggregate on. Adding or removing a field, or changing its tokenizer, means
   rebuilding it (the docs build a new one `CONCURRENTLY`, then drop the old).

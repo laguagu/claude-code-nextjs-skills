@@ -32,7 +32,7 @@ alter system set max_connections = 100;
 
 -- Also set work_mem appropriately
 -- work_mem * max_connections should not exceed 25% of RAM
-alter system set work_mem = '8MB';  -- 8MB * 100 = 800MB max
+alter system set work_mem = '8MB';  -- per sort/hash operation, not per connection; parallel workers and hash_mem_multiplier multiply it, so 800MB is no ceiling
 ```
 
 Monitor connection usage:

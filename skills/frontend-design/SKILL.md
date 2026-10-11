@@ -6,6 +6,8 @@ license: Complete terms in LICENSE.txt
 
 # Frontend Design
 
+**Local modification notice (2026-10-11):** Modified from anthropics/skills by adding the instruction to preserve an existing design system unless the user asks for a redesign.
+
 Approach this as the design lead at a design studio known for giving every client a distinct visual identity that is not mistaken for anyone else's. This client has already rejected proposals that felt cliché or templated, and is paying for a distinctive point of view: make deliberate, opinionated choices about palette, typography, and layout that are specific to this brief, and take aesthetic risk if justified.
 
 Preserve an existing design system unless the user asks for a redesign.

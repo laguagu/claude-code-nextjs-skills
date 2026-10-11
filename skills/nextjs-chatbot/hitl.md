@@ -25,6 +25,12 @@ and use
 `sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses`
 when the conversation should continue after all manual decisions are recorded.
 
+Pass a `reason` with a denial. It becomes the tool result the model reads;
+without one `convertToModelMessages` sends the bare text
+`Tool call execution denied.` (`ai@7.0.127`). Observed on a hand-off tool: the
+model read past that and told the user to fill in the form they had just
+declined. A reason that names what was declined fixed the reply.
+
 ## Render transitions
 
 Handle the installed typed tool-part union rather than casting it to a loose

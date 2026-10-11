@@ -41,6 +41,12 @@ definitions. Narrow each part before reading its state, input, output or error.
 Render dynamic tools as well as statically named tools when the application
 supports them.
 
+The bundled `ToolInput` passes `JSON.stringify(input)` to `CodeBlock`, so
+undefined `input` during `input-streaming` throws and unmounts the tree.
+Render it only when `part.input !== undefined`, or patch the installed
+`tool.tsx` ([upstream #490](https://github.com/vercel/ai-elements/issues/490),
+open 2026-10-11).
+
 Keep one message container per message, with stable identity, and compose its
 parts inside it. Match generated component props rather than assuming every
 tool part exposes `toolName` or every source supports the same props. The

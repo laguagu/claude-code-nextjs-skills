@@ -14,6 +14,8 @@
 Google says AI Overviews and AI Mode need no special schema or AI text file.
 The page must be indexed and eligible for a Search snippet. This is eligibility,
 not a guarantee of selection or citation. Apply ordinary technical SEO first.
+Check the effective Search generative AI inclusion setting (see below) when
+diagnosing absence from Google's AI features.
 
 Do not describe FAQPage, a TL;DR, llms.txt, an author bio or a particular word
 count as a demonstrated AI ranking factor. Separate vendor-documented behavior
@@ -50,6 +52,10 @@ has no separate HTTP user agent: it is a robots product token controlling both
 Gemini training and certain Gemini/Vertex AI grounding uses. It does not control
 Google Search inclusion or ranking. Do not call it a training-only switch or
 promise that blocking it has no effect on all AI referral channels.
+
+As of 2026-08-31, Search Console's [Search generative AI control](https://support.google.com/webmasters/answer/16908024) (Settings > Search generative AI)
+offers include/exclude/inherit for AI Overviews, AI Mode and Discover AI features; top-level properties default to include, child properties inherit.
+It controls applicable AI-feature inclusion, not AI training or inclusion/ranking elsewhere in Search.
 
 Blocking a search crawler can prevent direct content retrieval; it does not
 prove that a URL or brand can never be mentioned through other sources.
@@ -103,8 +109,15 @@ Missing referrals do not prove missing citations; crawler hits do not prove
 citations. Google's Search Console includes AI-feature traffic in overall Web
 search reporting, so do not label the whole export as AI traffic.
 
+As of 2026-08-31, Search Console's Generative AI performance report shows
+AI Overviews and AI Mode link impressions by page, country, date and device.
+If it is unavailable, check impression volume and the effective inclusion
+setting; insufficient impressions or exclusion are possible causes.
+
 Sources to re-check for changing policies:
 - [Google AI features](https://developers.google.com/search/docs/appearance/ai-features)
+- [Google AI optimization guide](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)
+- [Generative AI performance report (Search)](https://support.google.com/webmasters/answer/16984139)
 - [Google-Extended](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers#google-extended)
 - [OpenAI crawlers](https://developers.openai.com/api/docs/bots)
 - [Anthropic crawlers](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler)

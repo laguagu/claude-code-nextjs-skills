@@ -14,7 +14,7 @@ npx ai-elements@latest add prompt-input
 
 ## Usage with AI SDK
 
-Build a fully functional chat app using `PromptInput`, [`Conversation`](/components/conversation) with a model picker:
+Build a fully functional chat app using `PromptInput`, [`Conversation`](conversation.md) with a model picker:
 
 Add the following component to your frontend:
 
@@ -375,7 +375,7 @@ See `scripts/prompt-input-tooltip.tsx` for this example.
 
 ### Attachments
 
-Attachment components have been moved to a separate module. See the [Attachment](/components/attachment) component documentation for details on `<Attachments />`, `<Attachment />`, `<AttachmentPreview />`, `<AttachmentInfo />`, and `<AttachmentRemove />`.
+Attachment components have been moved to a separate module. See the [Attachment](attachments.md) component documentation for details on `<Attachments />`, `<Attachment />`, `<AttachmentPreview />`, `<AttachmentInfo />`, and `<AttachmentRemove />`.
 
 ### `<PromptInputActionMenu />`
 

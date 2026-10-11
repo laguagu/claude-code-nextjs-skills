@@ -89,7 +89,11 @@ const CheckpointDemo = () => {
               <Fragment key={message.id}>
                 <Message from={message.role}>
                   <MessageContent>
-                    <MessageResponse>{message.content}</MessageResponse>
+                    {message.parts.map((part, i) =>
+                      part.type === "text" ? (
+                        <MessageResponse key={i}>{part.text}</MessageResponse>
+                      ) : null
+                    )}
                   </MessageContent>
                 </Message>
                 {checkpoint && (

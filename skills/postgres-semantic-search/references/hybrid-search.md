@@ -71,9 +71,11 @@ first:
   each arm's candidates, then fuse by document
   ([scripts/hybrid_search_bm25.sql](../scripts/hybrid_search_bm25.sql)).
 - **Contextual prefix.** Prepending the document title and section to each
-  chunk before embedding resolves "section 28 says…". Anthropic measured 35 %
-  fewer retrieval failures from contextual embeddings, 49 % with the context in
-  the BM25 index as well. In a keyword index the repeated title words can also
+  chunk before embedding resolves "section 28 says…". [Anthropic](https://www.anthropic.com/engineering/contextual-retrieval)
+  measured relative top-20 retrieval failure reductions of 35 % from contextual
+  embeddings, 49 % with the context in the BM25 index as well, using LLM-generated,
+  chunk-specific context informed by the whole document, not title/section prefixes alone.
+  In a keyword index the repeated title words can also
   make every chunk of a document match a title term, so measure both
   placements on your own set. Regenerate prefixes when chunking changes.
 - **Cap chunks with the embedding model's tokenizer and documented input

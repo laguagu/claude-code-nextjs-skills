@@ -458,7 +458,7 @@ def main() -> None:
         print(f"  Benchmark: {benchmark_path}")
     print(f"\n  Press Ctrl+C to stop.\n")
 
-    webbrowser.open(url, encoding="utf-8")
+    webbrowser.open(url)
 
     try:
         server.serve_forever()

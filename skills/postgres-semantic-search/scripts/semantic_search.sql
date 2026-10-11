@@ -34,7 +34,7 @@ BEGIN
     SELECT n.id, n.title, n.content, n.metadata, (1 - n.distance)::FLOAT
     FROM nearest n
     WHERE match_threshold IS NULL OR (1 - n.distance) > match_threshold
-    ORDER BY n.distance;
+    ORDER BY n.distance + 0;
 END;
 $$;
 
@@ -97,7 +97,7 @@ BEGIN
     FROM nearest n
     JOIN documents d ON d.id = n.document_id
     WHERE match_threshold IS NULL OR (1 - n.distance) > match_threshold
-    ORDER BY n.distance;
+    ORDER BY n.distance + 0;
 END;
 $$;
 
@@ -126,7 +126,7 @@ BEGIN
     SELECT n.id, n.title, n.content, n.metadata, (1 - n.distance)::FLOAT
     FROM nearest n
     WHERE match_threshold IS NULL OR (1 - n.distance) > match_threshold
-    ORDER BY n.distance;
+    ORDER BY n.distance + 0;
 END;
 $$;
 */

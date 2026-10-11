@@ -15,6 +15,9 @@ Review files for compliance with Web Interface Guidelines.
 1. Fetch the latest guidelines from the source URL below
 2. Read the specified files (or prompt user for files/pattern)
 3. Check against all rules in the fetched guidelines
+
+   As of 2026-10-11, `command.md` omits some accessibility checks; for accessibility reviews also check contrast (WCAG 2.2 AA: text 4.5:1, large text and required non-text UI contrast 3:1, with applicable exceptions), status not shown by colour alone, target size (WCAG 2.5.8: >=24 by 24 CSS px with its exceptions; 44px on touch is advisory), mobile input font-size >=16px, and focus moving into and back from modal dialogs per the [APG dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
+
 4. Output findings in the terse `file:line` format
 
 ## Guidelines Source

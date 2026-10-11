@@ -101,7 +101,7 @@ offline SDK check.
 - [Guardrails](references/guardrails.md): execution timing and coverage.
 - [Sessions](references/sessions.md): history ownership and persistence.
 - [Orchestration/tracing](references/patterns.md): run limits and observability.
-- [Sandbox](references/sandbox.md): beta workspace execution and resume state.
+- [Sandbox](references/sandbox.md): workspace execution and resume state.
 
 Use the OpenAI Developer Docs MCP (`https://developers.openai.com/mcp`) if
 available for current OpenAI API/provider behavior, or its plain-text index

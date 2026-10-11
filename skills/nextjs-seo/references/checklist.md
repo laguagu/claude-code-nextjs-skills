@@ -28,6 +28,8 @@ Do not add every optional feature to make a checklist pass.
    and sitemap freshness through the real invalidation/rebuild path.
 9. **Crawler policy:** Preserve intentional training/search distinctions and
    access protection. Check firewall/access logs when public crawls fail.
+   For Google AI eligibility, check the effective Search Console inclusion
+   setting (including inheritance); see [AI search policy](ai-search.md#crawlers-and-policy).
 10. **Search evidence:** Use indexing/URL Inspection for indexing and canonical
     questions, performance for query/traffic questions, and analytics for
     referrals. A performance export cannot establish all three.

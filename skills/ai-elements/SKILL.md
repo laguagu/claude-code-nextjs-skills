@@ -28,6 +28,11 @@ installed source is the offline API reference. Check installed components and
 review generated files before replacing local customization. Use `shadcn` for
 registry, preset and primitive-base details.
 
+AI Elements targets the Radix base (upstream uses style `new-york` with
+`radix-ui`). On Base UI projects expect prop mismatches in prompt-input,
+attachments, inline-citation and plan ([upstream #446](https://github.com/vercel/ai-elements/issues/446),
+open 2026-10-11); adapt the installed copies.
+
 ## Integration
 
 [Integration](references/integration.md) covers the UI/SDK boundary, v6
@@ -43,6 +48,7 @@ scroll behavior.
 When rendering fails, inspect the owned component, theme imports, semantic tokens
 and actual configured aliases. Do not copy a default `tsconfig` or replace the
 project's theme to fix one import.
+For unstyled markdown, check the [MessageResponse setup](references/message.md#markdown-styling).
 
 Verify the rendered flow with real message states and the project's checks;
 type correctness alone does not establish usable streaming or attachment behavior.

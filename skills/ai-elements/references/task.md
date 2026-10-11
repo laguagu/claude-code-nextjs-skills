@@ -14,7 +14,7 @@ npx ai-elements@latest add task
 
 ## Usage with AI SDK
 
-Build a mock async programming agent using [`experimental_generateObject`](/docs/reference/ai-sdk-ui/use-object).
+Build a mock async programming agent using [`experimental_generateObject`](https://ai-sdk.dev/docs/reference/ai-sdk-ui/use-object).
 
 Add the following component to your frontend:
 

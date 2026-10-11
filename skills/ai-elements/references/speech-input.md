@@ -110,13 +110,13 @@ For full cross-browser support, provide the `onAudioRecorded` callback that send
 
 ## Usage with MediaRecorder Fallback
 
-To support Firefox and Safari, provide an `onAudioRecorded` callback that sends audio to a transcription service:
+To support Firefox and Safari, provide an `onAudioRecorded` callback that sends audio to a transcription service (model checked 2026-10-11):
 
 ```tsx
 const handleAudioRecorded = async (audioBlob: Blob): Promise<string> => {
   const formData = new FormData();
   formData.append("file", audioBlob, "audio.webm");
-  formData.append("model", "whisper-1");
+  formData.append("model", "gpt-transcribe");
 
   const response = await fetch(
     "https://api.openai.com/v1/audio/transcriptions",

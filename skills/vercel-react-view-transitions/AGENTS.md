@@ -1,6 +1,6 @@
 # React View Transitions
 
-**Version 1.0.0**
+**Version 1.1.0**
 Vercel Engineering
 
 > **Note:**
@@ -16,7 +16,7 @@ Animate between UI states using the browser's native `document.startViewTransiti
 
 Every `<ViewTransition>` should communicate a spatial relationship or continuity. If you can't articulate what it communicates, don't add it.
 
-Implement **all** applicable patterns from this list, in this order:
+Choose patterns that serve the requested interaction:
 
 | Priority | Pattern | What it communicates |
 |----------|---------|---------------------|
@@ -26,7 +26,7 @@ Implement **all** applicable patterns from this list, in this order:
 | 4 | **State change** (`enter`/`exit`) | "Something appeared/disappeared" |
 | 5 | **Route change** (page-level) | "Going to a new place" |
 
-This is an implementation order, not a "pick one" list. Implement every pattern that fits the app. Only skip a pattern if the app has no use case for it.
+Start with the smallest useful motion change. Add other patterns only when they improve orientation or continuity; preserve reduced-motion behavior.
 
 ### Choosing Animation Style
 
@@ -43,9 +43,10 @@ Reserve directional slides for hierarchical navigation (list → detail) and ord
 
 ## Availability
 
-- **Next.js:** Do **not** install `react@canary` — the App Router already bundles React canary internally. `ViewTransition` works out of the box. `npm ls react` may show a stable-looking version; this is expected.
-- **Without Next.js:** Install `react@canary react-dom@canary` (`ViewTransition` is not in stable React).
-- Browser support: Chromium 125+ (React needs the v2 object form of `startViewTransition`), Firefox 144+, Safari 18.2+. Graceful degradation on unsupported browsers.
+- **Next.js:** Since Next.js 16.3 `<ViewTransition>` works in the App Router with no configuration. Do **not** install `react@canary` — the App Router bundles its own React build. Do not add the old `experimental.viewTransition` flag; on 15.x canary–16.2 read the installed version's docs (see `references/nextjs.md`).
+- **Without Next.js:** React 19.3+ exports `ViewTransition` and `addTransitionType` from stable `react`. On older React they exist only in the Canary and Experimental channels.
+- **TypeScript:** `@types/react` 19.3+ declares both in `index.d.ts`. With older types, add `/// <reference types="react/canary" />` instead of hand-writing a module augmentation.
+- Browser support: React's integration uses newer View Transitions API features (transition types, `view-transition-class`) — Chromium 125+, Firefox 144+, Safari 18.2+. Some animations may behave differently in Safari. Graceful degradation on unsupported browsers.
 
 ---
 
@@ -178,7 +179,7 @@ export function DirectionalTransition({ children }: { children: React.ReactNode 
 
 ### `router.back()` and Browser Back Button
 
-`router.back()` and the browser's back/forward buttons carry **no transition types**, so type-keyed animations (directional slides) resolve to their `default` and don't play — untyped shared-element morphs still apply. For typed animations, use `router.push()` with an explicit URL.
+`router.back()` and the browser's back/forward buttons carry **no transition types**, so type-keyed animations (directional slides) resolve to their `default` and don't play. In React 19.3, legacy popstate traversal can skip all view transitions, including shared morphs. An explicit in-app link (such as "← Gallery") can navigate with `<Link>` or `router.push()` and a type. Keep `router.back()` where history traversal is intended: `router.push()` adds a history entry and changes navigation semantics.
 
 ### Types and Suspense
 
@@ -331,6 +332,16 @@ Always add the reduced motion CSS from [references/css-recipes.md](references/cs
 ---
 
 # Implementation Workflow
+
+## Contents
+
+- [Step 1: Audit the App](#step-1-audit-the-app)
+- [Step 2: Add CSS Recipes](#step-2-add-css-recipes)
+- [Step 3: Isolate Persistent Elements](#step-3-isolate-persistent-elements)
+- [Step 4: Add Directional Page Transitions](#step-4-add-directional-page-transitions)
+- [Step 5: Add Suspense Reveals](#step-5-add-suspense-reveals)
+- [Step 6: Add Shared Element Transitions](#step-6-add-shared-element-transitions)
+- [Step 7: Verify Each Navigation Path](#step-7-verify-each-navigation-path)
 
 Follow these steps in order when adding view transitions to an app. Each step builds on the previous one.
 
@@ -621,9 +632,9 @@ Use `key` when content identity changes (state resets). Omit for cross-fades (ta
 
 ## Isolate Elements from Parent Animations
 
-Pull an element out of the animated `root` snapshot by giving it its own `view-transition-name`. **`view-transition-name: none` is a no-op** — it's the CSS default, so the element stays in `root` (a common flicker bug). Use a real, unique name, then neutralize with `<ViewTransition default="none">` (no CSS) or CSS (needed for `z-index`/`display` control — see [css-recipes.md](references/css-recipes.md#persistent-element-isolation)).
+Pull an element out of the animated `root` snapshot by giving it its own `view-transition-name`. **`view-transition-name: none` is a no-op** — it's the CSS default, so the element stays in `root` (a common flicker bug). Use a real, unique name, then neutralize with CSS (see [css-recipes.md](references/css-recipes.md#persistent-element-isolation)).
 
-- **Persistent chrome** (nav, sidebar, player bar): `<nav style={{ viewTransitionName: 'persistent-nav' }}>` + isolation CSS. `<ViewTransition default="none">` works too, but its auto-name can't take `z-index`/backdrop `display:none` — hand-name when you need those.
+- **Persistent chrome** (nav, sidebar, player bar): `<nav style={{ viewTransitionName: 'persistent-nav' }}>` + isolation CSS.
 - **Floating elements** (popovers, menus): left open, they're captured in `root` and flicker on settle. Real name + isolation ([Floating Element Isolation](references/css-recipes.md#floating-element-isolation-popovers-menus-tooltips-control-clusters)). A static name is fine if only one is mounted (`unmountOnHide`); native top-layer (`popover`/`<dialog>`) settle-flicker is a browser limit.
 - **Naming an interactive element has a cost:** named participants are skipped by hit-testing while a transition runs ([csswg#10930](https://github.com/w3c/csswg-drafts/issues/10930)) — clicks and hover fall through to whatever is beneath. Portal named popovers/menus; rendered inline in a clickable row, mid-transition clicks activate the row and read as outside-clicks that close the popover.
 - **Third-party floating components** (toast libraries, portals you don't render): put the name on an always-mounted wrapper you own — `<div style={{ viewTransitionName: 'toaster' }} className="pointer-events-none fixed inset-0">`. Library containers often unmount when empty, so naming them directly leaves the group unpinned exactly when a toast appears mid-transition. Name a dialog's backdrop separately from its panel so each pins independently.
@@ -802,7 +813,7 @@ The `types` array (second argument) lets you vary animation based on transition 
 
 **Section below a list teleports instead of gliding:** it's outside any activated boundary, its VT has `default="none"` (which disables `update`), or it isn't an immediate sibling of the changing content. See [Layout Displacement Morph](references/patterns.md#layout-displacement-morph).
 
-**`router.back()` and browser back/forward skip the directional slide:** traversals carry no transition types, so type-keyed maps resolve to `default` — untyped shared-element morphs still apply. Use `router.push()` for typed animations.
+**`router.back()` and browser back/forward skip animations:** traversals carry no transition types, so type-keyed maps resolve to `default`. In React 19.3, legacy popstate traversal can skip all view transitions, including shared morphs. Use an explicit in-app link for typed animations; keep `router.back()` for history traversal, since `router.push()` adds a history entry and changes navigation semantics.
 
 **`flushSync` skips animations:** Use `startTransition` instead.
 
@@ -831,6 +842,18 @@ The `types` array (second argument) lets you vary animation based on transition 
 ---
 
 # CSS Animation Recipes
+
+## Contents
+
+- [Timing Variables](#timing-variables)
+- [Fade](#fade)
+- [Slide](#slide-vertical)
+- [Directional Navigation](#directional-navigation)
+- [Shared Element Morph](#shared-element-morph)
+- [Text Morph](#text-morph)
+- [Scale](#scale)
+- [Persistent Element Isolation](#persistent-element-isolation)
+- [Reduced Motion](#reduced-motion)
 
 Ready-to-use CSS for `<ViewTransition>` props. Copy into your global stylesheet.
 
@@ -1147,6 +1170,20 @@ One shared-name indicator morphs between positions. Slide the group; disable old
 
 # View Transitions in Next.js
 
+## Contents
+
+- [Setup](#setup)
+- [Next.js Implementation Additions](#nextjs-implementation-additions)
+- [Layout-Level ViewTransition](#layout-level-viewtransition)
+- [The transitionTypes Prop](#the-transitiontypes-prop-on-nextlink)
+- [Programmatic Navigation](#programmatic-navigation)
+- [Server-Side Filtering](#server-side-filtering-with-routerreplace)
+- [Two-Layer Pattern](#two-layer-pattern-directional--suspense)
+- [loading.tsx as Suspense Boundary](#loadingtsx-as-suspense-boundary)
+- [Shared Elements Across Routes](#shared-elements-across-routes)
+- [Same-Route Dynamic Segment Transitions](#same-route-dynamic-segment-transitions)
+- [Server Components](#server-components)
+
 ## Setup
 
 `<ViewTransition>` works in the App Router with no configuration. The bundled React channel includes it, and Next.js navigations run in React Transitions. Do **not** add the old `experimental.viewTransition` flag or install `react@canary` into a Next.js app.
@@ -1156,6 +1193,16 @@ Read the current [Next.js View Transitions guide](https://nextjs.org/docs/app/gu
 Because every link click is a transition, any VT with `default="auto"` fires on **every** navigation — use `default="none"` to prevent competing animations.
 
 For unexpected or broken animation behavior, see [troubleshooting.md](references/troubleshooting.md).
+
+**TypeScript:** `@types/react` 19.3+ declares `ViewTransition` in `index.d.ts`. With
+older types, `next build` fails at the type check with
+`Module '"react"' has no exported member 'ViewTransition'`. Upgrade the types, or
+reference the declarations the package already ships:
+
+```ts
+// types/react-canary.d.ts
+/// <reference types="react/canary" />
+```
 
 ---
 
@@ -1363,14 +1410,15 @@ When navigating between dynamic segments of the same route (e.g., `/collection/[
 
 ```tsx
 <Suspense fallback={<Skeleton />}>
-  <ViewTransition key={slug} name="collection-content" share="auto" default="none">
+  <ViewTransition key={slug} name="collection-content" share="auto" enter="auto" default="none">
     <Content slug={slug} />
   </ViewTransition>
 </Suspense>
 ```
 
 - `key={slug}` forces unmount/remount on change
-- The stable `name` pairs the outgoing and incoming containers; `share="auto"` creates the crossfade
+- Use a **static** `name` (e.g. `"collection-content"`), not a per-slug name. The crossfade only forms when the old and new VTs share the *same* `name` — a per-slug name (`collection-${slug}`) gives each segment a different name, so no shared pair forms and nothing animates.
+- `share="auto"` crossfades the matched pair; `enter="auto"` covers the first render where no old pair exists yet. Keep `default="none"` so unrelated transitions don't fire it.
 - VT inside `<Suspense>` (without keying Suspense) keeps old content visible during loading
 
 ## Server Components

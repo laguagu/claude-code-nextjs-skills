@@ -176,7 +176,7 @@ export async function POST(req: Request) {
 
 Use the `Reasoning` component when your model outputs thinking content as a single block or continuous stream (Deepseek R1, Claude with extended thinking, etc.).
 
-If your model outputs discrete, labeled steps (search queries, tool calls, distinct thought stages), consider using the [Chain of Thought](/components/chain-of-thought) component instead for a more structured visual representation.
+If your model outputs discrete, labeled steps (search queries, tool calls, distinct thought stages), consider using the [Chain of Thought](chain-of-thought.md) component instead for a more structured visual representation.
 
 ## Features
 

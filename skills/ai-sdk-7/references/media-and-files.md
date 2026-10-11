@@ -15,8 +15,10 @@ from HarnessAgent instruction bundles.
 Canonical file parts use `type: 'file'`, `data` and `mediaType`. V7 accepts
 a full IANA type or a top-level segment such as `image`, with subtype detection
 from inline bytes where possible. Use a precise type when known; validate remote
-or opaque references against the provider's contract. Handle `file-data` tool
-results and `reasoning-file` parts in serializers/renderers.
+or opaque references against the provider's contract. Inline tool results use
+`{ type: 'file', mediaType, data: { type: 'data', data } }` in v7; retain handling
+of deprecated `file-data` in persisted/legacy outputs and `reasoning-file` parts
+in serializers/renderers.
 
 Realtime APIs are experimental. Create scoped ephemeral browser credentials on
 the server; keep long-lived provider keys there. Verify reconnect and

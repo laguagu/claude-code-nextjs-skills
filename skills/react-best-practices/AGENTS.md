@@ -450,7 +450,9 @@ import { Button, TextField } from '@mui/material'
 // Loads 2,225 modules, takes ~4.2s extra in dev
 ```
 
-**Correct - Next.js 13.5+ (recommended):**
+**Correct - Next.js 13.5+ (built-in optimization):**
+
+Next.js 13.5+ optimizes `lucide-react` and `@mui/material` by default; no configuration is needed.
 
 ```tsx
 // Keep the standard imports - Next.js transforms them to direct imports
@@ -458,7 +460,20 @@ import { Check, X, Menu } from 'lucide-react'
 // Full TypeScript support, no manual path wrangling
 ```
 
-This is the recommended approach because it preserves TypeScript type safety and editor autocompletion while still eliminating the barrel import cost.
+Built-in optimization preserves TypeScript type safety and editor autocompletion while still eliminating the barrel import cost.
+
+**Optional - Additional packages (experimental):**
+
+As of 2026-10-11, `experimental.optimizePackageImports` remains experimental and the [Next.js documentation](https://nextjs.org/docs/app/api-reference/config/next-config-js/optimizePackageImports) does not recommend it for production; use it only when additional optimization is needed for packages outside the default list.
+
+```js
+// next.config.js - optional optimization for a non-default package
+module.exports = {
+  experimental: {
+    optimizePackageImports: ['package-name']
+  }
+}
+```
 
 **Correct - Direct imports (non-Next.js projects):**
 
@@ -468,7 +483,7 @@ import TextField from '@mui/material/TextField'
 // Loads only what you use
 ```
 
-> **TypeScript warning:** Some libraries (notably `lucide-react`) don't ship `.d.ts` files for their deep import paths. Importing from `lucide-react/dist/esm/icons/check` resolves to an implicit `any` type, causing errors under `strict` or `noImplicitAny`. Prefer `optimizePackageImports` when available, or verify the library exports types for its subpaths before using direct imports.
+> **TypeScript warning:** Some libraries (notably `lucide-react`) don't ship `.d.ts` files for their deep import paths. Importing from `lucide-react/dist/esm/icons/check` resolves to an implicit `any` type, causing errors under `strict` or `noImplicitAny`. Prefer built-in package optimization when available, or verify the library exports types for its subpaths before using direct imports.
 
 These optimizations provide 15-70% faster dev boot, 28% faster builds, 40% faster cold starts, and significantly faster HMR.
 
@@ -509,6 +524,8 @@ The `typeof window !== 'undefined'` check prevents bundling this module for SSR,
 
 Analytics, logging, and error tracking don't block user interaction. Load them after hydration.
 
+In the [Next.js App Router](https://nextjs.org/docs/app/guides/lazy-loading) (checked 2026-10-11), `ssr: false` is not supported in Server Components; put the dynamic import in a Client Component.
+
 **Incorrect: blocks initial bundle**
 
 ```tsx
@@ -529,6 +546,9 @@ export default function RootLayout({ children }) {
 **Correct: loads after hydration**
 
 ```tsx
+// app/analytics-client.tsx
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const Analytics = dynamic(
@@ -536,12 +556,21 @@ const Analytics = dynamic(
   { ssr: false }
 )
 
+export default function AnalyticsClient() {
+  return <Analytics />
+}
+```
+
+```tsx
+// app/layout.tsx
+import AnalyticsClient from './analytics-client'
+
 export default function RootLayout({ children }) {
   return (
     <html>
       <body>
         {children}
-        <Analytics />
+        <AnalyticsClient />
       </body>
     </html>
   )
@@ -553,6 +582,8 @@ export default function RootLayout({ children }) {
 **Impact: CRITICAL (directly affects TTI and LCP)**
 
 Use `next/dynamic` to lazy-load large components not needed on initial render.
+
+In the [Next.js App Router](https://nextjs.org/docs/app/guides/lazy-loading) (checked 2026-10-11), `ssr: false` is not supported in Server Components; declare it in a Client Component.
 
 **Incorrect: Monaco bundles with main chunk ~300KB**
 
@@ -567,6 +598,8 @@ function CodePanel({ code }: { code: string }) {
 **Correct: Monaco loads on demand**
 
 ```tsx
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const MonacoEditor = dynamic(
@@ -1487,7 +1520,10 @@ useEffect(() => {
 
 **Impact: MEDIUM-HIGH (automatic deduplication)**
 
-SWR enables request deduplication, caching, and revalidation across component instances.
+Deduplicate client-side fetches across component instances. SWR is shown
+below, but any hook with built-in deduplication works (React Query,
+RTK Query, Apollo's `useQuery`, etc.) — pick whatever the project already
+uses rather than adding a new library.
 
 **Incorrect: no deduplication, each instance fetches**
 
@@ -1515,17 +1551,17 @@ function UserList() {
 **For immutable data:**
 
 ```tsx
-import { useImmutableSWR } from '@/lib/swr'
+import useSWRImmutable from 'swr/immutable'
 
 function StaticContent() {
-  const { data } = useImmutableSWR('/api/config', fetcher)
+  const { data } = useSWRImmutable('/api/config', fetcher)
 }
 ```
 
 **For mutations:**
 
 ```tsx
-import { useSWRMutation } from 'swr/mutation'
+import useSWRMutation from 'swr/mutation'
 
 function UpdateButton() {
   const { trigger } = useSWRMutation('/api/user', updateUser)
@@ -2583,25 +2619,73 @@ function Timestamp() {
 
 ### 6.7 Use Activity Component for Show/Hide
 
-**Impact: MEDIUM (preserves state/DOM)**
+**Impact: MEDIUM (preserves state/DOM without re-mount cost)**
 
-Use React's `<Activity>` to preserve state/DOM for expensive components that frequently toggle visibility.
+Use React's `<Activity>` to preserve state/DOM for expensive components that
+frequently toggle visibility. `<Activity>` is stable since React 19.2.
 
-**Usage:**
+**Why not `{show && <Component />}`?**
+
+- Unmounts the subtree → loses component state
+- Re-runs effects on every mount
+- Rebuilds DOM on every show
+
+**Why not `display: none`?**
+
+- Effects still run (setInterval, fetch, subscriptions waste resources)
+- Doesn't signal React that the subtree is inactive
+
+**Incorrect (loses state and re-runs effects):**
+
+```tsx
+function App() {
+  const [tab, setTab] = useState<'a' | 'b'>('a')
+  return tab === 'a' ? <ExpensiveChartA /> : <ExpensiveChartB />
+  // Switching tabs unmounts — scroll position, form state, subscriptions all reset
+}
+```
+
+**Correct (preserves state, pauses effects when hidden):**
 
 ```tsx
 import { Activity } from 'react'
 
-function Dropdown({ isOpen }: Props) {
+function App() {
+  const [tab, setTab] = useState<'a' | 'b'>('a')
   return (
-    <Activity mode={isOpen ? 'visible' : 'hidden'}>
-      <ExpensiveMenu />
-    </Activity>
+    <>
+      <Activity mode={tab === 'a' ? 'visible' : 'hidden'}>
+        <ExpensiveChartA />
+      </Activity>
+      <Activity mode={tab === 'b' ? 'visible' : 'hidden'}>
+        <ExpensiveChartB />
+      </Activity>
+    </>
   )
 }
 ```
 
-Avoids expensive re-renders and state loss.
+**Behavior of `hidden` mode:**
+
+- Children render to DOM but are not displayed
+- Effects cleanup when mode switches to `'hidden'`
+- Effects re-run when mode switches back to `'visible'`
+- State (`useState`, refs, uncontrolled inputs) is preserved across toggles
+
+**When to use:**
+
+- Tab panels where users return to the same tab
+- Modal/drawer content that's expensive to mount
+- Off-screen navigation views in mobile apps
+- Any subtree where you want to pay mount cost once
+
+**When NOT to use:**
+
+- Single-use content (e.g. one-time tooltips)
+- Very large subtrees where accumulated DOM becomes a memory problem
+- Lists where entries come and go permanently
+
+Reference: [React docs: `<Activity>`](https://react.dev/reference/react/Activity)
 
 ### 6.8 Use defer or async on Script Tags
 
@@ -2640,13 +2724,15 @@ export default function Page() {
   return (
     <>
       <Script src="https://example.com/analytics.js" strategy="afterInteractive" />
-      <Script src="/scripts/utils.js" strategy="beforeInteractive" />
+      <Script src="/scripts/utils.js" strategy="afterInteractive" />
     </>
   )
 }
 ```
 
 **Note:** In Next.js, prefer the `next/script` component with `strategy` prop instead of raw script tags:
+
+As of 2026-10-11, use `afterInteractive` for page-scoped utilities and reserve `lazyOnload` for low-priority scripts; `beforeInteractive` is for site-wide critical scripts and belongs in the App Router root layout (or Pages Router `_document`). See the [Next.js Script reference](https://nextjs.org/docs/app/api-reference/components/script).
 
 Reference: [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#defer](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#defer)
 
@@ -2781,6 +2867,8 @@ Reference: [https://react.dev/reference/react-dom#resource-preloading-apis](http
 
 **Impact: LOW (reduces re-renders and improves code clarity)**
 
+Requires React 19 (async transitions).
+
 Use `useTransition` instead of manual `useState` for loading states. This provides built-in `isPending` state and automatically manages transitions.
 
 **Incorrect: manual loading state**
@@ -2825,7 +2913,7 @@ function SearchResults() {
     startTransition(async () => {
       // Fetch and update results
       const data = await fetchResults(value)
-      setResults(data)
+      startTransition(() => setResults(data))
     })
   }
 
@@ -2847,7 +2935,7 @@ function SearchResults() {
 
 - **Better responsiveness**: Keeps the UI responsive during updates
 
-- **Interrupt handling**: New transitions automatically cancel pending ones
+- Rapid calls can resolve out of order; use `useActionState` or your own abort logic when order matters.
 
 Reference: [https://react.dev/reference/react/useTransition](https://react.dev/reference/react/useTransition)
 
@@ -3743,7 +3831,7 @@ function useWindowEvent(event: string, handler: (e) => void) {
 }
 ```
 
-**Correct: stable subscription**
+**Correct: stable subscription (React 19.2+)**
 
 ```tsx
 import { useEffectEvent } from 'react'
@@ -3758,9 +3846,9 @@ function useWindowEvent(event: string, handler: (e) => void) {
 }
 ```
 
-**Alternative: use `useEffectEvent` if you're on latest React:**
+**Alternative: use `useEffectEvent` on React 19.2+:**
 
-`useEffectEvent` provides a cleaner API for the same pattern: it creates a stable function reference that always calls the latest version of the handler.
+`useEffectEvent` replaces the ref: the function always sees the latest handler, is not reactive, and must stay out of dependency arrays because its identity is not stable.
 
 ### 8.4 useEffectEvent for Stable Callback Refs
 

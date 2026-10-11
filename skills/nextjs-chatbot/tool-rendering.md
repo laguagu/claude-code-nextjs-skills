@@ -18,6 +18,12 @@ Derive the final answer/action visibility from the overall turn status.
 Intermediate gaps between tools do not mean the turn finished. Keep old
 results readable during later generation and preserve scroll/focus.
 
+A view that renders stored messages (an admin transcript, a history page)
+meets parts the live renderer never branches on. Stored `UIMessage.parts`
+include `step-start` markers between steps; skip them rather than letting an
+"unknown part" fallback print them. Render assistant text with the same
+Markdown renderer as the live chat, or the transcript shows raw `**` and `-`.
+
 Validate tool data on the server and at external boundaries. Sanitize rendered
 Markdown/HTML and apply application policy to links or attachments; model or
 tool output is not automatically safe DOM content.

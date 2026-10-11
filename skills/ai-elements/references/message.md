@@ -14,6 +14,10 @@ See `scripts/message.tsx` for this example.
 npx ai-elements@latest add message
 ```
 
+### Markdown styling
+
+With Tailwind 4, `MessageResponse` needs `@source` directives in global CSS for Streamdown and any installed plugins; missing sources leave markdown unstyled. Use `@source "../node_modules/streamdown/dist/*.js";` as an adjustable example: paths are relative to the CSS file. See [Streamdown setup](https://streamdown.ai/docs/getting-started) for plugin paths.
+
 ## Features
 
 - Displays messages from both user and AI assistant with distinct styling and automatic alignment

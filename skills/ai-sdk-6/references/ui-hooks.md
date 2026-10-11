@@ -19,7 +19,9 @@ only the new message, load and authorize the canonical history on the server.
 Client-provided history and chat IDs are untrusted.
 
 Decide what client disconnect and cancellation mean. By default a disconnect
-aborts the model stream and the save in `onFinish` never runs. If completion/save
+aborts the model stream. The UI-message-stream `onFinish` still runs on reader
+cancel (ai >=5.0.24) with the partial message and `finishReason` undefined, so do
+not save it as complete. If completion/save
 must continue, call `result.consumeStream()` (not awaited) before returning the
 response, within the hosting runtime's lifetime limits. This does not provide
 durability or resumption automatically.

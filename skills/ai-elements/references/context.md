@@ -107,6 +107,8 @@ The component uses `Intl.NumberFormat` with compact notation for automatic forma
 
 When a `modelId` is provided, the component automatically calculates costs using the `tokenlens` library:
 
+With tokenlens 1.3.1, Context defaults to its bundled catalog; unavailable pricing renders `$0.00`, which does not prove zero cost. Supply custom cost/usage children or omit those components.
+
 - **Input tokens**: Cost based on model's input pricing
 - **Output tokens**: Cost based on model's output pricing
 - **Reasoning tokens**: Special pricing for reasoning-capable models

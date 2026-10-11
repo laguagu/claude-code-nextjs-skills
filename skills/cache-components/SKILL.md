@@ -8,7 +8,7 @@ metadata:
 # Cache Components
 
 Keep the project's caching mode unless migration is requested. Confirm the
-installed Next.js version and `cacheComponents` configuration before applying
+installed Next.js version and `cacheComponents`/`partialPrefetching` configuration before applying
 these patterns.
 
 Read the relevant guide in `node_modules/next/dist/docs/` first (bundled since
@@ -21,6 +21,9 @@ Error pages under `/docs/messages` are not bundled; `next dev`/`next build`
 print the fix options inline. Without local docs, use the
 [official caching docs](https://nextjs.org/docs/app/getting-started/caching).
 Exact exports and signatures are also in `node_modules/next/cache.d.ts`.
+For static-output and staged-deferral questions in 16.4+, find the installed
+`ensureStatic` route-segment reference and `navigation`/`prefetch` function
+references by name.
 
 The goal is a useful prerendered shell with freshness and authorization rules
 that remain correct after mutations, deploys and client navigation.
@@ -30,6 +33,8 @@ that remain correct after mutations, deploys and client navigation.
 - Next.js 16 enables the mode with top-level `cacheComponents: true`. It replaces
   `experimental.dynamicIO`, `experimental.useCache` and `experimental.ppr`;
   `cacheLife`/`cacheTag` import from `next/cache` without `unstable_`.
+  In 16.4, set `partialPrefetching` explicitly: leaving it unset warns;
+  recommended `create-next-app` defaults enable both flags.
 - With it enabled, segment exports `dynamic`, `revalidate`, `fetchCache` and
   `dynamicParams` are errors, and Edge runtime is unsupported. `revalidate = N`
   becomes `cacheLife` (nearest or custom profile) inside `use cache`;
@@ -52,9 +57,14 @@ that remain correct after mutations, deploys and client navigation.
   (`next/cache`, 16.3+) or `await connection()` (`next/server`) under Suspense.
 - `use cache: private` was experimental through 16.2. It runs at request time,
   stays out of the static shell and accepts no custom handler.
-- `export const instant` (16.3; `unstable_instant` in 16.2) asks dev/build to
-  validate instant navigation into a segment. `instant = false` permits a
-  blocking route; it does not clear synchronous-IO errors.
+- `export const instant` (16.3; `unstable_instant` in 16.2) opts a segment into
+  instant-navigation validation. Since 16.3, every Page/Default segment is
+  implicitly validated in `next dev` only (dev overlay) at the default level;
+  build validation requires `experimental.instantInsights.validationLevel`
+  set to `experimental-error` or `experimental-manual-error` (16.2
+  `unstable_instant` also validated at build). Test navigations with
+  `@next/playwright` `instant()`. `instant = false` permits a blocking route;
+  it does not clear synchronous-IO errors.
 
 For whole-app adoption or instant-navigation work, Next.js publishes workflow
 skills (`next-cache-components-adoption`, `next-cache-components-optimizer`)

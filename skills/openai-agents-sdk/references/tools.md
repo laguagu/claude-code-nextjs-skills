@@ -3,9 +3,10 @@
 Use typed function tools for application operations; keep tenant/role checks,
 input validation and idempotency in the executor. Model input/context is not
 authorization. Tool errors returned to the model or UI need the app's safe
-formatting policy. By default, `@function_tool` catches exceptions and returns
-their message to the model; supply `failure_error_function` to sanitize it, or
-`None` to re-raise. `timeout=` bounds a call; it does not make side effects
+formatting policy. By default `@function_tool` catches exceptions.
+Through 0.22.x the exception text reached the model; from 0.23.0 the model gets
+a fixed generic message. Return an error string or pass `failure_error_function`
+for model-visible detail; `None` re-raises. `timeout=` bounds a call; it does not make side effects
 transactional. `from agents.decorators import tool` is an alias in current
 releases (verified in 0.22.3).
 

@@ -30,12 +30,16 @@ Codemods do not cover every semantic change.
 - Telemetry/streams: `experimental_telemetry` → `telemetry` (tracer moves into
   `new OpenTelemetry({ tracer })`), `experimental_include` → `include`,
   `includeRawChunks` → `include.rawChunks`, `fullStream` → `stream`.
+  V6 `experimental_telemetry.metadata` has no v7 counterpart (`ai@7.0.137`);
+  move labels to top-level `runtimeContext` and explicitly allowlist fields with
+  `telemetry.includeRuntimeContext`.
 - Tools/types: tool callback `experimental_context` → `context` (values via
   `toolsContext`), top-level `experimental_context` → `runtimeContext` (split
   per-tool data into `toolsContext`), `ToolCallOptions` →
   `ToolExecutionOptions`, `isToolOrDynamicToolUIPart` → `isToolUIPart`
   (already the preferred static-or-dynamic predicate in v6),
-  `needsApproval: true` → `toolApproval: { name: 'user-approval' }`.
+  `needsApproval: true` → `tools: { myTool }, toolApproval: { myTool: 'user-approval' }`
+  (keyed by the tool's name).
 - Usage/results: `totalUsage` → `usage` (now all steps; `finalStep.usage` is the
   old `usage`), `usage.cachedInputTokens` → `usage.inputTokenDetails.cacheReadTokens`,
   `usage.reasoningTokens` → `usage.outputTokenDetails.reasoningTokens`;
@@ -44,8 +48,9 @@ Codemods do not cover every semantic change.
   `createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream, ...opts }) })`;
   likewise `pipeUIMessageStreamToResponse`, `toTextStream` +
   `createTextStreamResponse`/`pipeTextStreamToResponse`.
-- Content parts: tool-result `media` → `file-data`; `image-*`/`file-*` result
-  variants and user `image` parts → `file` parts with `mediaType`.
+- Content parts: the v7 codemod maps tool-result `media` → deprecated `file-data`;
+  manually migrate inline outputs to `{ type: 'file', mediaType, data: { type: 'data', data } }`.
+  `image-*`/`file-*` result variants and user `image` parts → `file` parts with `mediaType`.
 - Providers: Anthropic `cacheCreationInputTokens` metadata →
   `usage.inputTokenDetails.cacheWriteTokens`; Google `GoogleGenerativeAI*`
   names → `Google*`; `xai(id)` uses the Responses API (`xai.chat(id)` keeps Chat
@@ -64,9 +69,9 @@ Codemods do not cover every semantic change.
 | Results | Top-level usage/content/tool arrays aggregate; use `finalStep` for final-step access |
 | Context | Shared `runtimeContext`; per-tool `toolsContext` + `contextSchema` |
 | Approval | Core/ToolLoopAgent `toolApproval`; WorkflowAgent still uses `needsApproval` |
-| Telemetry | Startup registration; enabled once registered; bodies and context excluded unless included |
+| Telemetry | Opt out with `telemetry.isEnabled: false`; global registration optional; bodies and context excluded unless included |
 | Reasoning | Provider settings override overlapping top-level `reasoning` |
-| Files | Canonical `file` parts, `file-data` tool output, `reasoning-file` handling |
+| Files | Canonical `file` parts; tool outputs use tagged `data`; handle deprecated `file-data` in persisted/legacy outputs and `reasoning-file` |
 | MCP | HTTP/SSE `redirect` defaults to `'error'`; `'follow'` only for trusted servers |
 
 Search the migration guide for remaining removed/renamed symbols. An alias

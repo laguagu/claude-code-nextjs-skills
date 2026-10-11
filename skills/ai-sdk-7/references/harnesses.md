@@ -34,8 +34,12 @@ Skill bundles use skill-relative POSIX paths and are separate from provider
 exercise restart, resume, denial and cleanup in the selected adapter.
 
 Names to look up in `ai/docs/03-ai-sdk-harnesses/` (all experimental):
-`agent.createSession({ sessionId, resumeFrom })`, `session.destroy()`/
+`agent.createSession({ sessionId, resumeFrom, sandboxSession })`, `session.destroy()`/
 `detach()`/`stop()`/`suspendTurn()`, `continueStream()`/`continueGenerate()`
 for an unfinished turn, `permissionMode` (`allow-all`, `allow-edits`,
 `allow-reads`) for built-in tools, `sandboxConfig` (`workDir`, `onBootstrap` +
-`bootstrapHash`, `onSession`), `prepareHarnessSandboxTemplate()`.
+`bootstrapHash`, `onSession`). As of 2026-10-11, prefer `agent.getSandboxTemplate()`
+or `createHarnessSandboxTemplate({ harnesses, sandboxConfig })` from
+`@ai-sdk/harness/agent`; `prepareHarnessSandboxTemplate()` is deprecated, still
+exported. Pass a caller-created `sandboxSession` to `createSession`; the caller
+owns its lifecycle.

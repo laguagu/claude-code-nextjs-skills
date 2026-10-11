@@ -197,7 +197,7 @@ GitHub item address.
 
 ## GitHub Registries
 
-A public GitHub repository can act as a source registry when it has a root
+A public or authenticated private GitHub repository can act as a source registry when it has a root
 `registry.json`.
 
 ```txt
@@ -212,8 +212,8 @@ Rules:
 - GitHub registries are source registries consumed directly by the CLI. They do
   not require `shadcn build` or generated item JSON files.
 - `include` follows the same source-registry rules as local registries.
-- Currently, GitHub addresses support public `github.com` repositories only.
-- Private repos and GitHub Enterprise require explicit product decisions.
+- As of 2026-10-11, GitHub addresses support public and authenticated private `github.com` repositories. Private repos use existing `gh` credentials or `GH_TOKEN`/`GITHUB_TOKEN` with repository read access.
+- GitHub Enterprise hosts remain unsupported.
 
 When implementing GitHub registry fetching, resolve refs to a commit SHA before
 reading source files. Do not read moving refs directly from

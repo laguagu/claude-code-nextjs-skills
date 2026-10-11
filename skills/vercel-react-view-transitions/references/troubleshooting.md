@@ -20,7 +20,7 @@
 
 **Section below a list teleports instead of gliding:** it's outside any activated boundary, its VT has `default="none"` (which disables `update`), or it isn't an immediate sibling of the changing content. See [Layout Displacement Morph](patterns.md#layout-displacement-morph).
 
-**`router.back()` and browser back/forward skip the directional slide:** traversals carry no transition types, so type-keyed maps resolve to `default` — untyped shared-element morphs still apply. Use `router.push()` for typed animations.
+**`router.back()` and browser back/forward skip animations:** traversals carry no transition types, so type-keyed maps resolve to `default`. In React 19.3, legacy popstate traversal can skip all view transitions, including shared morphs. Use an explicit in-app link for typed animations; keep `router.back()` for history traversal, since `router.push()` adds a history entry and changes navigation semantics.
 
 **`flushSync` skips animations:** Use `startTransition` instead.
 

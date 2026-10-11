@@ -30,6 +30,10 @@ working management path. `firewall replace-rules --rules-file` replaces the
 set, so omitted rules disappear. `zone import-zonefile --zonefile` likewise
 replaces all Zone RRSets; omitted records disappear.
 
+Cloud Firewalls (checked 2026-10-11) do not protect private Network traffic
+or Load Balancers. Use host/application controls where needed. Verify rule
+changes with fresh connections; established connections survive updates.
+
 Treat server state, network reachability and application health as separate
 checks. Read the API action result and resource state back after changes;
 verify the intended service from its actual caller.
@@ -48,7 +52,10 @@ verify the intended service from its actual caller.
 - DNS zones do not take effect until the registrar delegates to the correct
   nameservers. Inspect delegation before debugging records.
 - Deletion is immediate. Confirm resource IDs and the requested destructive
-  scope; establish recoverable data first. Server snapshots/backups exclude
+  scope; establish recoverable data first. Automatic backups are deleted with
+  the server; snapshots survive (checked 2026-10-11). Create a Snapshot or
+  convert a backup to one before deletion if recovery is required.
+  Server snapshots/backups exclude
   attached Volumes, which need their own backup. See
   [snapshot scope](https://docs.hetzner.com/cloud/servers/backups-snapshots/overview/).
   Assigned Primary/Floating IPs cannot be deleted; unassign them first.

@@ -18,6 +18,9 @@ Comprehensive performance optimization guide for React and Next.js applications,
 | Core performance rules (async, bundle, js) | React 18 + Next.js 14 |
 | `React.cache()` (`server-cache-react`) | React 19 |
 | `<Activity>` (`rendering-activity`) | React 19.2 |
+| `useEffectEvent` (`advanced-effect-event-deps`, `advanced-use-latest`, `advanced-event-handler-refs`) | React 19.2 |
+| `after()` (`server-after-nonblocking`) | Next.js 15.1 |
+| `use()`, async transitions, resource hints (`async-suspense-boundaries`, `rendering-usetransition-loading`, `rendering-resource-hints`) | React 19 |
 | React Compiler (affects `rerender-*` rules) | React 17/18/19; older versions need the matching target and runtime |
 | `use cache` directive (see `cache-components` skill) | Next.js 16 |
 

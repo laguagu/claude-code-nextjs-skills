@@ -39,7 +39,8 @@ Check your driver settings:
 
 ```sql
 -- Many drivers use prepared statements by default
--- Node.js pg: { prepare: false } to disable
+-- node-postgres (pg): omit name from the query configuration
+-- Postgres.js: { prepare: false }
 -- JDBC: prepareThreshold=0 to disable
 ```
 

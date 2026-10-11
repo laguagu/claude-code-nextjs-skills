@@ -34,10 +34,12 @@ to obtain docs.
 
 When local documentation is unavailable, use the matching repository tag
 (`vercel/ai`, tag `ai@<version>`, `content/docs/`) or docs version. The
-[documentation search](https://ai-sdk.dev/api/search-docs?q=useChat)
+[documentation search](https://ai-sdk.dev/api/search?query=useChat)
 and Markdown page variants help locate the relevant feature. Repository main
 and the default website can target a newer major than the app. With neither
 local docs nor network, say which API facts remain unverified.
+As of 2026-10-11, append `&tag=v6` (`v5`, `v6` or `v7`) to scope search
+results to a major.
 
 Choose model IDs from the app's provider configuration or current provider
 catalog. The [Gateway catalog](https://ai-gateway.vercel.sh/v1/models) can aid

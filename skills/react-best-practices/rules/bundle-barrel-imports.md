@@ -24,16 +24,9 @@ import { Button, TextField } from '@mui/material'
 // Loads 2,225 modules, takes ~4.2s extra in dev
 ```
 
-**Correct - Next.js 13.5+ (recommended):**
+**Correct - Next.js 13.5+ (built-in optimization):**
 
-```js
-// next.config.js - automatically optimizes barrel imports at build time
-module.exports = {
-  experimental: {
-    optimizePackageImports: ['lucide-react', '@mui/material']
-  }
-}
-```
+Next.js 13.5+ optimizes `lucide-react` and `@mui/material` by default; no configuration is needed.
 
 ```tsx
 // Keep the standard imports - Next.js transforms them to direct imports
@@ -41,7 +34,20 @@ import { Check, X, Menu } from 'lucide-react'
 // Full TypeScript support, no manual path wrangling
 ```
 
-This is the recommended approach because it preserves TypeScript type safety and editor autocompletion while still eliminating the barrel import cost.
+Built-in optimization preserves TypeScript type safety and editor autocompletion while still eliminating the barrel import cost.
+
+**Optional - Additional packages (experimental):**
+
+As of 2026-10-11, `experimental.optimizePackageImports` remains experimental and the [Next.js documentation](https://nextjs.org/docs/app/api-reference/config/next-config-js/optimizePackageImports) does not recommend it for production; use it only when additional optimization is needed for packages outside the default list.
+
+```js
+// next.config.js - optional optimization for a non-default package
+module.exports = {
+  experimental: {
+    optimizePackageImports: ['package-name']
+  }
+}
+```
 
 **Correct - Direct imports (non-Next.js projects):**
 
@@ -51,7 +57,7 @@ import TextField from '@mui/material/TextField'
 // Loads only what you use
 ```
 
-> **TypeScript warning:** Some libraries (notably `lucide-react`) don't ship `.d.ts` files for their deep import paths. Importing from `lucide-react/dist/esm/icons/check` resolves to an implicit `any` type, causing errors under `strict` or `noImplicitAny`. Prefer `optimizePackageImports` when available, or verify the library exports types for its subpaths before using direct imports.
+> **TypeScript warning:** Some libraries (notably `lucide-react`) don't ship `.d.ts` files for their deep import paths. Importing from `lucide-react/dist/esm/icons/check` resolves to an implicit `any` type, causing errors under `strict` or `noImplicitAny`. Prefer built-in package optimization when available, or verify the library exports types for its subpaths before using direct imports.
 
 These optimizations provide 15-70% faster dev boot, 28% faster builds, 40% faster cold starts, and significantly faster HMR.
 

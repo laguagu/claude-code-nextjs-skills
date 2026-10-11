@@ -9,6 +9,8 @@ tags: bundle, dynamic-import, code-splitting, next-dynamic
 
 Use `next/dynamic` to lazy-load large components not needed on initial render.
 
+In the [Next.js App Router](https://nextjs.org/docs/app/guides/lazy-loading) (checked 2026-10-11), `ssr: false` is not supported in Server Components; declare it in a Client Component.
+
 **Incorrect (Monaco bundles with main chunk ~300KB):**
 
 ```tsx
@@ -22,6 +24,8 @@ function CodePanel({ code }: { code: string }) {
 **Correct (Monaco loads on demand):**
 
 ```tsx
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const MonacoEditor = dynamic(

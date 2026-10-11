@@ -116,14 +116,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        warning: "oklch(var(--warning) / <alpha-value>)",
+        warning: "var(--warning)",
         "warning-foreground":
-          "oklch(var(--warning-foreground) / <alpha-value>)",
+          "var(--warning-foreground)",
       },
     },
   },
 }
 ```
+
+For Tailwind v3 opacity modifiers (e.g. `bg-warning/90`), define separate channel-only variables and map them with `oklch(var(--warning-channels) / <alpha-value>)`.
 
 ```tsx
 // 3. Use in components.
@@ -134,7 +136,9 @@ module.exports = {
 
 ## Border Radius
 
-`--radius` controls border radius globally. Components derive values from it (`rounded-lg` = `var(--radius)`, `rounded-md` = `calc(var(--radius) - 2px)`).
+`--radius` controls border radius globally. In the current theme (2026-10-11), components derive values from it (`rounded-lg` = `var(--radius)`, `rounded-md` = `calc(var(--radius) * 0.8)`). Inspect the installed theme; older projects may retain additive scales.
+
+When a brand spec defines its own radius scale, pin each step in `@theme inline` (`--radius-sm` … `--radius-4xl`) instead of deriving from `--radius`. See [design-system.md](./design-system.md#radius).
 
 ---
 

@@ -55,6 +55,9 @@ shell. Pass the request promise to the Suspense-wrapped child and await it
 there, rather than blocking the layout. Resolve request-dependent values
 before invoking cached functions; a promise awaiting a nonexistent build-time
 request can stall prerendering.
+Next.js 16.4 guides: without `partialPrefetching`, await `params` outside
+Suspense (including `loading.tsx`) if unlisted URLs need their own ISR entry;
+inside Suspense they keep the shared fallback.
 
 For `generateStaticParams`, use real representative values and check both
 listed and unlisted paths. Shell/partial-param behavior varies with version.

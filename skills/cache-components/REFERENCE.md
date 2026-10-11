@@ -1,8 +1,8 @@
 # Cache API boundaries
 
 Use installed Next.js docs for signatures, profile values and feature flags.
-The upstream Next-skills collection is archived; this file is a focused guide,
-not a replacement API reference.
+The upstream cache-components skill moved to vercel/next.js; this file is a
+focused guide, not a replacement API reference.
 
 ## Keys and serialization
 

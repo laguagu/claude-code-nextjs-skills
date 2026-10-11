@@ -39,10 +39,10 @@ select * from products where attributes->>'brand' = 'Nike';
 Choose the right operator class:
 
 ```sql
--- jsonb_ops (default): supports all operators, larger index
+-- jsonb_ops (default): supports @>, @?, @@, ?, ?|, ?&; larger index
 create index idx1 on products using gin (attributes);
 
--- jsonb_path_ops: only @> operator, but 2-3x smaller index
+-- jsonb_path_ops: supports @>, @?, @@; excludes ?, ?|, ?&; often smaller than jsonb_ops
 create index idx2 on products using gin (attributes jsonb_path_ops);
 ```
 

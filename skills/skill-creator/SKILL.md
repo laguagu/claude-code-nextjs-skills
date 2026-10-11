@@ -396,6 +396,8 @@ This handles the full optimization loop automatically. It splits the eval set in
 
 ### How skill triggering works
 
+The trigger eval scores whether the skill is the first tool call; a skill used after other tools counts as not triggered (local evaluator, checked 2026-10-11).
+
 Descriptions help the host choose a skill, but activation depends on the client,
 model and available tools. Test both simple and complex realistic requests,
 including near misses; do not assume simple requests can never trigger a skill.

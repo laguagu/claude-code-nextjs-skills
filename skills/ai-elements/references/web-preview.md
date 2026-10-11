@@ -60,7 +60,8 @@ const WebPreviewDemo = () => {
       });
 
       const data = await response.json();
-      setPreviewUrl(data.demo || "/");
+      setPreviewUrl(data.demo || "");
+      if (!data.demo) console.error("No preview URL returned; chat:", data.webUrl);
       console.log("Generation finished:", data);
     } catch (error) {
       console.error("Generation failed:", error);
@@ -118,7 +119,7 @@ const WebPreviewDemo = () => {
 export default WebPreviewDemo;
 ```
 
-Add the following route to your backend:
+Add the following route to your backend (v0-sdk 0.16.7; checked 2026-10-11):
 
 ```ts title="app/api/v0/route.ts"
 import { v0 } from "v0-sdk";
@@ -130,14 +131,14 @@ export async function POST(req: Request) {
     system: "You are an expert coder",
     message: prompt,
     modelConfiguration: {
-      modelId: "v0-1.5-sm",
+      modelId: "v0-mini",
       imageGenerations: false,
       thinking: false,
     },
   });
 
   return Response.json({
-    demo: result.demo,
+    demo: result.latestVersion?.demoUrl,
     webUrl: result.webUrl,
   });
 }

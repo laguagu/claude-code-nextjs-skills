@@ -45,9 +45,9 @@ def run_single_query(
 
     Creates a command file in .claude/commands/ so it appears in Claude's
     available_skills list, then runs `claude -p` with the raw query.
-    Uses --include-partial-messages to detect triggering early from
-    stream events (content_block_start) rather than waiting for the
-    full assistant message, which only arrives after tool execution.
+    Uses --include-partial-messages to score the first tool call from
+    stream events, then waits for a successful result and process exit.
+    Raises on execution errors rather than reporting a non-trigger.
     """
     unique_id = uuid.uuid4().hex[:8]
     clean_name = f"{skill_name}-skill-{unique_id}"
@@ -86,12 +86,14 @@ def run_single_query(
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
             cwd=project_root,
             env=env,
         )
 
-        triggered = False
+        triggered = None
+        result_event = None
+        timed_out = False
         start_time = time.time()
         buffer = ""
         # Track state for stream event detection
@@ -117,6 +119,16 @@ def run_single_query(
         )
         reader.start()
 
+        # Drain stderr concurrently so a full pipe cannot stall the CLI.
+        stderr_chunks = []
+
+        def _read_stderr():
+            for chunk in iter(lambda: process.stderr.read(4096), b""):
+                stderr_chunks.append(chunk)
+
+        stderr_reader = threading.Thread(target=_read_stderr, daemon=True)
+        stderr_reader.start()
+
         try:
             while time.time() - start_time < timeout:
                 try:
@@ -141,6 +153,12 @@ def run_single_query(
                     except json.JSONDecodeError:
                         continue
 
+                    if event.get("type") == "result":
+                        result_event = event
+                        continue
+                    if triggered is not None:
+                        continue  # Keep the first-call decision while awaiting completion.
+
                     # Early detection via stream events
                     if event.get("type") == "stream_event":
                         se = event.get("event", {})
@@ -154,20 +172,20 @@ def run_single_query(
                                     pending_tool_name = tool_name
                                     accumulated_json = ""
                                 else:
-                                    return False
+                                    triggered = False
 
                         elif se_type == "content_block_delta" and pending_tool_name:
                             delta = se.get("delta", {})
                             if delta.get("type") == "input_json_delta":
                                 accumulated_json += delta.get("partial_json", "")
                                 if clean_name in accumulated_json:
-                                    return True
+                                    triggered = True
 
                         elif se_type in ("content_block_stop", "message_stop"):
                             if pending_tool_name:
-                                return clean_name in accumulated_json
-                            if se_type == "message_stop":
-                                return False
+                                triggered = clean_name in accumulated_json
+                            elif se_type == "message_stop":
+                                triggered = False
 
                     # Fallback: full assistant message
                     elif event.get("type") == "assistant":
@@ -177,21 +195,41 @@ def run_single_query(
                                 continue
                             tool_name = content_item.get("name", "")
                             tool_input = content_item.get("input", {})
+                            triggered = False
                             if tool_name == "Skill" and clean_name in tool_input.get("skill", ""):
                                 triggered = True
                             elif tool_name == "Read" and clean_name in tool_input.get("file_path", ""):
                                 triggered = True
-                            return triggered
+                            break
 
-                    elif event.get("type") == "result":
-                        return triggered
+            remaining = timeout - (time.time() - start_time)
+            if remaining <= 0:
+                timed_out = True
+            else:
+                try:
+                    process.wait(timeout=remaining)
+                except subprocess.TimeoutExpired:
+                    timed_out = True
         finally:
             # Clean up process on any exit path (return, exception, timeout)
             if process.poll() is None:
                 process.kill()
                 process.wait()
+            reader.join()
+            stderr_reader.join()
+            process.stdout.close()
+            process.stderr.close()
 
-        return triggered
+        stderr = b"".join(stderr_chunks).decode("utf-8", errors="replace").strip()
+        if timed_out:
+            raise TimeoutError(f"claude -p timed out after {timeout}s; stderr: {stderr}")
+        if process.returncode != 0:
+            raise RuntimeError(f"claude -p exited {process.returncode}; stderr: {stderr}")
+        if result_event is None:
+            raise RuntimeError(f"claude -p produced no result event; stderr: {stderr}")
+        if result_event.get("is_error") or result_event.get("subtype", "success") != "success":
+            raise RuntimeError(f"claude -p returned an error: {result_event}; stderr: {stderr}")
+        return bool(triggered)
     finally:
         if command_file.exists():
             command_file.unlink()
@@ -227,6 +265,7 @@ def run_eval(
                 future_to_info[future] = (item, run_idx)
 
         query_triggers: dict[str, list[bool]] = {}
+        query_errors: dict[str, list[str]] = {}
         query_items: dict[str, dict] = {}
         for future in as_completed(future_to_info):
             item, _ = future_to_info[future]
@@ -234,26 +273,29 @@ def run_eval(
             query_items[query] = item
             if query not in query_triggers:
                 query_triggers[query] = []
+                query_errors[query] = []
             try:
                 query_triggers[query].append(future.result())
             except Exception as e:
                 print(f"Warning: query failed: {e}", file=sys.stderr)
-                query_triggers[query].append(False)
+                query_errors[query].append(str(e))
 
     for query, triggers in query_triggers.items():
         item = query_items[query]
-        trigger_rate = sum(triggers) / len(triggers)
+        trigger_rate = sum(triggers) / len(triggers) if triggers else 0.0
         should_trigger = item["should_trigger"]
         if should_trigger:
             did_pass = trigger_rate >= trigger_threshold
         else:
             did_pass = trigger_rate < trigger_threshold
+        did_pass = bool(triggers) and did_pass
         results.append({
             "query": query,
             "should_trigger": should_trigger,
             "trigger_rate": trigger_rate,
             "triggers": sum(triggers),
             "runs": len(triggers),
+            "errors": query_errors[query],
             "pass": did_pass,
         })
 

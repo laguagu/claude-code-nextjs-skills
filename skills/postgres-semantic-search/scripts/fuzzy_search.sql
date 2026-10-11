@@ -17,6 +17,9 @@ ON documents USING gin (content gin_trgm_ops);
 
 -- Title by whole-string similarity, body by word similarity. (Earlier versions
 -- returned more columns; a changed return type needs the DROP.)
+-- % and <% admit candidates by the GUCs; similarity_threshold can only tighten
+-- that. To loosen, SET LOCAL pg_trgm.similarity_threshold and
+-- pg_trgm.word_similarity_threshold in the caller's transaction.
 DROP FUNCTION IF EXISTS fuzzy_search_trigram(text, double precision, integer);
 CREATE OR REPLACE FUNCTION fuzzy_search_trigram(
     query_text TEXT,
@@ -46,23 +49,27 @@ RETURNS TABLE (id INT, title TEXT, match_type TEXT, score FLOAT)
 LANGUAGE sql STABLE AS $$
     WITH p AS (
         SELECT replace(replace(replace(search_prefix, '\', '\\'), '%', '\%'), '_', '\_') || '%' AS pattern
-    )
+    ), candidates AS (
     (
-        SELECT d.id, d.title, 'prefix'::TEXT, 1.0::FLOAT
+        SELECT d.id, d.title, 'prefix'::TEXT AS match_type, 1.0::FLOAT AS score, 0 AS priority
         FROM documents d, p
         WHERE d.title ILIKE p.pattern
-        ORDER BY d.title
+        ORDER BY d.title, d.id
         LIMIT max_results
     )
     UNION ALL
     (
-        SELECT d.id, d.title, 'fuzzy'::TEXT, word_similarity(search_prefix, d.title)::FLOAT
+        SELECT d.id, d.title, 'fuzzy'::TEXT, word_similarity(search_prefix, d.title)::FLOAT, 1
         FROM documents d, p
         WHERE search_prefix <% d.title
           AND d.title NOT ILIKE p.pattern
-        ORDER BY 4 DESC, d.id
+        ORDER BY 4 DESC, d.title, d.id
         LIMIT max_results
     )
+    )
+    SELECT id, title, match_type, score
+    FROM candidates
+    ORDER BY priority, score DESC, title, id
     LIMIT max_results;
 $$;
 

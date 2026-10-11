@@ -7,6 +7,8 @@ tags: rendering, transitions, useTransition, loading, state
 
 ## Use useTransition Over Manual Loading States
 
+Requires React 19 (async transitions).
+
 Use `useTransition` instead of manual `useState` for loading states. This provides built-in `isPending` state and automatically manages transitions.
 
 **Incorrect (manual loading state):**
@@ -51,7 +53,7 @@ function SearchResults() {
     startTransition(async () => {
       // Fetch and update results
       const data = await fetchResults(value)
-      setResults(data)
+      startTransition(() => setResults(data))
     })
   }
 
@@ -70,6 +72,6 @@ function SearchResults() {
 - **Automatic pending state**: No need to manually manage `setIsLoading(true/false)`
 - **Error resilience**: Pending state correctly resets even if the transition throws
 - **Better responsiveness**: Keeps the UI responsive during updates
-- **Interrupt handling**: New transitions automatically cancel pending ones
+- Rapid calls can resolve out of order; use `useActionState` or your own abort logic when order matters.
 
 Reference: [useTransition](https://react.dev/reference/react/useTransition)

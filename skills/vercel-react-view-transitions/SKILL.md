@@ -178,7 +178,7 @@ export function DirectionalTransition({ children }: { children: React.ReactNode 
 
 ### `router.back()` and Browser Back Button
 
-`router.back()` and the browser's back/forward buttons carry **no transition types**, so type-keyed animations (directional slides) resolve to their `default` and don't play — untyped shared-element morphs still apply. An explicit in-app link (such as "← Gallery") can navigate with `<Link>` or `router.push()` and a type. Keep `router.back()` where history traversal is intended: `router.push()` adds a history entry and changes navigation semantics.
+`router.back()` and the browser's back/forward buttons carry **no transition types**, so type-keyed animations (directional slides) resolve to their `default` and don't play. In React 19.3, legacy popstate traversal can skip all view transitions, including shared morphs. An explicit in-app link (such as "← Gallery") can navigate with `<Link>` or `router.push()` and a type. Keep `router.back()` where history traversal is intended: `router.push()` adds a history entry and changes navigation semantics.
 
 ### Types and Suspense
 

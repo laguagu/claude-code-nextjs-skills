@@ -132,6 +132,8 @@ export default Example;
 
 Add the following route to your backend:
 
+AI SDK 6/7 use `inputSchema` and `needsApproval`; for v7 `toolApproval`, see [`ai-sdk-7`](../../ai-sdk-7/SKILL.md).
+
 ```ts title="app/api/chat/route.tsx"
 import { streamText, UIMessage, convertToModelMessages } from "ai";
 import { z } from "zod";
@@ -148,14 +150,14 @@ export async function POST(req: Request) {
     tools: {
       delete_file: {
         description: "Delete a file from the file system",
-        parameters: z.object({
+        inputSchema: z.object({
           filePath: z.string().describe("The path to the file to delete"),
           confirm: z
             .boolean()
             .default(false)
             .describe("Confirmation that the user wants to delete the file"),
         }),
-        requireApproval: true, // Enable approval workflow
+        needsApproval: true, // Enable approval workflow
         execute: async ({ filePath, confirm }) => {
           if (!confirm) {
             return {

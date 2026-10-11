@@ -7,12 +7,12 @@ tags: full-text-search, tsvector, gin, search
 
 ## Use tsvector for Full-Text Search
 
-LIKE with wildcards can't use indexes. Full-text search with tsvector is orders of magnitude faster.
+Leading-wildcard LIKE generally cannot use ordinary B-tree indexes; pg_trgm GIN/GiST indexes support substring matching. Use tsvector for linguistic token search.
 
 **Incorrect (LIKE pattern matching):**
 
 ```sql
--- Cannot use index, scans all rows
+-- Without a suitable pg_trgm index, leading-wildcard LIKE scans all rows
 select * from articles where content like '%postgresql%';
 
 -- Case-insensitive makes it worse

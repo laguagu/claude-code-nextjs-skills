@@ -2,7 +2,7 @@
 
 Displays AI-generated images from the AI SDK.
 
-The `Image` component displays AI-generated images from the AI SDK. It accepts a [`Experimental_GeneratedImage`](/docs/reference/ai-sdk-core/generate-image) object from the AI SDK's `generateImage` function and automatically renders it as an image.
+The `Image` component displays AI-generated images from the AI SDK. It accepts a [`Experimental_GeneratedImage`](https://ai-sdk.dev/docs/reference/ai-sdk-core/generate-image) object from the AI SDK's `generateImage` function and automatically renders it as an image.
 
 See `scripts/image.tsx` for this example.
 
@@ -103,17 +103,17 @@ const ImageDemo = () => {
 export default ImageDemo;
 ```
 
-Add the following route to your backend:
+Add the following route to your backend (AI SDK 6/7; model checked 2026-10-11):
 
 ```ts title="app/api/image/route.ts"
 import { openai } from "@ai-sdk/openai";
-import { experimental_generateImage } from "ai";
+import { generateImage } from "ai";
 
 export async function POST(req: Request) {
   const { prompt }: { prompt: string } = await req.json();
 
-  const { image } = await experimental_generateImage({
-    model: openai.image("dall-e-3"),
+  const { image } = await generateImage({
+    model: openai.image("gpt-image-2"),
     prompt: prompt,
     size: "1024x1024",
   });

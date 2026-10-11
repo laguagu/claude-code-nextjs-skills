@@ -13,8 +13,10 @@ configuration merely by changing the container environment. Read server-only
 configuration at runtime where supported.
 
 Multiple instances need deliberate cache storage and invalidation coordination.
-The legacy ISR `cacheHandler` and Cache Components `cacheHandlers` are different
-contracts. Use a maintained adapter or implement against current types; a toy
+The singular `cacheHandler` (prerender/ISR output, Route Handler responses, fetch
+cache; optimized images via `images.customCacheHandler` from 16.2) and Cache
+Components `cacheHandlers` are different contracts. A multi-instance app may need
+both. Use a maintained adapter or implement against current types; a toy
 Redis/S3 get/set example omits important tags/expiry semantics.
 For Cache Components, `updateTags()` writes shared invalidation events and
 `refreshTags()` synchronizes them before requests. A shared entry store alone

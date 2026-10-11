@@ -52,6 +52,8 @@ export default function Document() {
 
 **Note:** In Next.js, prefer the `next/script` component with `strategy` prop instead of raw script tags:
 
+As of 2026-10-11, use `afterInteractive` for page-scoped utilities and reserve `lazyOnload` for low-priority scripts; `beforeInteractive` is for site-wide critical scripts and belongs in the App Router root layout (or Pages Router `_document`). See the [Next.js Script reference](https://nextjs.org/docs/app/api-reference/components/script).
+
 ```tsx
 import Script from 'next/script'
 
@@ -59,7 +61,7 @@ export default function Page() {
   return (
     <>
       <Script src="https://example.com/analytics.js" strategy="afterInteractive" />
-      <Script src="/scripts/utils.js" strategy="beforeInteractive" />
+      <Script src="/scripts/utils.js" strategy="afterInteractive" />
     </>
   )
 }

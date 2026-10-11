@@ -12,6 +12,7 @@ Write or update a handoff document so the next agent with fresh context can cont
 3. Write or update `HANDOFF.md` in the project root with:
    - **Goal** — what we're trying to accomplish
    - **Current Progress** — what's done (link commits/PRs)
+   - **In flight** — running or cut work, if any: run id and resume command, branch or worktree, uncommitted paths and their owner, submitted remote jobs
    - **What Worked** — approaches that succeeded
    - **What Didn't Work** — dead ends, so they aren't retried
    - **Next Steps** — concrete action items

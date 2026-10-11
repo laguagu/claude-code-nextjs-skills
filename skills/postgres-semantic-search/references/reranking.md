@@ -8,8 +8,7 @@ it was given.
 The findings below come from Finnish benchmarks in September 2026: a
 lecture-transcript search (70 questions, 15 one-to-three-word terms) and legal
 passages (public MuPLeR-fi, 200 queries). Models change quickly, so treat model
-names as examples and re-measure current ones. Tables, latencies and costs are
-in [jev-rerank-bench](https://github.com/laguagu/jev-rerank-bench).
+names as examples and re-measure current ones.
 
 ## Contents
 
@@ -24,10 +23,13 @@ in [jev-rerank-bench](https://github.com/laguagu/jev-rerank-bench).
 
 | Kind | Examples (verify current options) | Trade-off |
 | --- | --- | --- |
-| Hosted cross-encoder | Cohere Rerank, Voyage rerank, ZeroEntropy | No infrastructure; per-search fee; candidate text leaves your network |
-| Open weights | bge-reranker-v2-m3, Qwen3-Reranker, small mMiniLM cross-encoders | Text stays with you; model size decides whether it fits the latency budget. Check the licence: some popular rerankers (Jina's open weights) are non-commercial |
+| Hosted cross-encoder | Cohere Rerank, Voyage rerank | No infrastructure; per-search fee; candidate text leaves your network |
+| Open weights | bge-reranker-v2-m3, Qwen3-Reranker, zerank-2 (Apache-2.0), small mMiniLM cross-encoders | Text stays with you; model size decides whether it fits the latency budget. Check the licence: some popular rerankers (Jina's open weights) are non-commercial |
 | Typed-judgment model | TypeSafe Jev | Hosted; you write the relevance question in plain language and get a probability you can gate on |
 | Chat LLM as judge | any | On the legal passages two chat models (92–93 % R@1) trailed a cross-encoder and a typed-judgment model (95.5–96.5 %) at 5–10× the latency |
+
+ZeroEntropy's original hosted service [sunset on 2026-09-04](https://zeroentropy.dev/articles/zeroentropy-is-joining-notion);
+its models are Apache-2.0 open weights (checked 2026-10-11).
 
 Check the project's data policy before choosing a hosted option; resolve
 permission to send candidate text if it is unknown. Look up current model names in the provider's docs rather than

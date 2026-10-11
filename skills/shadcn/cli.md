@@ -4,12 +4,14 @@ Configuration is read from `components.json`.
 
 > **IMPORTANT:** Always run commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest`. Check `packageManager` from project context to choose the right one. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
 
-> **IMPORTANT:** Only use the flags documented below. Do not invent or guess flags — if a flag isn't listed here, it doesn't exist. The CLI auto-detects the package manager from the project's lockfile; there is no `--package-manager` flag.
+> **IMPORTANT:** Do not invent or guess flags. For unlisted flags, check the command's `--help`. The CLI auto-detects the package manager from the project's lockfile; there is no `--package-manager` flag.
+
+Flag and template reference: CLI 4.21.4 (2026-10-11).
 
 ## Contents
 
 - Commands: init, apply, add (dry-run, smart merge), search, view, docs, info, build
-- Templates: next, vite, start, react-router, astro
+- Templates: next, vite, start, react-router, astro, laravel
 - Presets: named, code, URL formats and fields
 - Switching presets
 
@@ -27,16 +29,18 @@ Initializes shadcn/ui in an existing project or creates a new project (when `--n
 
 | Flag                    | Short | Description                                               | Default |
 | ----------------------- | ----- | --------------------------------------------------------- | ------- |
-| `--template <template>` | `-t`  | Template (next, start, vite, next-monorepo, react-router) | —       |
+| `--template <template>` | `-t`  | Template (next, vite, start, react-router, astro, laravel) | —       |
+| `--base <base>`         | `-b`  | Component library (`base`, `radix` or `aria`)             | —       |
 | `--preset [name]`       | `-p`  | Preset configuration (named, code, or URL)                | —       |
 | `--yes`                 | `-y`  | Skip confirmation prompt                                  | `true`  |
-| `--defaults`            | `-d`  | Use defaults (`--template=next --preset=base-nova`)       | `false` |
+| `--defaults`            | `-d`  | Use defaults (`--template=next --preset=nova`)            | `false` |
 | `--force`               | `-f`  | Force overwrite existing configuration                    | `false` |
 | `--cwd <cwd>`           | `-c`  | Working directory                                         | current |
 | `--name <name>`         | `-n`  | Name for new project                                      | —       |
 | `--silent`              | `-s`  | Mute output                                               | `false` |
 | `--rtl`                 |       | Enable RTL support                                        | —       |
 | `--reinstall`           |       | Re-install existing UI components                         | `false` |
+| `--no-reinstall`        |       | Keep existing UI components                               | —       |
 | `--monorepo`            |       | Scaffold a monorepo project                               | —       |
 | `--no-monorepo`         |       | Skip the monorepo prompt                                  | —       |
 
@@ -53,6 +57,7 @@ Applies a preset to an existing project, overwriting preset-driven config, fonts
 | Flag                | Short | Description                                | Default |
 | ------------------- | ----- | ------------------------------------------ | ------- |
 | `--preset <preset>` | —     | Preset configuration (named, code, or URL) | —       |
+| `--only [parts]`    |       | Apply only `theme`, `font`, or `theme,font` | —       |
 | `--yes`             | `-y`  | Skip confirmation prompt                   | `false` |
 | `--cwd <cwd>`       | `-c`  | Working directory                          | current |
 | `--silent`          | `-s`  | Mute output                                | `false` |
@@ -165,6 +170,11 @@ npx shadcn@latest docs <components...> [options]
 
 Outputs resolved URLs for component documentation, examples, and API references. Accepts one or more component names. Fetch the URLs to get the actual content.
 
+| Flag           | Short | Description                                 | Default      |
+| -------------- | ----- | ------------------------------------------- | ------------ |
+| `--base <base>` | `-b`  | Component library (`base`, `radix` or `aria`) | project base |
+| `--json`       |       | Output as JSON                              | `false`      |
+
 Example output for `npx shadcn@latest docs input button`:
 
 ```
@@ -196,6 +206,7 @@ Displays project info and `components.json` configuration. Run this first to dis
 | Flag          | Short | Description       | Default |
 | ------------- | ----- | ----------------- | ------- |
 | `--cwd <cwd>` | `-c`  | Working directory | current |
+| `--json`      |       | Output as JSON    | `false` |
 
 **Project Info fields:**
 
@@ -264,7 +275,7 @@ GitHub registry behavior, see [registry.md](./registry.md).
 | `astro`        | Astro          | Yes              |
 | `laravel`      | Laravel        | No               |
 
-All templates support monorepo scaffolding via the `--monorepo` flag. When passed, the CLI uses a monorepo-specific template directory (e.g. `next-monorepo`, `vite-monorepo`). When neither `--monorepo` nor `--no-monorepo` is passed, the CLI prompts interactively. Laravel does not support monorepo scaffolding.
+All templates except Laravel support monorepo scaffolding via the `--monorepo` flag. Next.js monorepos use `--template next --monorepo`. When passed, the CLI uses a monorepo-specific template directory (e.g. `next-monorepo`, `vite-monorepo`). When neither `--monorepo` nor `--no-monorepo` is passed, the CLI prompts interactively. Laravel does not support monorepo scaffolding.
 
 ---
 

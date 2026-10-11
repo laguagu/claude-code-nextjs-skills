@@ -146,8 +146,7 @@ Details and measurements: [hybrid-search.md](references/hybrid-search.md).
   enabled default from the accepted quality and latency results. If callers may choose a
   backend per request, allow only admin-enabled ones.
 
-Numbers, model trade-offs and adoption rules: [reranking.md](references/reranking.md)
-and [jev-rerank-bench](https://github.com/laguagu/jev-rerank-bench).
+Numbers, model trade-offs and adoption rules: [reranking.md](references/reranking.md).
 
 ## Scripts
 
