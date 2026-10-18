@@ -12,8 +12,13 @@ Install in Claude Code:
 ```
 
 Then use `/nextjs-ai-skills:ai-app` to build an app or
-`/nextjs-ai-skills:go` to check it in the browser. Relevant skills can also
-activate from your request.
+`/nextjs-ai-skills:go` to check it in the browser. Relevant skills also activate
+from your request.
+
+To update, run `claude plugin marketplace update laguagu` and then
+`claude plugin update nextjs-ai-skills@laguagu` in a shell. If you installed the
+plugin under its old name `claude-code-nextjs-skills`, uninstall that and install
+`nextjs-ai-skills@laguagu`.
 
 ## 📋 Skills
 
@@ -81,15 +86,32 @@ Example agents for common workflows. Installed with the Claude Code plugin; othe
 | [code-simplifier](agents/code-simplifier.md) | Simplifies recently changed code while preserving behavior |
 | [e2e-tester](agents/e2e-tester.md) | Tests real user flows in the browser and fixes verified defects |
 
+## 🔧 Also Included
+
+- [mcp.json](mcp.json) starts the
+  [Next.js DevTools MCP](https://github.com/vercel/next-devtools-mcp) server with
+  the plugin. Chrome DevTools MCP setup is in the
+  [chrome-devtools skill](skills/chrome-devtools/SKILL.md).
+- [examples/global-agents.md](examples/global-agents.md) is an example user-wide
+  instruction file for long autonomous agent runs.
+
+## 📥 Without the Plugin
+
+Copy a skill folder, and any sibling skill it references, to `.claude/skills/`
+(Claude Code) or `.agents/skills/` (Codex); for all projects, use
+`~/.claude/skills/` or `~/.agents/skills/`. Clients that support the
+[Agent Plugins format](https://agent-plugins.org/) can read the root
+[plugin.json](plugin.json).
+
 ## 📦 Based On
 
 | Skill | Original Source | License |
 |-------|-----------------|---------|
 | [ai-sdk](skills/ai-sdk/) | [vercel/ai](https://github.com/vercel/ai/tree/main/skills) | Apache 2.0 |
-| [cache-components](skills/cache-components/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (skills moved to [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills) in June 2026; maintained locally) | - |
+| [cache-components](skills/cache-components/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (now in [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills); maintained here) | - |
 | [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | MIT |
 | [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
-| [next-best-practices](skills/next-best-practices/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (skills moved to [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills) in June 2026; maintained locally) | - |
+| [next-best-practices](skills/next-best-practices/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (now in [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills); maintained here) | - |
 | [web-design-guidelines](skills/web-design-guidelines/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines) | MIT |
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/agent-skills](https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices) | MIT |
 | [chrome-devtools](skills/chrome-devtools/) | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills/blob/main/skills/browser-testing-with-devtools/SKILL.md) | MIT |
@@ -97,45 +119,6 @@ Example agents for common workflows. Installed with the Claude Code plugin; othe
 | [ai-elements](skills/ai-elements/) | [vercel/ai-elements](https://github.com/vercel/ai-elements/tree/main/skills/ai-elements) | Apache 2.0 |
 | [frontend-design](skills/frontend-design/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) | Apache 2.0 |
 | [vercel-react-view-transitions](skills/vercel-react-view-transitions/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-view-transitions) | MIT |
-
-## 📥 Other Installation Options
-
-- **Individual skills:** copy a skill folder and any referenced sibling skills to
-  `.claude/skills/` (Claude Code) or `.agents/skills/` (Codex). User-wide locations
-  are `~/.claude/skills/` and `~/.agents/skills/`.
-- **Plugin-capable clients:** the root [plugin.json](plugin.json) uses
-  [Agent Plugins format](https://agent-plugins.org/). Check your client's support
-  and loading instructions; the format alone does not guarantee compatibility.
-- **Local Claude Code trial:** clone this repo and run
-  `claude --plugin-dir ./claude-code-nextjs-skills` from its parent directory.
-
-## 🔧 MCP & Project Rules
-
-[mcp.json](mcp.json) configures the **Next.js DevTools** MCP server.
-Both plugin manifests use this single configuration. Optional Chrome DevTools MCP
-setup is in the [browser testing skill](skills/chrome-devtools/SKILL.md).
-
-[AGENTS.md](AGENTS.md) holds the rules for working on this repository and
-[CLAUDE.md](CLAUDE.md) imports it; installing the plugin does not load them as
-project context.
-
-[examples/global-agents.md](examples/global-agents.md) is a user-wide instruction
-file for long autonomous runs: when to keep going, when to stop, and how to report.
-
-## 🔄 Updating
-
-In a shell, run `claude plugin marketplace update laguagu`, then
-`claude plugin update nextjs-ai-skills@laguagu`.
-
-The plugin was named `claude-code-nextjs-skills` before 1.0.17. If you installed it under that
-name, run `claude plugin uninstall claude-code-nextjs-skills@laguagu` and install
-`nextjs-ai-skills@laguagu`.
-
-Maintainers: compare upstream updates before merging so local customizations and
-licenses survive. Validate skills with
-`uvx --from skills-ref agentskills validate <skill-folder>` and manifests with
-`claude plugin validate .claude-plugin/plugin.json` and
-`claude plugin validate .claude-plugin/marketplace.json`.
 
 ## 📚 See Also
 
