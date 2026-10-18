@@ -8,11 +8,11 @@ Install in Claude Code:
 
 ```text
 /plugin marketplace add laguagu/claude-code-nextjs-skills
-/plugin install claude-code-nextjs-skills@laguagu
+/plugin install nextjs-ai-skills@laguagu
 ```
 
-Then use `/claude-code-nextjs-skills:ai-app` to build an app or
-`/claude-code-nextjs-skills:go` to check it in the browser. Relevant skills can also
+Then use `/nextjs-ai-skills:ai-app` to build an app or
+`/nextjs-ai-skills:go` to check it in the browser. Relevant skills can also
 activate from your request.
 
 ## 📋 Skills
@@ -111,7 +111,7 @@ Example agents for common workflows. Installed with the Claude Code plugin; othe
 
 ## 🔧 MCP & Project Rules
 
-[mcp.json](mcp.json) configures **Next.js DevTools** and the **AI Elements registry**.
+[mcp.json](mcp.json) configures the **Next.js DevTools** MCP server.
 Both plugin manifests use this single configuration. Optional Chrome DevTools MCP
 setup is in the [browser testing skill](skills/chrome-devtools/SKILL.md).
 
@@ -125,7 +125,11 @@ file for long autonomous runs: when to keep going, when to stop, and how to repo
 ## 🔄 Updating
 
 In a shell, run `claude plugin marketplace update laguagu`, then
-`claude plugin update claude-code-nextjs-skills@laguagu`.
+`claude plugin update nextjs-ai-skills@laguagu`.
+
+The plugin was named `claude-code-nextjs-skills` before 1.0.17. If you installed it under that
+name, run `claude plugin uninstall claude-code-nextjs-skills@laguagu` and install
+`nextjs-ai-skills@laguagu`.
 
 Maintainers: compare upstream updates before merging so local customizations and
 licenses survive. Validate skills with
