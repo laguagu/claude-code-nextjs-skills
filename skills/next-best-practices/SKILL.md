@@ -8,8 +8,7 @@ description: Next.js App Router best practices covering file conventions, RSC bo
 Read the installed `next` version and relevant `node_modules/next/dist/docs/`
 pages before changing framework behavior. Those docs and project configuration
 take precedence; use a matching online version/source tag when local docs are
-unavailable. The original vercel-labs/next-skills content was removed upstream on
-2026-06-17; workflow skills now live in vercel/next.js `skills/`.
+unavailable. Next.js publishes workflow skills in vercel/next.js `skills/`.
 
 Docs are bundled from 16.2; in a monorepo, read the app's own `next` package.
 The nextjs.org links in these files have local equivalents with numbered

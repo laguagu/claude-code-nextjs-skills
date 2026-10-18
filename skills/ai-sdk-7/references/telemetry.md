@@ -9,7 +9,7 @@ Register a telemetry integration once at app startup. For OpenTelemetry use
 `@ai-sdk/otel` with `registerTelemetry`; a Next.js app may register from its
 instrumentation entry point.
 
-Telemetry is enabled by default in v7 (checked 2026-10-11). Without a global
+Telemetry is enabled by default in v7. Without a global
 registration, per-call `telemetry.integrations` and Node.js `ai:telemetry`
 tracing-channel subscribers still receive events; `telemetry: { isEnabled: false }`
 is the per-call off switch. Verify input and
@@ -22,8 +22,7 @@ shallow and affects telemetry only; execution, callbacks and result objects
 can still receive full values. Do not treat filtering as redaction everywhere.
 Label operations with `telemetry.functionId`; pass additional labels in top-level
 `runtimeContext` and explicitly include their fields with
-`telemetry.includeRuntimeContext`. V6 `experimental_telemetry.metadata` has no
-corresponding `metadata` field in v7 `TelemetryOptions` (`ai@7.0.137`).
+`telemetry.includeRuntimeContext`.
 
 Request/response bodies are excluded by default; opt in with
 `include.requestBody` / `include.responseBody` only where needed and safe.

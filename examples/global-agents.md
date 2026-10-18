@@ -27,8 +27,8 @@ problem with it, or you find it was wrong.
 
 Decide reversible technical and product choices yourself and report them as decided,
 with the reason. Bring me only decisions that need my account, money, publication or
-legal judgement, each with a recommendation. A status report leads with what was
-decided and what I can try.
+legal judgement, each with a recommendation. A status report leads with what needs
+me, then what was decided and what I can try.
 
 ## Background agents
 
@@ -50,6 +50,6 @@ decided and what I can try.
 | Keep going; stop only when blocked or before destructive actions | A long run that pauses after every step to ask for permission it did not need |
 | Treat an answer as done, unless it turns out wrong | Later replies that reopen and re-explain earlier answers |
 | Decide reversible choices and report them | Questions about details you would have accepted either way |
-| A report leads with what was decided and what to try | Having to read a full summary to find the one thing that needs you |
+| A report leads with what needs you, then decisions and what to try | Having to read a full summary to find the one thing that needs you |
 | Workers commit as they go | Losing finished work when a limit or restart ends the session |
 | Stage by path | One session committing another session's half-finished files |

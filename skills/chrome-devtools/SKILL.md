@@ -69,5 +69,4 @@ for tool contracts. In a source checkout, use `docs/tool-reference.md` and
 - Prefer interaction tools to arbitrary page JavaScript. Use read-only DOM
   inspection for diagnosis and respect the active tool's execution restrictions.
 - Check accessible names, keyboard focus and meaningful heading structure.
-  WCAG AA contrast is 4.5:1 for normal text and 3:1 for qualifying large text;
-  do not claim screen-reader announcements are verified by a DOM snapshot alone.
+  Do not claim screen-reader announcements are verified by a DOM snapshot alone.

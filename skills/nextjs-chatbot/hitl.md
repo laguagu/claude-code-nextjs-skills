@@ -25,11 +25,10 @@ and use
 `sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses`
 when the conversation should continue after all manual decisions are recorded.
 
-Pass a `reason` with a denial. It becomes the tool result the model reads;
-without one `convertToModelMessages` sends the bare text
-`Tool call execution denied.` (`ai@7.0.127`). Observed on a hand-off tool: the
-model read past that and told the user to fill in the form they had just
-declined. A reason that names what was declined fixed the reply.
+Pass a `reason` that names what was declined. It becomes the tool result the
+model reads; without one `convertToModelMessages` sends only
+`Tool call execution denied.`, which the model can read past, for example by
+asking the user to fill in a form they just declined.
 
 ## Render transitions
 
@@ -60,7 +59,7 @@ controls; verify transitions in the UI.
 A client can modify round-tripped history. Bind approval to the server-issued
 operation, validated inputs, user and conversation. For sensitive tools set
 `experimental_toolApprovalSecret` on core agents/`generateText`/`streamText`
-(verified in `ai@6.0.298` and `ai@7.0.124`; check earlier installed versions).
+(`generateText`/`streamText` from `ai@6.0.202` and `ai@7.0.0`, `ToolLoopAgent` from `ai@6.0.272` and `ai@7.0.84`).
 The server HMAC-signs the tool name, call ID and input; unsigned or altered
 approvals are rejected. All instances need the same secret; reject missing
 configuration when signing is required, since `undefined` disables it.

@@ -30,7 +30,7 @@ working management path. `firewall replace-rules --rules-file` replaces the
 set, so omitted rules disappear. `zone import-zonefile --zonefile` likewise
 replaces all Zone RRSets; omitted records disappear.
 
-Cloud Firewalls (checked 2026-10-11) do not protect private Network traffic
+Cloud Firewalls do not yet protect private Network traffic
 or Load Balancers. Use host/application controls where needed. Verify rule
 changes with fresh connections; established connections survive updates.
 
@@ -53,7 +53,7 @@ verify the intended service from its actual caller.
   nameservers. Inspect delegation before debugging records.
 - Deletion is immediate. Confirm resource IDs and the requested destructive
   scope; establish recoverable data first. Automatic backups are deleted with
-  the server; snapshots survive (checked 2026-10-11). Create a Snapshot or
+  the server; snapshots survive. Create a Snapshot or
   convert a backup to one before deletion if recovery is required.
   Server snapshots/backups exclude
   attached Volumes, which need their own backup. See
@@ -67,12 +67,8 @@ verify the intended service from its actual caller.
   block; a provider-level block needs Hetzner support, not an app firewall fix.
 - Firewall JSON must match the API schema. `source_ips` is an array of strings;
   PowerShell serialization needs sufficient JSON depth. A shape error
-  (`cannot unmarshal object into Go struct field FirewallRule.source_ips of
-  type []string`) rejects the whole file and leaves the previous rules in
-  place; verify the returned/live rules.
-- Storage Box/DNS subcommands and API boundaries can evolve. Use installed
-  command help and the official changelog rather than treating an older
-  Cloud-only feature list as current.
+  rejects the whole file and leaves the previous rules in place; verify the
+  returned/live rules.
 
 ## Sources
 

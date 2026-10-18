@@ -19,8 +19,7 @@ diagnosing absence from Google's AI features.
 
 Do not describe FAQPage, a TL;DR, llms.txt, an author bio or a particular word
 count as a demonstrated AI ranking factor. Separate vendor-documented behavior
-from hypotheses. Keep markup only when it describes real page content and serves
-a known consumer; do not add a FAQ solely to produce FAQPage JSON-LD.
+from hypotheses.
 
 ## Useful content without filler
 
@@ -53,7 +52,7 @@ Gemini training and certain Gemini/Vertex AI grounding uses. It does not control
 Google Search inclusion or ranking. Do not call it a training-only switch or
 promise that blocking it has no effect on all AI referral channels.
 
-As of 2026-08-31, Search Console's [Search generative AI control](https://support.google.com/webmasters/answer/16908024) (Settings > Search generative AI)
+Search Console's [Search generative AI control](https://support.google.com/webmasters/answer/16908024) (Settings > Search generative AI)
 offers include/exclude/inherit for AI Overviews, AI Mode and Discover AI features; top-level properties default to include, child properties inherit.
 It controls applicable AI-feature inclusion, not AI training or inclusion/ranking elsewhere in Search.
 
@@ -64,8 +63,7 @@ ChatGPT-User, Perplexity-User generally ignores it, and Anthropic says all three
 of its bots honor it. Each vendor's settings are independent, so allowing
 OAI-SearchBot while disallowing GPTBot is a valid policy.
 
-robots.txt is voluntary and is not authorization or access control. Inspect
-hosting firewall rules separately when diagnosing denied public crawls. A
+Inspect hosting firewall rules separately when diagnosing denied public crawls. A
 User-Agent string can be spoofed; use vendor-documented verification methods
 for bot identity, and do not weaken preview protection to make an audit pass.
 
@@ -109,7 +107,7 @@ Missing referrals do not prove missing citations; crawler hits do not prove
 citations. Google's Search Console includes AI-feature traffic in overall Web
 search reporting, so do not label the whole export as AI traffic.
 
-As of 2026-08-31, Search Console's Generative AI performance report shows
+Search Console's Generative AI performance report shows
 AI Overviews and AI Mode link impressions by page, country, date and device.
 If it is unavailable, check impression volume and the effective inclusion
 setting; insufficient impressions or exclusion are possible causes.

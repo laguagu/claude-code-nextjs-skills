@@ -39,10 +39,8 @@ authorization or prevent server logging.
 ## Nested caches and pass-through
 
 Use nested cached reads when they have distinct lifetimes or consumers.
-Do not depend on outer request `React.cache` storage inside a `use cache`
-scope. Inner tags propagate to the outer entry; a time-based inner refresh
-does not replace the outer entry's embedded output. Set an explicit outer
-lifetime when those outputs need a clear refresh contract.
+Set an explicit outer lifetime when nested outputs need a clear refresh contract;
+[REFERENCE.md](REFERENCE.md) covers how inner tags and refreshes reach the outer entry.
 
 Pass dynamic children or Server Actions through a cached wrapper unchanged.
 Do not inspect children or invoke the action there; pass-through values do not

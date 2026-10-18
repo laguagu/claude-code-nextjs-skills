@@ -22,39 +22,31 @@ when the mark represents a brand, country or file type, then check it in context
 | A mark absent from catalogs | The organization's official brand assets |
 
 These are search starting points, not guaranteed coverage or blanket licences.
-Check the selected set's licence in its own repository and the brand's usage
-requirements. Iconify's licence metadata can differ from the source: it lists
-`vscode-icons` as MIT, but that repository's README puts the icons under
-CC BY-SA 4.0 and brand icons under their owners' terms; MIT covers only its code
-(checked 2026-10-13). Do not invent a logo for a real organization when an
-official asset is unavailable.
+Check the selected set's licence in its own repository, not only in Iconify's
+metadata, and check the brand's usage requirements. Do not invent a logo for a real
+organization when an official asset is unavailable.
 
 ## Iconify
 
 Search at [Iconify's catalog](https://icon-sets.iconify.design/) or through its
 [search API](https://iconify.design/docs/api/search.html). Results use
-`prefix:name` identifiers; `prefixes` limits a query to selected sets.
-Collection metadata gives the licence as Iconify records it. Fetch individual SVGs through
-`https://api.iconify.design/{prefix}/{name}.svg` (the identifier remains `prefix:name`).
+`prefix:name` identifiers; `prefixes` limits a query to selected sets. Fetch
+individual SVGs through `https://api.iconify.design/{prefix}/{name}.svg` (the
+identifier remains `prefix:name`).
 The public API needs no key; `https://api.iconify.design/collections?prefixes=<sets>`
 returns metadata and licences for comma-separated sets.
 
-Parallel agents get rate-limited together: eight agents fetching at once were
-answered with Cloudflare 1015, then HTTP 429 with a `Retry-After` of about an hour
-(2026-10-13). For more than a handful of icons, or when several agents share the
-work, fetch per set, not per icon:
+The public API rate-limits bursts of requests, so for more than a handful of
+icons fetch per set, not per icon:
 `https://api.iconify.design/<prefix>.json?icons=a,b` returns the named icons' SVG
 bodies in one response, and
 `https://cdn.jsdelivr.net/npm/@iconify-json/<prefix>/icons.json` is the whole set
-from another host (`vscode-icons`: 3.8 MB). A body is the inside of the element:
-wrap it in `<svg xmlns="http://www.w3.org/2000/svg" viewBox="{left} {top} {width} {height}">`,
-each value from the icon when it has one, else from the set, else 0, 0, 16, 16
-(`logos:google-gmail` is 256 x 204 in a 256 x 256 set; `bi` states no size).
+from another host. A body is the inside of the element: wrap it in `<svg xmlns="http://www.w3.org/2000/svg" viewBox="{left} {top} {width} {height}">`,
+each value from the icon when it has one, else from the set, else 0, 0, 16, 16.
 
 The SVG flag sets `circle-flags`, `flagpack` and `flag` use lowercase ISO 3166-1
-alpha-2 codes. The checked `finland` search (2026-09-30) returned only Emoji
-collections, none of these three. Build the id directly: `circle-flags:fi`,
-`flagpack:fi`; `flag` needs a ratio suffix (`flag:fi-4x3`, `flag:fi-1x1`), and
+alpha-2 codes. A country-name search can return only emoji sets, so build the id
+directly: `circle-flags:fi`, `flagpack:fi`; `flag` needs a ratio suffix (`flag:fi-4x3`, `flag:fi-1x1`), and
 bare `flag:fi` is a 404. Use SVG flags rather than emoji: Windows' emoji font
 has no flag glyphs and shows the letters (`FI`). For a language selector,
 language names usually communicate the choice better than national flags.
@@ -70,13 +62,12 @@ for the project's chosen integration.
 Use [svgl's API docs](https://svgl.app/docs/api) to find exact titles, categories
 and asset routes. The API base is `https://api.svgl.app` (no key). Its docs state a
 request limit and ask callers to cache: the bare base returns the whole catalogue
-in one response (about 130 KB), which serves many lookups or several agents better
-than one search per logo. It primarily holds software and brand marks, with some file
-marks such as `PDF`; use Iconify for flag families and consistent file-type sets.
+in one response, which serves many lookups better than one search per logo. It
+primarily holds software and brand marks, with some file marks such as `PDF`; use Iconify for flag families and consistent file-type sets.
 `?search=` matches titles; a missing title returns "SVG not found". Browse
-categories through `/categories`, whose names are case-sensitive
-(`/category/AI`, not `ai`). Registry names are currently slugified titles, not
-asset filenames (`Hugging Face` → `hugging-face`, `Next.js` → `nextjs`,
+categories through `/categories` and use each name exactly as listed there
+(`/category/AI`; `ai` is not found). Registry names are currently slugified
+titles, not asset filenames (`Hugging Face` → `hugging-face`, `Next.js` → `nextjs`,
 `shadcn/ui` → `shadcnui`); confirm with `https://svgl.app/r/<name>.json`
 before adding. Entries may carry light/dark routes and a separate wordmark.
 

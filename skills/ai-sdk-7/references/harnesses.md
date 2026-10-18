@@ -38,7 +38,7 @@ Names to look up in `ai/docs/03-ai-sdk-harnesses/` (all experimental):
 `detach()`/`stop()`/`suspendTurn()`, `continueStream()`/`continueGenerate()`
 for an unfinished turn, `permissionMode` (`allow-all`, `allow-edits`,
 `allow-reads`) for built-in tools, `sandboxConfig` (`workDir`, `onBootstrap` +
-`bootstrapHash`, `onSession`). As of 2026-10-11, prefer `agent.getSandboxTemplate()`
+`bootstrapHash`, `onSession`). Prefer `agent.getSandboxTemplate()`
 or `createHarnessSandboxTemplate({ harnesses, sandboxConfig })` from
 `@ai-sdk/harness/agent`; `prepareHarnessSandboxTemplate()` is deprecated, still
 exported. Pass a caller-created `sandboxSession` to `createSession`; the caller

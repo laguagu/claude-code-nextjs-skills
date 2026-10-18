@@ -12,10 +12,8 @@ Restrict remote patterns to intended sources. Verify loader, SVG and quality
 allowlist behavior in the installed version. Static export needs an appropriate
 loader or unoptimized delivery.
 
-Next.js 16 defaults include `qualities: [75]` (the component's `quality` prop
-is coerced to the nearest allowed value), a 4-hour `minimumCacheTTL`, blocked
-local-IP upstreams and at most 3 redirects. A local `src` with a query string
-needs a matching `images.localPatterns` entry.
+Next.js 16 defaults also include a 4-hour `minimumCacheTTL`, blocked local-IP
+upstreams and at most 3 redirects.
 
 Load the actual LCP image early without preloading every hero candidate. Current
 Next.js favors eager/fetchPriority in many cases and deprecates `priority`;

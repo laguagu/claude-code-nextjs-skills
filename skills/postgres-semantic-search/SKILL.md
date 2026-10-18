@@ -142,9 +142,6 @@ Details and measurements: [hybrid-search.md](references/hybrid-search.md).
   the target hardware.
 - **Measure the shortlist ceiling first**: a reranker cannot recover what the
   first stage missed.
-- Make the backend/depth configurable when operationally useful; choose the
-  enabled default from the accepted quality and latency results. If callers may choose a
-  backend per request, allow only admin-enabled ones.
 
 Numbers, model trade-offs and adoption rules: [reranking.md](references/reranking.md).
 
@@ -196,13 +193,13 @@ await db.execute(sql`SELECT * FROM match_documents(${JSON.stringify(embedding)}:
 - [evaluation.md](references/evaluation.md): two eval sets, bias, noise, and
   four ways a measurement misleads.
 
-## Versions (checked 2026-09)
+## Versions
 
 - **pgvector**: inspect the installed version with
   `SELECT extversion FROM pg_extension WHERE extname = 'vector'`. 0.8.0+ for
   iterative scans. Check current stable releases: 0.8.2 fixed a
   buffer overflow in parallel HNSW builds, 0.8.3 and 0.8.4 HNSW vacuum
-  corruption and errors. Read the current index-fix and upgrade notes before
+  corruption and errors, 0.8.7 a buffer overflow in IVFFlat builds. Read the current index-fix and upgrade notes before
   upgrading. Releases ship as git tags only, so read the
   [CHANGELOG](https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md),
   not the empty Releases tab.

@@ -1,7 +1,5 @@
 # Scaffolding and presets
 
-Use Bun in new projects. In an existing repo, follow its `packageManager`, lockfile and scripts.
-
 ## New project
 
 The shadcn CLI can scaffold a Next.js app:
@@ -18,7 +16,7 @@ bunx --bun shadcn@latest init --preset <CODE> --template next
 
 Pass the code through unchanged. Use the CLI's `preset decode` command when you need to inspect it. Choose fonts, style and primitive base for the product; retain an existing project's base.
 
-For example, `b0` selects Nova, neutral colors, Lucide and Inter, with headings inheriting the body font (checked against the preset source on 2026-10-01):
+For example, `b0` selects Nova, neutral colors, Lucide and Inter, with headings inheriting the body font:
 
 ```bash
 bunx --bun shadcn@latest init --preset b0 --template next

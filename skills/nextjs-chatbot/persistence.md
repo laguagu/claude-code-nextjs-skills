@@ -30,11 +30,10 @@ provider relationships. Do not blanket-delete every `tool-*`, step or
 `providerMetadata` part.
 
 An OpenAI Responses item ID can depend on associated reasoning items or
-provider-stored state. The observed failure: `Item 'msg_…' of type 'message'
-was provided without its required 'reasoning' item: 'rs_…'`, only after a
-reload, only on the Responses API and only on the second question of a restored
-thread. The server-persisted parts carried `providerMetadata.openai.itemId`,
-which the provider replays as an item reference. If restored replay fails,
+provider-stored state. Persisted parts keep `providerMetadata.openai.itemId`, which the provider
+replays as an item reference, so the second question of a restored thread can
+fail with `Item 'msg_…' of type 'message' was provided without its required
+'reasoning' item: 'rs_…'`. If restored replay fails,
 inspect the retained sequence and the provider's supported replay mode. A
 deliberately stateless text-only history may require removing provider IDs and
 dependent parts together; that is a provider-specific conversion decision, not
@@ -46,8 +45,7 @@ provider.
 Save from the UI stream completion callback: `onEnd` in v7, `onFinish` in v6.
 With `originalMessages`, it receives the updated `messages`, `responseMessage`
 and `isAborted`; distinguish completion, failure and cancellation rather than
-marking every callback a successful answer. Core v7 callback renames do not
-rename the client `useChat.onFinish`. Inspect the installed stream layer's
+marking every callback a successful answer. Inspect the installed stream layer's
 payload rather than assuming every API returns the full conversation.
 
 Feedback can arrive before the assistant row is committed. Represent that

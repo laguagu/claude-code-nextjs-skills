@@ -15,8 +15,6 @@ runtime or sandbox. Confirm installed tool types and endpoint support in
 [tools docs](https://openai.github.io/openai-agents-python/tools/). Do not assume
 function-tool guardrails cover hosted shell, computer, MCP or patch tools.
 
-Use `agent.as_tool()` when the manager consumes a child result and retains
-control. Use a handoff when the specialist should become the active agent.
 Tool execution limits and cancellation apply to real side effects too.
 Ordinary function-call dict/Pydantic results, including a structured
 `as_tool()` final output, default to `str(value)` in 0.22.3. Declared output

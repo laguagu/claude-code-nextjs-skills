@@ -12,7 +12,7 @@ long tool results and safe-area insets.
 Give the launcher an accessible name and clear open state. Opening/closing
 must manage focus appropriately; provide keyboard dismissal and return focus
 to the launcher when relevant. Announce useful state without reading every
-streamed token. Preserve the reader's position when they leave the bottom.
+streamed token.
 
 ## Embedding boundary
 

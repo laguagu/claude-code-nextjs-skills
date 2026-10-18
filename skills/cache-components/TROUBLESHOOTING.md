@@ -12,12 +12,12 @@ prove freshness, authorization or runtime-only helper paths.
 | Symptom | Inspect before changing policy |
 | --- | --- |
 | Blocking/dynamic access | Where uncached I/O, unknown params or request APIs are awaited relative to Suspense |
-| `next-request-in-use-cache` | The whole helper call stack, not only the visible cached function; a dynamic route may pass build and fail under `next start`. Read outside and pass resolved values, or use a suitable private cache |
+| `next-request-in-use-cache` | The whole helper call stack, not only the visible cached function. Read outside and pass resolved values, or use a suitable private cache |
 | Build stalls/timeouts | Slow/unavailable build services or a request promise passed/captured into the isolated cached scope; await request values outside |
 | Repeated reads | Key inputs, handler lifetime, process/deploy identity and deliberate bypasses |
 | Stale after mutation | Write completion, tag/path coverage, invalidation profile and client freshness |
 | Different values across instances | Backing store and cross-instance invalidation; one-process tests cannot prove it |
-| Cross-account output | Authorized identity/filter keying, global mutable state and policy changes; on Next.js 16.3.0-16.3.7 upgrade to 16.3.8+ first (GHSA-h694-7cp9-m8p3 root-param keying, GHSA-3w37-wq28-93x7 Draft Mode fills) |
+| Cross-account output | Authorized identity/filter keying, global mutable state and policy changes; on Next.js 16.0.0-16.4.0 upgrade to 16.4.1+ first (16.3.8 fixed GHSA-h694-7cp9-m8p3 root-param keying and GHSA-3w37-wq28-93x7 Draft Mode fills; 16.4.1 fixes the `use cache` RCE GHSA-673q-mjm6-r5xr) |
 | Metadata or sitemap stale | Its own data loader and refresh path, not merely the page's cache |
 
 With Cache Components, `empty-generate-static-params` means the export returned

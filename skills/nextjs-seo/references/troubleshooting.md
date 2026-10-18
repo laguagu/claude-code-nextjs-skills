@@ -25,8 +25,7 @@ fixes; repeated submissions do not guarantee indexing.
 
 Compare source and the complete production response for the installed
 metadata-streaming mode and relevant bot. Check inheritance, file precedence,
-relative URL resolution and the correct deployment origin. A spoofed bot
-User-Agent tests route behavior, not verified Google crawl access.
+relative URL resolution and the correct deployment origin.
 See [metadata-api.md](metadata-api.md).
 
 ## Content is stale
@@ -43,12 +42,10 @@ production browser and test buttons, forms and Suspense content. Inspect
 console errors, streamed RSC responses, failed assets, client/server initial
 state and the deployed proxy.
 
-A previous app exhibited correct SEO HTML with stalled PPR boundaries: a
-partially prerendered route (typically reading `searchParams`) never hydrated
-its Suspense content on a direct production load, while the same component
-worked on a static route and after client navigation. That observation is a
-reason to test both entry paths, not a universal Next.js defect or proof of a
-particular repair. An inactive browser tab can also delay streamed reveal;
+Test both a direct production load and client navigation: a partially
+prerendered route (for example one reading `searchParams`) can serve correct
+SEO HTML yet leave its Suspense content unhydrated on a direct load while
+working after client navigation. An inactive browser tab can also delay streamed reveal;
 rule that out before reporting a failure. Preserve a reproducible case and
 investigate the installed framework/configuration.
 

@@ -33,11 +33,9 @@ answer once. Keep both:
   characters), from documents still in use, and have a cheap model write one
   natural question each chunk answers. Store question, expected document and
   expected chunk. At 50 questions each result moves the score by 2 points;
-  at a ~50 % hit rate the independent-binomial standard error is about 7 points.
-  Size the set for the effect you need to detect and use paired wins/losses or
-  a paired interval when comparing the same queries. A few hundred gave a
-  useful signal here; a small deterministic fixture set still has uncertainty
-  about the wider query population.
+  at a ~50 % hit rate the binomial standard error is about 7 points. Size the
+  set for the effect you need to detect; a few hundred gave a useful signal
+  here.
 - **Bias**: a question generated from a chunk is unusually close to that chunk
   in embedding space. Vector and RRF baselines look better than in production,
   and rerankers and query rewriters look worse, because they reshuffle a
@@ -83,9 +81,7 @@ answer once. Keep both:
    quantized form. Through the production pipeline both found the same
    documents, and the quantized one ranked them better, ran 40 % faster and
    used a quarter of the memory. Use sweeps to rank candidates, then confirm.
-4. **The obvious improvement is often noise, a regression, or unmeasured.** Of
-   three changes that looked right on one project's sweep, one was noise, one
-   regressed, and one depended on a measurement nobody had made. Rejected
+4. **The obvious improvement is often noise, a regression, or unmeasured.** Rejected
    changes with written reasons are a good outcome.
 
 ## Gotchas

@@ -1,8 +1,7 @@
 # Cache API boundaries
 
 Use installed Next.js docs for signatures, profile values and feature flags.
-The upstream cache-components skill moved to vercel/next.js; this file is a
-focused guide, not a replacement API reference.
+This file is a focused guide, not a replacement API reference.
 
 ## Keys and serialization
 
@@ -79,8 +78,7 @@ does not install one.
 
 `use cache: private` permits request API access with request/client-scoped
 reuse, rather than cross-request shared server storage. It can read cookies,
-headers and searchParams, but not `connection()`, runs at request time and
-accepts no custom handler. Check current feature support, retention and preview
+headers and searchParams, but not `connection()`. Check current feature support, retention and preview
 behavior. No variant establishes privacy policy by itself.
 
 Draft Mode is an exception to the request-API restriction: a cached scope can
@@ -88,10 +86,6 @@ read `(await draftMode()).isEnabled`. It re-executes without storing results;
 `enable()`/`disable()` still cannot run inside the cached scope.
 
 ## Routing and runtime
-
-Cache Components changes which segment configuration and runtime options are
-supported. Do not mix legacy `dynamic`/`revalidate`/`fetchCache` policies
-into an enabled app without checking the migration guide.
 
 GET handlers may prerender when their work permits it; their response and helper
 caching are separate decisions. `use cache` cannot go on the `GET` export or in

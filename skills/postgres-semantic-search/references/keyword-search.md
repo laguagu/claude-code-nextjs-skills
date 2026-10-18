@@ -61,8 +61,8 @@ almost everything.
   from text and every metadata field at ingest, and from queries. Postgres does not treat
   them as whitespace, so the glued token skips stemming:
   `to_tsvector('finnish', 'kirjanpidossa')` gives `kirjanpido`, the same word
-  followed by U+200B stays whole and never matches. A CMS export had them in 10
-  titles and 23 chunks, invisible in every editor.
+  followed by U+200B stays whole and never matches. CMS exports can carry them,
+  invisible in every editor.
 - **Mixed or unknown languages**: `'simple'` plus prefix or trigram matching.
   A per-row language works in a generated column or index only if the column
   is of type `regconfig` (`to_tsvector(lang, body)`); casting a text column
@@ -76,8 +76,8 @@ almost everything.
 A stored `GENERATED ALWAYS AS (...)` tsvector column can silently become a
 plain column when an ORM regenerates a migration without the expression. Every
 row then holds NULL, the keyword arm matches nothing, and hybrid search is
-vector search. In one production system this went unnoticed for about six
-months because results still came back.
+vector search. Results still come back, so it can go unnoticed for
+months.
 
 ```sql
 -- attgenerated 's' = stored generated column; empty = plain column
@@ -179,7 +179,7 @@ ParadeDB's API changes between releases. For query syntax, use the official
 ParadeDB agent skill ([paradedb/agent-skills](https://github.com/paradedb/agent-skills))
 if it is installed, or fetch the docs index at
 `https://www.paradedb.com/docs/llms.txt`. Points that are easy to get wrong
-from memory (checked 2026-09; key-field rules updated 2026-10-11):
+from memory (as of 2026-10):
 
 - The index is `CREATE INDEX ... USING paradedb (...)`
   since 0.25.0; `USING bm25` is a backwards-compatible alias, and

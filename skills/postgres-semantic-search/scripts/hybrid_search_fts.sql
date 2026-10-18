@@ -19,8 +19,8 @@
 --   transaction if the vector arm needs more than 40 candidates.
 
 -- The earlier five-argument version must go: beside the new one, every
--- five-argument call would be ambiguous. hybrid_search_weighted, which this
--- function's weights replace, failed on every call ("id" is ambiguous).
+-- five-argument call would be ambiguous. hybrid_search_weighted is the older
+-- function these weights replace.
 DROP FUNCTION IF EXISTS hybrid_search_fts(vector, text, integer, integer, text);
 DROP FUNCTION IF EXISTS hybrid_search_weighted(vector, text, integer, double precision, double precision, text);
 

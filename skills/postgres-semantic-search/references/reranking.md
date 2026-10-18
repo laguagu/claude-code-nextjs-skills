@@ -29,7 +29,7 @@ names as examples and re-measure current ones.
 | Chat LLM as judge | any | On the legal passages two chat models (92–93 % R@1) trailed a cross-encoder and a typed-judgment model (95.5–96.5 %) at 5–10× the latency |
 
 ZeroEntropy's original hosted service [sunset on 2026-09-04](https://zeroentropy.dev/articles/zeroentropy-is-joining-notion);
-its models are Apache-2.0 open weights (checked 2026-10-11).
+its models are Apache-2.0 open weights.
 
 Check the project's data policy before choosing a hosted option; resolve
 permission to send candidate text if it is unknown. Look up current model names in the provider's docs rather than

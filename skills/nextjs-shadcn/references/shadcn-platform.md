@@ -6,7 +6,7 @@ Use the `shadcn` skill and [current CLI docs](https://ui.shadcn.com/docs/cli) fo
 
 Inspect the primitive base, aliases, theme and installed components through `components.json` and `shadcn info --json`. `shadcn docs <component>` resolves to the project's base.
 
-Base UI's `render` and Radix's `asChild` are different composition APIs. Preserve the project's base unless migration is in scope. `migrate radix` consolidates Radix package imports; it does not migrate components to Base UI.
+`migrate radix` consolidates Radix package imports; it does not migrate components to Base UI.
 
 Use the existing alias convention, including Node package imports when configured. Prefer logical spacing utilities for RTL-aware layouts.
 

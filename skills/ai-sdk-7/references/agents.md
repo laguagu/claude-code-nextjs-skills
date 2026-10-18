@@ -26,9 +26,8 @@ boundary with `createModelCallToUIChunkTransform()`. Durable tool work uses
 `'use step'`; context must be serializable. Its approval API remains tool-level
 `needsApproval`, while ToolLoopAgent uses `toolApproval`. UI types come from
 `InferWorkflowAgentUIMessage`. It replaces Workflow DevKit's `DurableAgent`.
-`@ai-sdk/workflow` 2.0.66 onward peer-requires `workflow ^5.1.0`; 2.0.65 accepted
-`^5.0.0-beta.42`. Use `workflow@5` for current releases; on 2026-10-11,
-`workflow@beta` points to incompatible 5.0.0-beta.58. Signed approvals use
+`@ai-sdk/workflow` 2.0.66 onward peer-requires `workflow ^5.1.0`. Install
+`workflow@5`; the `workflow@beta` tag points to an older, incompatible 5.0 beta. Signed approvals use
 `experimental_toolApprovalSecret: { environmentVariable }` so raw keys are not
 serialized into durable steps.
 

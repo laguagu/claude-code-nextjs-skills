@@ -14,15 +14,14 @@ upgrade is requested.
 - Unknown, mixed or older versions: resolve them before applying either API set.
 - New apps: start on the current major (7 when written; `npm view ai dist-tags`
   confirms). `ai@7` pairs with `@ai-sdk/react@4`, `ai@6` with `@ai-sdk/react@3`.
-  Provider majors differ per package (for v7, Amazon Bedrock and xAI are 5.x,
-  OpenAI-compatible 3.x), so install each provider's `latest` for v7 and its
+  Provider majors differ per package, so install each provider's `latest` for v7 and its
   `ai-v6` dist-tag for v6 (`npm view <pkg> dist-tags`).
 
 ## Find the API that matches the app
 
 Search the resolved package's `docs/`, types and `src/` (when shipped) first;
 they work without network. `ai` bundles docs from 6.0.32 and in 7.x;
-6.0.0-6.0.31 have no docs, and 6.0.32 still has no `src/`. The docs tree
+6.0.0-6.0.31 have no docs. The docs tree
 mirrors the website: `ai-sdk.dev/docs/<section>/<page>`
 is `ai/docs/<nn>-<section>/<nn>-<page>.mdx`, so an `ai-sdk.dev/docs` link in
 these skills can be read from the installed major's copy. Provider packages
@@ -38,7 +37,7 @@ When local documentation is unavailable, use the matching repository tag
 and Markdown page variants help locate the relevant feature. Repository main
 and the default website can target a newer major than the app. With neither
 local docs nor network, say which API facts remain unverified.
-As of 2026-10-11, append `&tag=v6` (`v5`, `v6` or `v7`) to scope search
+Append `&tag=v6` (`v5`, `v6` or `v7`) to scope search
 results to a major.
 
 Choose model IDs from the app's provider configuration or current provider

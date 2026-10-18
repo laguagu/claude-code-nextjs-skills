@@ -14,9 +14,7 @@ Handle loading, approval, denial, success and safe failure. A result can be
 empty or false-valued, so do not use output truthiness as proof of success.
 Stable tool-call IDs keep updates associated with the same operation.
 
-Derive the final answer/action visibility from the overall turn status.
-Intermediate gaps between tools do not mean the turn finished. Keep old
-results readable during later generation and preserve scroll/focus.
+Keep old results readable during later generation and preserve scroll/focus.
 
 A view that renders stored messages (an admin transcript, a history page)
 meets parts the live renderer never branches on. Stored `UIMessage.parts`

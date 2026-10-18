@@ -1,6 +1,6 @@
 ---
 name: openai-agents-sdk
-description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent handoffs, function tools, guardrails, sessions, streaming, or tracing with the `openai-agents` / `agents` Python package — including Azure OpenAI via LiteLLM. Triggers on imports from `agents`, uses of `Runner.run_sync`/`Runner.run_streamed`, `@function_tool`, `AgentOutputSchema`, `SQLiteSession`, or questions about the openai-agents-python SDK. Python only — not the TypeScript `@openai/agents` SDK.
+description: OpenAI Agents SDK (Python) development. Use when building AI agents, multi-agent handoffs, function tools, guardrails, sessions, streaming, or tracing with the `openai-agents` / `agents` Python package — including Azure OpenAI through its native client or LiteLLM. Triggers on imports from `agents`, uses of `Runner.run_sync`/`Runner.run_streamed`, `@function_tool`, `AgentOutputSchema`, `SQLiteSession`, or questions about the openai-agents-python SDK. Python only — not the TypeScript `@openai/agents` SDK.
 ---
 
 # OpenAI Agents SDK for Python
@@ -72,8 +72,7 @@ asyncio.run(main())
 
 The example uses Responses (the SDK's default API). [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol)
 requires Responses for tool calling and does not support `none` or `minimal`
-reasoning effort. Model availability/live responses were not tested by the
-offline SDK check.
+reasoning effort.
 
 ## Integration decisions
 

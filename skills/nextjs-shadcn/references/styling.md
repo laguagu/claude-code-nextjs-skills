@@ -10,7 +10,7 @@ No font family is universally required or forbidden. A familiar family can be th
 
 For Next.js, use `next/font` where appropriate or the project's existing font setup. Set the chosen fonts through the theme so components inherit them. Choose a preset through [shadcn/create](https://ui.shadcn.com/create).
 
-Current choices (checked against the [preset source](https://github.com/shadcn-ui/ui/blob/main/packages/registry/src/preset/preset.ts) on 2026-10-01):
+Current choices (from the [preset source](https://github.com/shadcn-ui/ui/blob/main/packages/registry/src/preset/preset.ts)):
 
 - **Component styles:** Nova, Vega, Maia, Lyra, Mira, Luma, Sera and Rhea. Compare their previews for the product's density, shape and hierarchy; these are starting points, not industry-specific prescriptions.
 - **Fonts:** choose body and heading fonts separately, or let headings inherit. Options include Inter, Geist, DM Sans, Manrope, Space Grotesk, Lora and Instrument Serif; use the current picker for the complete list and `next/font` beyond the preset list when needed.

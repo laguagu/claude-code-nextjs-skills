@@ -31,7 +31,7 @@ activate from your request.
 |-------|-------------|
 | [shadcn](skills/shadcn/) | shadcn/ui component management |
 | [icons](skills/icons/) | Sourcing icons, flags, file-type badges and brand logos (Iconify, svgl) |
-| [frontend-design](skills/frontend-design/) | Production-grade frontend interfaces |
+| [frontend-design](skills/frontend-design/) | Distinctive visual direction and typography for new or reshaped UI |
 | [web-design-guidelines](skills/web-design-guidelines/) | UI/UX review against Web Interface Guidelines |
 | [chrome-devtools](skills/chrome-devtools/) | Live browser inspection via Chrome DevTools MCP (DOM, console, network, performance) |
 | [go](skills/go/) | Browser smoke test — verify recent UI changes work |
@@ -61,7 +61,7 @@ activate from your request.
 | Skill | Description |
 |-------|-------------|
 | [postgres-semantic-search](skills/postgres-semantic-search/) | pgvector semantic & hybrid search |
-| [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | Postgres optimization (Supabase) |
+| [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | Postgres schema, migrations, RLS and query performance (Supabase) |
 
 ### 🛠️ Tooling
 
@@ -78,22 +78,25 @@ Example agents for common workflows. Installed with the Claude Code plugin; othe
 
 | Agent | Description |
 |-------|-------------|
-| [code-simplifier](agents/code-simplifier.md) | Refines code for clarity (DRY/KISS/YAGNI) |
-| [e2e-tester](agents/e2e-tester.md) | E2E testing via DevTools MCP, Playwright, or Claude in Chrome |
+| [code-simplifier](agents/code-simplifier.md) | Simplifies recently changed code while preserving behavior |
+| [e2e-tester](agents/e2e-tester.md) | Tests real user flows in the browser and fixes verified defects |
 
 ## 📦 Based On
 
 | Skill | Original Source | License |
 |-------|-----------------|---------|
 | [ai-sdk](skills/ai-sdk/) | [vercel/ai](https://github.com/vercel/ai/tree/main/skills) | Apache 2.0 |
-| [cache-components](skills/cache-components/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (archived; maintained locally) | MIT |
-| [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | - |
+| [cache-components](skills/cache-components/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (skills moved to [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills) in June 2026; maintained locally) | - |
+| [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | MIT |
 | [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
-| [next-best-practices](skills/next-best-practices/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (archived; maintained locally) | - |
-| [web-design-guidelines](skills/web-design-guidelines/) | [skills.sh/vercel-labs/agent-skills](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines) | - |
+| [next-best-practices](skills/next-best-practices/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (skills moved to [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills) in June 2026; maintained locally) | - |
+| [web-design-guidelines](skills/web-design-guidelines/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines) | MIT |
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/agent-skills](https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices) | MIT |
-| [chrome-devtools](skills/chrome-devtools/) | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills/blob/main/skills/browser-testing-with-devtools/SKILL.md) | - |
+| [chrome-devtools](skills/chrome-devtools/) | [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills/blob/main/skills/browser-testing-with-devtools/SKILL.md) | MIT |
 | [shadcn](skills/shadcn/) | [shadcn/ui](https://ui.shadcn.com/docs/skills) | MIT |
+| [ai-elements](skills/ai-elements/) | [vercel/ai-elements](https://github.com/vercel/ai-elements/tree/main/skills/ai-elements) | Apache 2.0 |
+| [frontend-design](skills/frontend-design/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) | Apache 2.0 |
+| [vercel-react-view-transitions](skills/vercel-react-view-transitions/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-view-transitions) | MIT |
 
 ## 📥 Other Installation Options
 
@@ -112,17 +115,17 @@ Example agents for common workflows. Installed with the Claude Code plugin; othe
 Both plugin manifests use this single configuration. Optional Chrome DevTools MCP
 setup is in the [browser testing skill](skills/chrome-devtools/SKILL.md).
 
-[AGENTS.md](AGENTS.md) contains an example of Next.js-generated project rules;
-[CLAUDE.md](CLAUDE.md) references it. These root files guide work on the
-repository; installing the plugin does not load them as project context.
+[AGENTS.md](AGENTS.md) holds the rules for working on this repository and
+[CLAUDE.md](CLAUDE.md) imports it; installing the plugin does not load them as
+project context.
 
 [examples/global-agents.md](examples/global-agents.md) is a user-wide instruction
 file for long autonomous runs: when to keep going, when to stop, and how to report.
 
 ## 🔄 Updating
 
-In Claude Code, run `/plugin marketplace update laguagu`, then
-`/plugin update claude-code-nextjs-skills@laguagu`.
+In a shell, run `claude plugin marketplace update laguagu`, then
+`claude plugin update claude-code-nextjs-skills@laguagu`.
 
 Maintainers: compare upstream updates before merging so local customizations and
 licenses survive. Validate skills with

@@ -65,7 +65,7 @@ scroll primitive when it fits; shadcn's
 [Message Scroller](https://ui.shadcn.com/docs/react/message-scroller) is one option;
 anchor on the user's message so the reply streams below it.
 Render Markdown through the application's
-renderer (ai-elements `MessageResponse` in the default stack, checked 2026-10-11)
+renderer (ai-elements `MessageResponse` in the default stack)
 and style it with shadcn Typeset by default (CSS only, see `nextjs-shadcn`);
 verify nested lists, long links and code blocks.
 
