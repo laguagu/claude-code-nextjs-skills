@@ -19,7 +19,8 @@ evidence reveals a related risk.
 
 Follow repository instructions and use available browser tools that fit the
 check. Automation helps reproduce a flow; DOM, console and network inspection
-help explain a failure. Read framework or component guidance when diagnosis or a fix needs
+help explain a failure. Use `chrome-devtools` for its MCP setup and tool
+contracts. Read framework or component guidance when diagnosis or a fix needs
 it, preferring the installed version's docs (Next.js 16.2+ ships
 `node_modules/next/dist/docs/`) and source over generic latest web guidance.
 When available, the [Next.js DevTools MCP](https://github.com/vercel/next-devtools-mcp)

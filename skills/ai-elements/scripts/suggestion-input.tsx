@@ -1,0 +1,144 @@
+"use client";
+
+import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
+import {
+  PromptInput,
+  PromptInputButton,
+  PromptInputFooter,
+  PromptInputSelect,
+  PromptInputSelectContent,
+  PromptInputSelectItem,
+  PromptInputSelectTrigger,
+  PromptInputSelectValue,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputTools,
+} from "@/components/ai-elements/prompt-input";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { GlobeIcon, MicIcon, PlusIcon, SendIcon } from "lucide-react";
+import { nanoid } from "nanoid";
+import { memo, useCallback, useState } from "react";
+
+const suggestions: { key: string; value: string }[] = [
+  { key: nanoid(), value: "What are the latest trends in AI?" },
+  { key: nanoid(), value: "How does machine learning work?" },
+  { key: nanoid(), value: "Explain quantum computing" },
+  { key: nanoid(), value: "Best practices for React development" },
+  { key: nanoid(), value: "Tell me about TypeScript benefits" },
+  { key: nanoid(), value: "How to optimize database queries?" },
+  { key: nanoid(), value: "What is the difference between SQL and NoSQL?" },
+  { key: nanoid(), value: "Explain cloud computing basics" },
+];
+
+const models = [
+  { id: "gpt-6.1-sol", name: "GPT-6.1 Sol" },
+  { id: "gpt-6-luna", name: "GPT-6 Luna" },
+  { id: "claude-opus-5", name: "Claude Opus 5" },
+  { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
+  { id: "llama-4-maverick", name: "Llama 4 Maverick" },
+  { id: "llama-4-scout", name: "Llama 4 Scout" },
+  { id: "command-r-plus", name: "Command R+" },
+  { id: "mistral-large", name: "Mistral Large" },
+];
+
+const handleSubmit = (message: PromptInputMessage) => {
+  const hasText = Boolean(message.text);
+  const hasAttachments = Boolean(message.files?.length);
+
+  if (!(hasText || hasAttachments)) {
+    return;
+  }
+
+  console.log("Submitted message:", message.text || "Sent with attachments");
+  console.log("Attached files:", message.files);
+};
+
+interface SuggestionItemProps {
+  suggestion: { key: string; value: string };
+  onSuggestionClick: (value: string) => void;
+}
+
+const SuggestionItem = memo(
+  ({ suggestion, onSuggestionClick }: SuggestionItemProps) => {
+    const handleClick = useCallback(
+      () => onSuggestionClick(suggestion.value),
+      [onSuggestionClick, suggestion.value]
+    );
+    return (
+      <Suggestion
+        key={suggestion.key}
+        onClick={handleClick}
+        suggestion={suggestion.value}
+      />
+    );
+  }
+);
+
+SuggestionItem.displayName = "SuggestionItem";
+
+const Example = () => {
+  const [model, setModel] = useState<string>(models[0].id);
+  const [text, setText] = useState<string>("");
+
+  const handleSuggestionClick = useCallback((suggestion: string) => {
+    setText(suggestion);
+  }, []);
+
+  const handleTextChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value),
+    []
+  );
+
+  return (
+    <div className="grid gap-4">
+      <Suggestions>
+        {suggestions.map((suggestion) => (
+          <SuggestionItem
+            key={suggestion.key}
+            onSuggestionClick={handleSuggestionClick}
+            suggestion={suggestion}
+          />
+        ))}
+      </Suggestions>
+      <PromptInput onSubmit={handleSubmit}>
+        <PromptInputTextarea
+          onChange={handleTextChange}
+          placeholder="Ask me about anything..."
+          value={text}
+        />
+        <PromptInputFooter>
+          <PromptInputTools>
+            <PromptInputButton>
+              <PlusIcon size={16} />
+            </PromptInputButton>
+            <PromptInputButton>
+              <MicIcon size={16} />
+            </PromptInputButton>
+            <PromptInputButton>
+              <GlobeIcon size={16} />
+              <span>Search</span>
+            </PromptInputButton>
+            <PromptInputSelect onValueChange={setModel} value={model}>
+              <PromptInputSelectTrigger>
+                <PromptInputSelectValue />
+              </PromptInputSelectTrigger>
+              <PromptInputSelectContent>
+                {models.map((m) => (
+                  <PromptInputSelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </PromptInputSelectItem>
+                ))}
+              </PromptInputSelectContent>
+            </PromptInputSelect>
+          </PromptInputTools>
+          <PromptInputSubmit>
+            <SendIcon size={16} />
+          </PromptInputSubmit>
+        </PromptInputFooter>
+      </PromptInput>
+    </div>
+  );
+};
+
+export default Example;
