@@ -5,7 +5,7 @@ description: >-
   pg_trgm, hybrid fusion, ParadeDB BM25 and reranking. Use for search/RAG
   implementation, weak results, filtered ANN scans, non-English corpora or
   retrieval evaluation. For general schema, RLS and query tuning unrelated
-  to retrieval, use supabase-postgres-best-practices.
+  to retrieval, use Supabase's supabase-postgres-best-practices skill.
 ---
 
 # PostgreSQL Semantic Search
@@ -210,6 +210,6 @@ await db.execute(sql`SELECT * FROM match_documents(${JSON.stringify(embedding)}:
 
 | Need | Skill |
 | --- | --- |
-| General Postgres schema, indexes, RLS, pooling | `supabase-postgres-best-practices` |
+| General Postgres schema, indexes, RLS, pooling | `supabase-postgres-best-practices` (Supabase plugin or [supabase/agent-skills](https://github.com/supabase/agent-skills)) |
 | Chatbot orchestration, sessions, tool calls | `nextjs-chatbot` |
 | Embedding calls through the AI SDK | `ai-sdk` |

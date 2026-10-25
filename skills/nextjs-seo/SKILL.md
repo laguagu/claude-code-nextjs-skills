@@ -30,7 +30,8 @@ changes. Verify authorship, credentials and factual claims.
   absolute URLs. Do not rely on missing-base behavior across versions/hosts.
 - Configure refresh/invalidation for data-backed pages, metadata and sitemaps.
   A database query alone does not guarantee publication updates reach them.
-  Use `cache-components` when enabled; caching is a freshness decision rather
+  With Cache Components enabled, follow the installed Next.js caching docs
+  (`node_modules/next/dist/docs/`); caching is a freshness decision rather
   than a required SEO directive.
 - Structured data must describe real visible content and a supported consumer.
   Check current rich-result eligibility instead of adding every schema type.

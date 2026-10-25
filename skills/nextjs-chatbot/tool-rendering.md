@@ -26,6 +26,6 @@ Validate tool data on the server and at external boundaries. Sanitize rendered
 Markdown/HTML and apply application policy to links or attachments; model or
 tool output is not automatically safe DOM content.
 
-See [HITL](hitl.md), `ai-elements` for existing components and the
+See [HITL](hitl.md), the `shadcn` skill (`Trace`) for tool rows and the
 [UI tool guide](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-tool-usage) for the
 version-matched state and continuation contract.

@@ -1,14 +1,16 @@
 ---
 name: nextjs-chatbot
-description: "Production Next.js web-chat integration: tool approval, persisted conversations, tool result UI, grounded retrieval, follow-up suggestions and embedded widgets. Use when building or debugging a web chatbot that needs these features. Use ai-app for scaffolding and ai-sdk for general SDK APIs; multi-platform bots use Chat SDK."
+description: "Production Next.js web-chat integration: tool approval, persisted conversations, tool result UI, grounded retrieval, follow-up suggestions and embedded widgets. Use when building or debugging a web chatbot that needs these features. Use nextjs-shadcn for scaffolding and ai-sdk for general SDK APIs; multi-platform bots use Chat SDK."
 ---
 
 # Production Next.js chatbots
 
 Use this skill for web-chat integration: persisted conversations, tool approval,
-tool result UI and an embedded widget. Use `ai-app` for scaffolding,
-`ai-sdk` to resolve the SDK version, and the `shadcn` skill for chat components
-(`ai-elements` for existing elements.ai-sdk.dev installs).
+tool result UI and an embedded widget. Use `nextjs-shadcn` for scaffolding,
+`ai-sdk` to resolve the SDK version, and the `shadcn` skill for chat components.
+An existing elements.ai-sdk.dev install keeps its copied source in
+`components/ai-elements/` as the reference until it migrates (deprecated upstream
+at the end of November 2026; see https://ui.shadcn.com/docs/ai-elements).
 For multi-platform messaging, consult [Chat SDK](https://chat-sdk.dev/).
 
 Keep the project's stack. Choose the model, reasoning setting, storage and
