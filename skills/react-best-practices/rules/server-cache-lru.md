@@ -36,6 +36,8 @@ Use when sequential user actions hit multiple endpoints needing the same data wi
 
 **With Vercel's [Fluid Compute](https://vercel.com/docs/fluid-compute):** LRU caching is especially effective because multiple concurrent requests can share the same function instance and cache. This means the cache persists across requests without needing external storage like Redis.
 
+Each instance still keeps its own copy, and an entry stays stale until its TTL after a write: delete or update it on every write, and use a shared store when instances must agree. In Next.js 16 with Cache Components, prefer `'use cache'` with `cacheTag`/`updateTag` (see `cache-components`) when a mutation must invalidate the read.
+
 **In traditional serverless:** Each invocation runs in isolation, so consider Redis for cross-process caching.
 
 Reference: [https://github.com/isaacs/node-lru-cache](https://github.com/isaacs/node-lru-cache)

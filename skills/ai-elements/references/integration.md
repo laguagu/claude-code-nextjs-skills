@@ -17,7 +17,7 @@ provider route. `openai/gpt-6.1-sol` was verified in Vercel's catalog on
 2026-09-30; select from the application's supported models rather than treating
 the demo selection as a production default.
 
-Upstream AI Elements (main at 6a9d5b1) still declares `ai` ^6 and
+Upstream AI Elements (deprecated; main ca8be60) still declares `ai` ^6 and
 `@ai-sdk/react` ^3. Against AI SDK 7 types, the generated `context.tsx` fails
 typecheck: it reads `usage.reasoningTokens` and `usage.cachedInputTokens`,
 which v7's `LanguageModelUsage` moved to `outputTokenDetails.reasoningTokens`

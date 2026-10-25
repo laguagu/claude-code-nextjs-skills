@@ -1,5 +1,5 @@
-<!-- Snapshot of https://github.com/vercel-labs/web-interface-guidelines/blob/e3d624b/command.md
-     taken 2026-09-30 for use without web access. MIT License, Copyright (c) 2025 Vercel Labs:
+<!-- Snapshot of https://github.com/vercel-labs/web-interface-guidelines/blob/4ecfb9f/command.md
+     taken 2026-10-25 for use without web access. MIT License, Copyright (c) 2025 Vercel Labs:
      see LICENSE in this folder. -->
 
 ---
@@ -108,6 +108,7 @@ Read files, check against rules below. Output concise but comprehensive—sacrif
 - `touch-action: manipulation` (prevents double-tap zoom delay)
 - `-webkit-tap-highlight-color` set intentionally
 - `overscroll-behavior: contain` in modals/drawers/sheets
+- Page rubber-band suppression: `overscroll-behavior: none` on `<html>` inside `@media (pointer: fine)`; keep coarse-pointer page defaults for pull-to-refresh. Test hybrid touch devices: `pointer` describes the primary input, and `none` also disables scroll chaining and native swipe navigation
 - During drag: disable text selection, `inert` on dragged elements
 - Drag/swipe/pinch/path gestures need tap/click and keyboard alternatives unless essential
 - `autoFocus` sparingly—desktop only, single primary input; avoid on mobile

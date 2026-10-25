@@ -957,6 +957,8 @@ Use when sequential user actions hit multiple endpoints needing the same data wi
 
 **With Vercel's [Fluid Compute](https://vercel.com/docs/fluid-compute):** LRU caching is especially effective because multiple concurrent requests can share the same function instance and cache. This means the cache persists across requests without needing external storage like Redis.
 
+Each instance still keeps its own copy, and an entry stays stale until its TTL after a write: delete or update it on every write, and use a shared store when instances must agree. In Next.js 16 with Cache Components, prefer `'use cache'` with `cacheTag`/`updateTag` (see `cache-components`) when a mutation must invalidate the read.
+
 **In traditional serverless:** Each invocation runs in isolation, so consider Redis for cross-process caching.
 
 Reference: [https://github.com/isaacs/node-lru-cache](https://github.com/isaacs/node-lru-cache)
@@ -2566,7 +2568,7 @@ Component first renders with default value (`light`), then updates after hydrati
 function ThemeWrapper({ children }: { children: ReactNode }) {
   return (
     <>
-      <div id="theme-wrapper">
+      <div id="theme-wrapper" suppressHydrationWarning>
         {children}
       </div>
       <script
@@ -2587,9 +2589,9 @@ function ThemeWrapper({ children }: { children: ReactNode }) {
 }
 ```
 
-The inline script executes synchronously before showing the element, ensuring the DOM already has the correct value. No flickering, no hydration mismatch.
+The inline script runs during HTML parsing, before first paint, so the DOM already has the stored value on a full page load; `suppressHydrationWarning` lets React keep it instead of reporting a mismatch. The script does not run when React renders the component during a client-side navigation, so place it in a layout that persists, or also read the value in a Client Component (see the installed Next.js `02-guides/preventing-flash-before-hydration.md`).
 
-This pattern is especially useful for theme toggles, user preferences, authentication states, and any client-only data that should render immediately without flashing default values.
+This pattern is especially useful for theme toggles, user preferences, and any client-only data that should render immediately without flashing default values.
 
 ### 6.6 Suppress Expected Hydration Mismatches
 

@@ -18,6 +18,16 @@ Per-error pages (`/docs/messages/*`) are only online; the dev/build output
 carries the error's fix options.
 Exact exports are also in `node_modules/next/{server,navigation,headers,cache}.d.ts`.
 
+Before other work, compare the installed version with Next.js security
+advisories and tell the user when it is affected. As of 2026-10-22,
+16.0.0–16.4.0 (fixed in 16.4.1) and 15.x up to 15.5.27 (fixed in 15.5.28) have
+critical RCEs: `use cache` functions returning typed arrays
+(GHSA-673q-mjm6-r5xr, 16.x only, no workaround) and self-hosted image
+optimization of SVGs on glibc Linux (GHSA-2464-fhr4-w9xw; interim fix: sharp
+0.35.5+). They also have a Server Actions DoS (GHSA-p3m5-59mp-jv5r). From 16.4,
+`experimental.agentUpgrade` (default `'security'`) reminds during
+`next dev`/`next build`; 16.3.x and older get no reminder.
+
 ## Next.js 16 changes older examples miss
 
 - Sync request access is removed: `cookies()`, `headers()`, `draftMode()`,
@@ -70,6 +80,12 @@ export const config = { matcher: ['/dashboard/:path*'] }
 The `upgrade` codemod does not migrate synchronous request-API access; run
 `next-async-request-api` separately when migrating that code. Use the project's
 package runner and review the resulting types and runtime behavior.
+
+For an authorized upgrade, `npx next@canary upgrade [app-dir] --agent=security`
+(or `=latest`; experimental, documented from 16.4 in the installed
+`02-guides/upgrading/agent-upgrade.md`) selects the target and prints its guides,
+codemods and checks for the current agent; plain `next upgrade` runs the
+interactive codemods.
 
 Review the actual failure or feature, rather than applying every optimization.
 Keep the project's router, caching mode, runtime and package manager unless

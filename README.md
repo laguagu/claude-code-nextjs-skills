@@ -58,7 +58,7 @@ plugin under its old name `claude-code-nextjs-skills`, uninstall that and instal
 | [ai-sdk](skills/ai-sdk/) | Vercel AI SDK version discovery and documentation |
 | [ai-sdk-6](skills/ai-sdk-6/) | AI SDK v6 (agents, streaming, tools) |
 | [ai-sdk-7](skills/ai-sdk-7/) | AI SDK v7 (WorkflowAgent, harnesses, v6→v7 migration) |
-| [ai-elements](skills/ai-elements/) | AI Elements UI components |
+| [ai-elements](skills/ai-elements/) | Existing elements.ai-sdk.dev AI Elements installs (deprecated upstream end of November 2026; new chat UI uses shadcn/ui AI Elements) |
 | [openai-agents-sdk](skills/openai-agents-sdk/) | OpenAI Agents SDK (Python) |
 
 ### 🗄️ Database & Search

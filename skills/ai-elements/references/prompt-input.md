@@ -87,8 +87,8 @@ const PromptInputAttachmentsDisplay = () => {
 };
 
 const models = [
-  { id: "gpt-6.1-sol", name: "GPT-6.1 Sol" },
-  { id: "claude-opus-5", name: "Claude Opus 5" },
+  { id: "openai/gpt-6.1-sol", name: "GPT-6.1 Sol" },
+  { id: "anthropic/claude-opus-5.5", name: "Claude Opus 5.5" },
 ];
 
 const InputDemo = () => {
@@ -217,6 +217,8 @@ import { streamText, UIMessage, convertToModelMessages } from "ai";
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+const allowedModels = new Set(["openai/gpt-6.1-sol", "anthropic/claude-opus-5.5"]);
+
 export async function POST(req: Request) {
   const {
     model,
@@ -227,6 +229,10 @@ export async function POST(req: Request) {
     model: string;
     webSearch?: boolean;
   } = await req.json();
+
+  if (!webSearch && !allowedModels.has(model)) {
+    return new Response("Unsupported model", { status: 400 });
+  }
 
   const result = streamText({
     model: webSearch ? "perplexity/sonar" : model,

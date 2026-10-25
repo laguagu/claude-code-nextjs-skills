@@ -7,14 +7,17 @@ description: "Production Next.js web-chat integration: tool approval, persisted 
 
 Use this skill for web-chat integration: persisted conversations, tool approval,
 tool result UI and an embedded widget. Use `ai-app` for scaffolding,
-`ai-sdk` to resolve the SDK version, and `ai-elements` for component contracts.
+`ai-sdk` to resolve the SDK version, and the `shadcn` skill for chat components
+(`ai-elements` for existing elements.ai-sdk.dev installs).
 For multi-platform messaging, consult [Chat SDK](https://chat-sdk.dev/).
 
 Keep the project's stack. Choose the model, reasoning setting, storage and
 client state from the product's quality, latency and privacy requirements.
 A chatbot does not inherently need PostgreSQL, Zustand, MCP servers or every
 message action. When a new project has not decided, the defaults are Bun,
-ai-elements on shadcn/ui, Drizzle + PostgreSQL for server-side history, and a
+the AI Elements patterns from shadcn/ui (Message, Bubble, Message Scroller,
+Trace; https://ui.shadcn.com/docs/ai-elements), Drizzle + PostgreSQL for
+server-side history, and a
 fast model with low or no reasoning effort, because chat latency is the product.
 
 Read the installed `node_modules/ai/docs/04-ai-sdk-ui/` for persistence, tool
@@ -65,7 +68,9 @@ scroll primitive when it fits; shadcn's
 [Message Scroller](https://ui.shadcn.com/docs/react/message-scroller) is one option;
 anchor on the user's message so the reply streams below it.
 Render Markdown through the application's
-renderer (ai-elements `MessageResponse` in the default stack)
+renderer (Streamdown through the shadcn/ui Message pattern's `Markdown`
+component in the default stack; `MessageResponse` in existing AI Elements
+installs)
 and style it with shadcn Typeset by default (CSS only, see `nextjs-shadcn`);
 verify nested lists, long links and code blocks.
 

@@ -9,7 +9,10 @@ metadata:
 
 Keep the project's caching mode unless migration is requested. Confirm the
 installed Next.js version and `cacheComponents`/`partialPrefetching` configuration before applying
-these patterns.
+these patterns. Use Cache Components on next 16.4.1+: 16.0.0–16.4.0 allow
+unauthenticated RCE through `use cache` functions returning typed arrays
+(GHSA-673q-mjm6-r5xr; no workaround, upgrade even without such functions).
+Flag an affected install before cache work.
 
 Read the relevant guide in `node_modules/next/dist/docs/` first (bundled since
 16.2; in a monorepo, use the app's own `next` package). Web paths map to files
@@ -35,8 +38,9 @@ that remain correct after mutations, deploys and client navigation.
   `cacheLife`/`cacheTag` import from `next/cache` without `unstable_`.
   In 16.4, set `partialPrefetching` explicitly: leaving it unset warns;
   recommended `create-next-app` defaults enable both flags.
-- With it enabled, segment exports `dynamic`, `revalidate`, `fetchCache` and
-  `dynamicParams` are errors, and Edge runtime is unsupported. `revalidate = N`
+- With it enabled, segment exports `dynamic`, `revalidate`, `fetchCache`,
+  `dynamicParams` and `runtime` (even `'nodejs'`) are errors; only the default
+  Node.js runtime is supported. `revalidate = N`
   becomes `cacheLife` (nearest or custom profile) inside `use cache`;
   `force-dynamic` and `fetchCache` are unnecessary; fetch
   `next: { revalidate, tags }` becomes `cacheLife`/`cacheTag` in a `use cache`
@@ -66,9 +70,10 @@ that remain correct after mutations, deploys and client navigation.
   `@next/playwright` `instant()`. `instant = false` permits a blocking route;
   it does not clear synchronous-IO errors.
 
-For whole-app adoption or instant-navigation work, Next.js publishes workflow
-skills (`next-cache-components-adoption`, `next-cache-components-optimizer`)
-in `vercel/next.js/skills`; the bundled migration guide covers the same steps.
+For whole-app adoption of Cache Components or Partial Prefetching, use the
+official workflow skills listed in the installed `01-app/02-guides/ai-agents.md`
+(from vercel/next.js `skills/`); the bundled `02-guides/migrating-to-cache-components.md`
+and `adopting-partial-prefetching.md` cover the same steps.
 
 ## Shape of one route
 

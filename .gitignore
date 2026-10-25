@@ -7,6 +7,7 @@ __pycache__/
 # check reads these entries to catch published files that still point at
 # them. A skill whose name also appears in public URLs is left out, because
 # those URLs would fail the check.
+skills/agent-setup-update/
 skills/csc-allas/
 skills/csc-lumi/
 skills/csc-rahti/
@@ -18,17 +19,23 @@ skills/excalidraw-diagram/
 skills/go-ui/
 skills/improving-skills/
 skills/jev-builder/
+skills/jevify/
 skills/mcp-eval/
 skills/media-gen/
+skills/media-use/
 skills/paradedb-skill/
+skills/prior-art/
 skills/project-docs/
 skills/rahti-audit/
+skills/ship/
 skills/skill-finder/
 skills/slack-message/
+skills/teams-message/
 skills/turborepo/
 skills/typesafe-ai/
 skills/ui-signature/
 skills/vercel-optimize/
+skills/video-ads/
 
 # Maintainer-only tooling: the reference check and its git hook. A clone
 # holds only the published skills, so it does not need them.

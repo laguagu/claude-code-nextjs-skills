@@ -15,7 +15,8 @@ exported function, which must then be async; caching a page/layout does not
 cache its passed-through `children`.
 
 Argument and return serialization differ. Primitives, plain objects, arrays,
-Dates, Maps, Sets, typed arrays and ArrayBuffers are supported; returns also
+Dates, Maps, Sets, typed arrays and ArrayBuffers are supported (typed-array
+returns are the GHSA-673q-mjm6-r5xr RCE vector before 16.4.1); returns also
 support JSX. Class instances, URL objects, symbols and ordinary functions are not.
 Non-serializable children or Server Actions may pass through unchanged, without
 being read/invoked inside the cached scope. See

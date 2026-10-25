@@ -9,8 +9,10 @@ import argparse
 import json
 import os
 import queue
+import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import uuid
@@ -23,8 +25,8 @@ from scripts.utils import parse_skill_md
 def find_project_root() -> Path:
     """Find the project root by walking up from cwd looking for .claude/.
 
-    Mimics how Claude Code discovers its project root, so the command file
-    we create ends up where claude -p will look for it.
+    Kept for existing callers such as run_loop.py. Trigger evals no longer
+    write into this directory; run_single_query uses its own temp project.
     """
     current = Path.cwd()
     for parent in [current, *current.parents]:
@@ -33,25 +35,66 @@ def find_project_root() -> Path:
     return current
 
 
+def user_skill_overrides() -> dict:
+    """Return the user's own skillOverrides from Claude Code user settings.
+
+    A key passed with --settings replaces the same key in the user's settings
+    file, so the caller merges these back in instead of dropping them.
+    """
+    config_dir = os.environ.get("CLAUDE_CONFIG_DIR") or str(Path.home() / ".claude")
+    try:
+        data = json.loads((Path(config_dir) / "settings.json").read_text(encoding="utf-8"))
+        overrides = data.get("skillOverrides", {})
+        return dict(overrides) if isinstance(overrides, dict) else {}
+    except Exception:
+        return {}
+
+
+def build_command(query: str, skill_name: str, model: str | None = None) -> list[str]:
+    """Build the `claude -p` command for one trigger-eval run.
+
+    The installed copy of the skill (e.g. ~/.claude/skills/<name>) is hidden
+    with skillOverrides "off" so that only the temporary command competes for
+    the query; invoking the real skill would otherwise be scored as a miss.
+    """
+    settings = {"skillOverrides": {**user_skill_overrides(), skill_name: "off"}}
+    cmd = [
+        "claude",
+        "-p", query,
+        "--output-format", "stream-json",
+        "--verbose",
+        "--include-partial-messages",
+        "--no-session-persistence",
+        "--settings", json.dumps(settings),
+    ]
+    if model:
+        cmd.extend(["--model", model])
+    return cmd
+
+
 def run_single_query(
     query: str,
     skill_name: str,
     skill_description: str,
     timeout: int,
-    project_root: str,
+    project_root: str | None = None,
     model: str | None = None,
 ) -> bool:
     """Run a single query and return whether the skill was triggered.
 
-    Creates a command file in .claude/commands/ so it appears in Claude's
-    available_skills list, then runs `claude -p` with the raw query.
+    Each call gets its own temporary project directory with a single
+    .claude/commands/<name>.md file, and `claude -p` runs with that directory
+    as cwd. Parallel workers therefore never see each other's command files,
+    and nothing is written into the caller's repository. project_root is
+    unused and kept only for existing callers.
     Uses --include-partial-messages to score the first tool call from
     stream events, then waits for a successful result and process exit.
     Raises on execution errors rather than reporting a non-trigger.
     """
     unique_id = uuid.uuid4().hex[:8]
     clean_name = f"{skill_name}-skill-{unique_id}"
-    project_commands_dir = Path(project_root) / ".claude" / "commands"
+    eval_project = Path(tempfile.mkdtemp(prefix="trigger-eval-"))
+    project_commands_dir = eval_project / ".claude" / "commands"
     command_file = project_commands_dir / f"{clean_name}.md"
 
     try:
@@ -68,15 +111,7 @@ def run_single_query(
         )
         command_file.write_text(command_content, encoding="utf-8")
 
-        cmd = [
-            "claude",
-            "-p", query,
-            "--output-format", "stream-json",
-            "--verbose",
-            "--include-partial-messages",
-        ]
-        if model:
-            cmd.extend(["--model", model])
+        cmd = build_command(query, skill_name, model)
 
         # Remove CLAUDECODE env var to allow nesting claude -p inside a
         # Claude Code session. The guard is for interactive terminal conflicts;
@@ -87,7 +122,7 @@ def run_single_query(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd=project_root,
+            cwd=str(eval_project),
             env=env,
         )
 
@@ -231,8 +266,7 @@ def run_single_query(
             raise RuntimeError(f"claude -p returned an error: {result_event}; stderr: {stderr}")
         return bool(triggered)
     finally:
-        if command_file.exists():
-            command_file.unlink()
+        shutil.rmtree(eval_project, ignore_errors=True)
 
 
 def run_eval(

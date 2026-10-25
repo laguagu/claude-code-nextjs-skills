@@ -56,7 +56,7 @@ Component first renders with default value (`light`), then updates after hydrati
 function ThemeWrapper({ children }: { children: ReactNode }) {
   return (
     <>
-      <div id="theme-wrapper">
+      <div id="theme-wrapper" suppressHydrationWarning>
         {children}
       </div>
       <script
@@ -77,6 +77,6 @@ function ThemeWrapper({ children }: { children: ReactNode }) {
 }
 ```
 
-The inline script executes synchronously before showing the element, ensuring the DOM already has the correct value. No flickering, no hydration mismatch.
+The inline script runs during HTML parsing, before first paint, so the DOM already has the stored value on a full page load; `suppressHydrationWarning` lets React keep it instead of reporting a mismatch. The script does not run when React renders the component during a client-side navigation, so place it in a layout that persists, or also read the value in a Client Component (see the installed Next.js `02-guides/preventing-flash-before-hydration.md`).
 
-This pattern is especially useful for theme toggles, user preferences, authentication states, and any client-only data that should render immediately without flashing default values.
+This pattern is especially useful for theme toggles, user preferences, and any client-only data that should render immediately without flashing default values.

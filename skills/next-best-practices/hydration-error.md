@@ -13,8 +13,11 @@ Resolve the specific mismatch through stable server/client data or a deliberate
 client-only display boundary.
 
 Do not make the whole route client-only or suppress warnings as a generic
-repair. A mount gate can be appropriate for browser-derived state, but affects
-initial content/layout and needs checking.
+repair. For browser-derived state, a mount gate or, with React 19.3 (vendored by
+the App Router from Next.js 16.4), `use(browser())` under a Suspense boundary can
+be appropriate; see the installed `02-guides/single-page-applications.md`. Either
+way the server HTML holds only the fallback, so keep indexable content outside it
+and check initial content/layout.
 
 Read [hydration error guidance](https://nextjs.org/docs/messages/react-hydration-error).
 Verify both direct production load and in-app navigation.

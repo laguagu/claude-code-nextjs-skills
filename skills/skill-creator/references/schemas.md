@@ -324,7 +324,7 @@ Output from blind comparator. Located at `<grading-dir>/comparison-N.json`.
 ```json
 {
   "winner": "A",
-  "reasoning": "Output A provides a complete solution with proper formatting and all required fields. Output B is missing the date field and has formatting inconsistencies.",
+  "explanation": "Output A provides a complete solution with proper formatting and all required fields. Output B is missing the date field and has formatting inconsistencies.",
   "rubric": {
     "A": {
       "content": {
@@ -402,7 +402,7 @@ Output from post-hoc analyzer. Located at `<grading-dir>/analysis.json`.
     "winner": "A",
     "winner_skill": "path/to/winner/skill",
     "loser_skill": "path/to/loser/skill",
-    "comparator_reasoning": "Brief summary of why comparator chose winner"
+    "comparator_explanation": "Brief summary of why comparator chose winner"
   },
   "winner_strengths": [
     "Clear step-by-step instructions for handling multi-page documents",

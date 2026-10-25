@@ -1,6 +1,6 @@
 ---
 name: chrome-devtools
-description: Tests in real browsers via Chrome DevTools MCP. Use when building or debugging anything that runs in a browser. Use when you need to inspect the DOM, capture console errors, analyze network requests, profile performance (LCP/CLS/INP), or verify visual output with real runtime data. Complements Playwright — use this for live debugging and performance work, Playwright for stable E2E test suites.
+description: Tests in real browsers via Chrome DevTools MCP. Use when debugging live browser behavior — inspect the DOM, capture console errors, analyze network requests, profile performance (LCP/CLS/INP), or verify visual output with real runtime data. Complements Playwright — use this for live debugging and performance work, Playwright for stable E2E test suites.
 ---
 
 # Browser Testing with DevTools

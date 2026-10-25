@@ -1,8 +1,10 @@
 # Agent dashboard contract
 
-Use `ai-sdk` to select the installed-major agent API and `ai-elements` for
-available execution UI. A dashboard should expose the run's purpose, current
-state, useful results and actions the user can take.
+Use `ai-sdk` to select the installed-major agent API and the shadcn/ui AI
+Elements patterns (Trace, Tool, Plan, Queue; https://ui.shadcn.com/docs/ai-elements)
+for execution UI, or `ai-elements` for components already installed. A
+dashboard should expose the run's purpose, current state, useful results and
+actions the user can take.
 
 Keep server execution state separate from transient display state. Stable run
 and tool-call IDs connect streamed updates, stored results and approval decisions.

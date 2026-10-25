@@ -1,12 +1,21 @@
 ---
 name: ai-elements
-description: Builds AI chat interfaces with AI Elements components copied into the project. Use when adding or composing conversations, messages, prompt inputs, attachments, reasoning, tool output or sources in an AI SDK application.
+description: Maintains AI chat UI built from elements.ai-sdk.dev AI Elements components already copied into the project. Use when changing or debugging those components (conversations, messages, prompt inputs, attachments, reasoning, tool output, sources). New chat UI uses the shadcn/ui AI Elements patterns (`shadcn` skill).
 ---
 
 # AI Elements
 
 Use AI Elements where its components fit the interaction. The generated source
 belongs to the project: inspect it for the actual API and customize it deliberately.
+
+vercel/ai-elements will be deprecated at the end of November 2026 (announced
+2026-10-14, CLI 1.9.1). Its replacement is AI Elements from shadcn/ui
+(https://ui.shadcn.com/docs/ai-elements): copy-in patterns built on Message,
+Bubble, Message Scroller, Trace and Code Block. Copied files in
+`components/ai-elements/` keep working. To move one onto shadcn/ui, use the
+'Migrating from AI SDK Elements' prompt on its pattern page; some elements
+(artifact, canvas, persona, web-preview, ...) have no replacement. For new chat
+UI use the `shadcn` skill, not `ai-elements add`.
 
 ## Project and documentation
 
@@ -20,8 +29,9 @@ matching `references/` file and its `scripts/` examples. Use the
 [AI Elements site](https://elements.ai-sdk.dev) for current documentation. Load only relevant references; verify bundled
 examples against installed source.
 
-For installation, use the project's runner with `ai-elements@latest add <component>`
-or `shadcn@latest add @ai-elements/<component>`. Components land in
+To add a missing component to an existing install, use the project's runner
+with `ai-elements@latest add <component>` or
+`shadcn@latest add @ai-elements/<component>`. Components land in
 `components/ai-elements/` under the alias configured in `components.json`; that
 installed source is the offline API reference. Check installed components and
 review generated files before replacing local customization. Use `shadcn` for
