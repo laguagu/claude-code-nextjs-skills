@@ -1,6 +1,6 @@
 # 🧠 Claude Code AI Skills
 
-> 25 skills and 2 agents for building AI applications with Next.js, Bun and modern UI tools.
+> 25 skills for building AI applications with Next.js, Bun and modern UI tools.
 
 ## ⚡ Quick Start
 
@@ -76,16 +76,6 @@ plugin under its old name `claude-code-nextjs-skills`, uninstall that and instal
 | [agent-harness-review](skills/agent-harness-review/) | Review subagent use, skill and plugin load, and agent design against Anthropic's, Cognition's and 2026 research findings |
 | [handoff](skills/handoff/) | Write a HANDOFF.md so a fresh agent can continue your work |
 | [hetzner-cloud](skills/hetzner-cloud/) | Hetzner Cloud infrastructure via the `hcloud` CLI |
-
-## 🤖 Custom Agents
-
-Example agents for common workflows. Installed with the Claude Code plugin; otherwise copy to
-`.claude/agents/`.
-
-| Agent | Description |
-|-------|-------------|
-| [code-simplifier](agents/code-simplifier.md) | Simplifies recently changed code while preserving behavior |
-| [e2e-tester](agents/e2e-tester.md) | Tests real user flows in the browser and fixes verified defects |
 
 ## 🔧 Also Included
 
