@@ -10,7 +10,7 @@
       "name": "nextjs-ai-skills",
       "source": "./",
       "description": "Agent skills for building Next.js + AI SDK applications: app scaffolding, shadcn/ui, RSC and caching, pgvector search, SEO, and browser verification.",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "author": {
         "name": "laguagu",
         "url": "https://github.com/laguagu"

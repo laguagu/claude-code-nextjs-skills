@@ -46,7 +46,8 @@ blanket allow/block list.
 | Anthropic | ClaudeBot | Claude-SearchBot | Claude-User |
 | Perplexity | None (PerplexityBot is not used for training) | PerplexityBot | Perplexity-User |
 
-Google Search and its AI features use Googlebot controls. `Google-Extended`
+Google Search and its AI features use Googlebot controls; `noindex`, `nosnippet`,
+`data-nosnippet` and `max-snippet` limit what they can show. `Google-Extended`
 has no separate HTTP user agent: it is a robots product token controlling both
 Gemini training and certain Gemini/Vertex AI grounding uses. It does not control
 Google Search inclusion or ranking. Do not call it a training-only switch or
@@ -92,8 +93,9 @@ export default function robots(): MetadataRoute.Robots {
 
 ## llms.txt
 
-Treat llms.txt as an optional documentation-discovery convention, not a Google
-SEO requirement or a proven citation boost. It can be useful when developers or
+Treat llms.txt as an optional documentation-discovery convention, not a proven
+citation boost. Google Search does not use it, so it neither helps nor hurts
+there. It can be useful when developers or
 agents explicitly consume documentation through it. Verify the intended consumer
 before adding it. Prefer a static `public/llms.txt` for a fixed document; use a
 Route Handler only when generation is needed, with caching supported by the

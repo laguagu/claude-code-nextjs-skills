@@ -6,10 +6,10 @@ and Google rich-result eligibility are different checks. Consult the current
 and the selected feature's documentation before choosing a type; supported
 features and restrictions change.
 
-Retired Google rich results that older examples still add (as of 2026-09):
+Retired Google rich results that older examples still add (as of 2026-10):
 FAQ (gone for all sites from 2026-05-07), HowTo (2023), Course Info, Claim
 Review, Estimated Salary, Learning Video, Special Announcement and Vehicle
-Listing (2025), Practice Problems (2025-11). Dataset markup serves Dataset
+Listing (2025), Practice Problems (2026-01). Dataset markup serves Dataset
 Search only. Such markup can remain for other consumers but yields no Google
 rich result ([Search updates](https://developers.google.com/search/updates)).
 

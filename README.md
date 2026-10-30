@@ -1,6 +1,6 @@
 # 🧠 Claude Code AI Skills
 
-> 25 skills for building AI applications with Next.js, Bun and modern UI tools.
+> 24 skills for building AI applications with Next.js, Bun and modern UI tools.
 
 ## ⚡ Quick Start
 
@@ -72,7 +72,6 @@ plugin under its old name `claude-code-nextjs-skills`, uninstall that and instal
 
 | Skill | Description |
 |-------|-------------|
-| [skill-creator](skills/skill-creator/) | Create, test, and optimize custom skills (extended) |
 | [agent-harness-review](skills/agent-harness-review/) | Review subagent use, skill and plugin load, and agent design against Anthropic's, Cognition's and 2026 research findings |
 | [handoff](skills/handoff/) | Write a HANDOFF.md so a fresh agent can continue your work |
 | [hetzner-cloud](skills/hetzner-cloud/) | Hetzner Cloud infrastructure via the `hcloud` CLI |
@@ -101,7 +100,6 @@ Copy a skill folder, and any sibling skill it references, to `.claude/skills/`
 | [ai-sdk](skills/ai-sdk/) | [vercel/ai](https://github.com/vercel/ai/tree/main/skills) | Apache 2.0 |
 | [cache-components](skills/cache-components/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (now in [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills); maintained here) | - |
 | [react-best-practices](skills/react-best-practices/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md) | MIT |
-| [skill-creator](skills/skill-creator/) | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator) (extended) | Apache 2.0 |
 | [next-best-practices](skills/next-best-practices/) | [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) (now in [vercel/next.js](https://github.com/vercel/next.js/tree/canary/skills); maintained here) | - |
 | [web-design-guidelines](skills/web-design-guidelines/) | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines) | MIT |
 | [supabase-postgres-best-practices](skills/supabase-postgres-best-practices/) | [supabase/agent-skills](https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices) | MIT |

@@ -6,9 +6,10 @@ these describe different layers.
 
 ## Indexing and crawl status
 
-“Discovered – currently not indexed” says Google knows the URL without an
-indexed crawl yet. “Crawled – currently not indexed” says a crawl did not result
-in indexing. Neither status identifies a single cause or establishes a
+“Discovered – currently not indexed” says Google found the URL but has not
+crawled it yet, typically because the crawl was rescheduled to avoid overloading
+the site. “Crawled – currently not indexed” says a crawl did not result in
+indexing. Neither status identifies a single cause or establishes a
 content-length problem.
 
 Use URL Inspection and the relevant indexing report to check fetch success,
