@@ -40,7 +40,6 @@ Problem?
 ## Related Skills
 
 - `/postgres-semantic-search` — Vector search (pgvector), hybrid BM25 + semantic, ParadeDB
-- `/nextjs-chatbot` — Chatbot orchestration, session DB, feedback, HITL
 - `/ai-sdk` — AI SDK patterns for backend integration
 
 ## Rule Categories by Priority

@@ -17,7 +17,7 @@ Attachments need server-side limits and provider-compatible media handling.
 A model selector needs an allowed server-side model set and compatibility with
 the conversation's features. Neither belongs in every chat.
 
-For server persistence, authorization, approval and browser verification, use
-`nextjs-chatbot`. For component composition, use the shadcn/ui AI Elements
+For server persistence, authorization and approval, follow the chatbot guides in
+the installed AI SDK's docs (`ai-sdk`). For component composition, use the shadcn/ui AI Elements
 patterns (`shadcn`), or `ai-elements` for components already installed from
 elements.ai-sdk.dev.

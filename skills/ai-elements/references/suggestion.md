@@ -142,8 +142,6 @@ import { Spinner } from '@/components/ui/spinner';
 )}
 ```
 
-See [suggestion behavior and lifecycle](../../nextjs-chatbot/suggestions.md) for grounded next actions, stale-result handling and conversation boundaries.
-
 ## Props
 
 ### `<Suggestions />`

@@ -211,5 +211,4 @@ await db.execute(sql`SELECT * FROM match_documents(${JSON.stringify(embedding)}:
 | Need | Skill |
 | --- | --- |
 | General Postgres schema, indexes, RLS, pooling | `supabase-postgres-best-practices` (Supabase plugin or [supabase/agent-skills](https://github.com/supabase/agent-skills)) |
-| Chatbot orchestration, sessions, tool calls | `nextjs-chatbot` |
 | Embedding calls through the AI SDK | `ai-sdk` |

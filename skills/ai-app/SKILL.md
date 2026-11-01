@@ -43,6 +43,5 @@ JavaScript projects.
 - [Agent dashboard](references/agent-dashboard.md): execution, approval and run state.
 - [Examples](references/examples.md): current official implementations.
 - [Project structure](references/project-structure.md): boundaries without a fixed tree.
-- `nextjs-chatbot`: durable history, feedback, embedding and production checks.
 
 These references describe requirements, not copyable production templates.
