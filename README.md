@@ -1,6 +1,6 @@
 # 🧠 Claude Code AI Skills
 
-> 23 skills for building AI applications with Next.js, Bun and modern UI tools.
+> 24 skills for building AI applications with Next.js, Bun and modern UI tools.
 
 ## ⚡ Quick Start
 
@@ -28,6 +28,7 @@ plugin under its old name `claude-code-nextjs-skills`, uninstall that and instal
 |-------|-------------|
 | [ai-app](skills/ai-app/) | Full-stack AI app (chatbots, agents, dashboards) |
 | [nextjs-shadcn](skills/nextjs-shadcn/) | Next.js + shadcn/ui with deliberate typography, backgrounds, and design-system lint via [@shadcn/lint](https://github.com/shadcn-ui/lint) |
+| [nextjs-chatbot](skills/nextjs-chatbot/) | Web chatbot patterns (HITL, persistence, streaming). Frozen: kept as it was, no longer updated |
 
 ### 🎨 UI & Design
 
