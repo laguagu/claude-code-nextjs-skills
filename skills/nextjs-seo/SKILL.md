@@ -24,15 +24,18 @@ changes. Verify authorship, credentials and factual claims.
   not make a page indexable or guarantee indexing.
 - Keep important public content available in the served HTML when practical.
   A Client Component can be server-prerendered; `use client` alone does not
-  remove content from HTML.
+  remove content from HTML. Check the raw response for a visible phrase and a
+  data value from each important section: hydration hides a missing section in
+  the browser, and the build can still pass. See
+  [Troubleshooting](references/troubleshooting.md#content-missing-from-the-served-html).
 - Use the App Router Metadata API and file conventions. Resolve relative
   metadata URLs with the correct production `metadataBase` and verify emitted
   absolute URLs. Do not rely on missing-base behavior across versions/hosts.
 - Configure refresh/invalidation for data-backed pages, metadata and sitemaps.
   A database query alone does not guarantee publication updates reach them.
   With Cache Components enabled, follow the installed Next.js caching docs
-  (`node_modules/next/dist/docs/`); caching is a freshness decision rather
-  than a required SEO directive.
+  (`node_modules/next/dist/docs/`). No cache setting is an SEO directive, but
+  a short `cacheLife` also decides whether content is in the prerendered HTML.
 - Structured data must describe real visible content and a supported consumer.
   Check current rich-result eligibility instead of adding every schema type.
 - Preserve the owner's crawler policy. Training, search and user-triggered
@@ -45,7 +48,7 @@ changes. Verify authorship, credentials and factual claims.
 - [Structured data](references/json-ld.md): current eligibility and safe serialization.
 - [AI search](references/ai-search.md): crawler purposes, policy and evidence.
 - [Audit checklist](references/checklist.md): scoped production and Search Console checks.
-- [Troubleshooting](references/troubleshooting.md): indexing, HTML and hydration diagnosis.
+- [Troubleshooting](references/troubleshooting.md): indexing, missing HTML content and hydration diagnosis.
 
 Separate evidence in the report: a performance export shows queries/traffic;
 URL Inspection and indexing reports address crawl/index/canonical status;

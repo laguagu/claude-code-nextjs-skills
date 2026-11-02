@@ -19,7 +19,8 @@ Do not add every optional feature to make a checklist pass.
 5. **Structured data:** Add only relevant accurate types. Check current
    eligibility, visible facts and safe serialization; validate the production
    output.
-6. **Rendering and usability:** Inspect critical public content in the response,
+6. **Rendering and usability:** Inspect critical public content in the raw
+   response ([diagnosis](troubleshooting.md#content-missing-from-the-served-html)),
    then directly open the route and exercise hydration/navigation. Check mobile
    equivalence, media dimensions and the changed interaction.
 7. **Performance:** Use field CWV where available and lab tools for diagnosis.

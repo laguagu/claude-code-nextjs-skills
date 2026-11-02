@@ -22,6 +22,31 @@ preserve unrelated restrictions. A robots block can stop discovery of a
 noindex directive. Indexing requests are optional follow-up after meaningful
 fixes; repeated submissions do not guarantee indexing.
 
+## Content missing from the served HTML
+
+The browser hides this fault, because hydration fills the section in. Fetch the
+production URL without JavaScript and search the response for a visible phrase
+and a data value from each important section. Count fallback skeletons too.
+
+With Cache Components (Next.js 16), check two causes:
+
+- **The value is in the RSC payload (`self.__next_f`) but not in the markup.**
+  The server had the data and the prerender left the Client Component out.
+  Reading the clock or randomness during its render (`Date.now()`, `new Date()`,
+  `Math.random()`, `crypto.randomUUID()`) stops the prerender at that point, and
+  the nearest Suspense fallback is what the HTML holds. Libraries do this too:
+  TanStack Query v5 reads `Date.now()` in `useQuery` for a numeric `staleTime`,
+  and `dehydrate()` reads it as well. A `<Suspense>` boundary silences the
+  build's prerender error by deferring the content, so the error going away does
+  not mean the content is in the HTML. Keep the read out of server render, for
+  example `staleTime: isServer ? "static" : ms` with seeded `initialData` (tested
+  on Next.js 16.3 with TanStack Query 5.103), or move it to an effect.
+- **The value is in neither.** Check the section's `cacheLife`: `revalidate: 0`,
+  `expire` under 5 minutes or `stale` under 30 seconds exclude it from
+  prerenders, and it resolves at request time. `stale` under 5 minutes also keeps
+  it out of the App Shell. For content a crawler must read, keep `stale` and
+  `expire` at 5 minutes or more and refresh live values on the client.
+
 ## Missing or wrong metadata
 
 Compare source and the complete production response for the installed
