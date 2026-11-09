@@ -1,6 +1,6 @@
 ---
 name: agent-harness-review
-description: Reviews an agent harness or agent design against Anthropic's agent and Claude Opus 5.5 guidance, Cognition's context principles and 2026 research on skill routing and skill-induced failures. Covers when subagents or parallel agents pay off, how to brief them, how many skills, plugins, MCP servers and hooks load every session, tool design and proportionate verification. Use when auditing a Claude Code or Codex setup, deciding whether to add subagents or a multi-agent workflow, trimming a skill library, or designing an agent loop in an app. For writing or evaluating a single skill, use skill-creator.
+description: Reviews an agent harness or agent design against Anthropic's agent and model prompting guidance (Opus 5.5, Fable 5.2), Cognition's context principles and 2026 research on skill routing and skill-induced failures. Covers when subagents or parallel agents pay off, how to brief them, how many skills, plugins, MCP servers and hooks load every session, tool design and proportionate verification. Use when auditing a Claude Code or Codex setup, deciding whether to add subagents or a multi-agent workflow, trimming a skill library, or designing an agent loop in an app. For writing or evaluating a single skill, use skill-creator.
 ---
 
 # Review an agent harness
@@ -77,12 +77,21 @@ prompt length alone did not explain them. Check that a skill's checks and proced
 scale with the change, and compare a doubtful skill against a no-skill run on the
 same task.
 
-**Model settings and instruction wording** (Opus 5.5 guide and blog). Effort is the
-main control: start at `medium` and keep `xhigh` and `max` for work where a quality
-gain was measured. Remove "think carefully" lines. Name the early stops to avoid and
-the stops wanted, keep confirmation for destructive actions, and mark pasted text. Make
-the agent loop treat a text-only end of turn as a report, not completion, and wait for
-running background commands and subagents before it ends the task.
+**Model settings and instruction wording** ([prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices),
+which links each model's own guide). Effort is the main control and its starting level
+differs by model (Opus 5.5 `medium`, Fable 5.2 `high`): read the guide for the model
+the harness runs, and keep `xhigh` and `max` for work where a quality gain was measured.
+Remove "think carefully" lines. Name the early stops to avoid and the stops wanted, keep
+confirmation for destructive actions, name the exact actions an approval rule covers, and
+mark pasted text. Make the agent loop treat a text-only end of turn as a report, not
+completion, and wait for running background commands and subagents before it ends the task.
+
+**Reread what a harness carries over to a newer model** ([Prompting Claude Fable 5.2](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2#review-instructions-written-for-earlier-models)).
+Check standing instructions to delegate and which model subagents run on by default;
+"treat that answer as done" lines, which belong in chat and make the model less likely
+to point out its own earlier mistakes in agentic work; a token budget written into the
+prompt; and cautions that have piled up in memory files, notes and messages between
+agents, which make the model ask for approvals it does not need.
 
 ## Report
 
