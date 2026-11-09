@@ -19,12 +19,17 @@ carries the error's fix options.
 Exact exports are also in `node_modules/next/{server,navigation,headers,cache}.d.ts`.
 
 Before other work, compare the installed version with Next.js security
-advisories and tell the user when it is affected. As of 2026-10-22,
-16.0.0–16.4.0 (fixed in 16.4.1) and 15.x up to 15.5.27 (fixed in 15.5.28) have
+advisories and tell the user when it is affected. As of 2026-11-09 the patched
+releases are 16.4.5 and 15.5.29. 16.0.0–16.4.0 and 15.x up to 15.5.27 have
 critical RCEs: `use cache` functions returning typed arrays
 (GHSA-673q-mjm6-r5xr, 16.x only, no workaround) and self-hosted image
 optimization of SVGs on glibc Linux (GHSA-2464-fhr4-w9xw; interim fix: sharp
-0.35.5+). They also have a Server Actions DoS (GHSA-p3m5-59mp-jv5r). From 16.4,
+0.35.5+), plus a Server Actions DoS (GHSA-p3m5-59mp-jv5r); 16.4.1 and 15.5.28
+fixed those. Seven medium advisories of 2026-11-03 remain through 16.4.4 and
+15.5.28: cross-user `use cache` disclosure (GHSA-rhh4-g77r-r9qj and three more,
+16.x only), cross-client response injection when self-hosted
+(GHSA-pc58-hwjq-p385), an image-optimization SVG bypass and an Edge-route
+cookie exposure. From 16.4,
 `experimental.agentUpgrade` (default `'security'`) reminds during
 `next dev`/`next build`; 16.3.x and older get no reminder.
 

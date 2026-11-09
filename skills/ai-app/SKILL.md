@@ -26,7 +26,8 @@ JavaScript projects.
    direction. Compose chat UI from the shadcn/ui patterns (Message, Bubble,
    Message Scroller, Trace; the `shadcn` skill). For a chatbot,
    shadcn-ui/chatbot-template is a starting point after upgrading its Next.js
-   (16.3.6) to 16.4.1+. Use `ai-elements` only for components already copied
+   (16.3.6) to a release without open security advisories (16.4.5+ on
+   2026-11-09). Use `ai-elements` only for components already copied
    from elements.ai-sdk.dev. Inspect installed source instead of assuming
    registry props.
 3. Keep provider credentials and authorization on the server. Resolve model IDs

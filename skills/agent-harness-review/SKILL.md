@@ -15,7 +15,9 @@ needs one answer, a whole-setup audit needs the inventory below.
 - **What loads every session:** instruction files, the skill list (count, near-duplicate
   names and descriptions), plugins (each can bring skills, hooks, MCP servers and
   agents), MCP servers, custom subagents and hooks that inject context.
-- **What is used:** Claude Code transcripts (`~/.claude/projects/**/*.jsonl`) record
+- **What is used:** in Claude Code, `claude -p "/skill-doctor"` (v2.1.252+; in Git Bash
+  prefix `MSYS_NO_PATHCONV=1`) lists each skill's listing cost, uses and last use, and the
+  plugins not used lately. Transcripts (`~/.claude/projects/**/*.jsonl`) record
   skill calls (`"name":"Skill"`), subagent types (`"subagent_type"`) and MCP calls
   (`mcp__<server>__`); Codex keeps sessions under `~/.codex/sessions`. Low use is a lead,
   not a verdict: a rarely needed domain skill can still be the right one.
@@ -61,14 +63,16 @@ With 1,000 irrelevant skills listed, agents loaded the relevant skill far less o
 (recall 73.6% → 27.4%) and loaded nothing in 51.6% of tasks (from 9.3%). Hiding only
 the irrelevant skills' descriptions largely restored loading; preselecting skills
 kept 73.9% recall, and asking the agent to plan its skill use did not match that.
-Turn off unused skill bundles, merge near-duplicates and keep descriptions distinct
-before adding trigger words to a skill that is not picked.
+Turn off unused skill bundles, set rarely needed skills to `name-only` in Claude Code's
+`skillOverrides` (lists the name without its description), merge near-duplicates and keep
+descriptions distinct before adding trigger words to a skill that is not picked.
 
 **Skills can cost more than they help** ([Agent Skills Can Be Harmful, arXiv 2608.11888](https://arxiv.org/abs/2608.11888)).
 Across 307 skill-induced failures (125 functional, 182 efficiency), functional
 failures came mostly from relevant-looking skills that led the agent to implement
 part of the task wrongly or leave it out. The largest efficiency costs were checks
-a skill made mandatory regardless of task size (67) and heavy build pipelines (30);
+a skill made mandatory regardless of task size (67), long skill bodies (43) and heavy
+build pipelines (30);
 prompt length alone did not explain them. Check that a skill's checks and procedures
 scale with the change, and compare a doubtful skill against a no-skill run on the
 same task.
@@ -76,11 +80,13 @@ same task.
 **Model settings and instruction wording** (Opus 5.5 guide and blog). Effort is the
 main control: start at `medium` and keep `xhigh` and `max` for work where a quality
 gain was measured. Remove "think carefully" lines. Name the early stops to avoid and
-the stops wanted, keep confirmation for destructive actions, and mark pasted text.
+the stops wanted, keep confirmation for destructive actions, and mark pasted text. Make
+the agent loop treat a text-only end of turn as a report, not completion, and wait for
+running background commands and subagents before it ends the task.
 
 ## Report
 
-Lead with what was decided and the evidence for it: measured use, the config or doc
-fact, and the source finding. Separate changes made (reversible, with backups) from
-decisions that need the owner's account, money or publication. Say what was measured
-and what is inferred from a source whose setting differs from the user's.
+Give one table of findings, each with its evidence: measured use, the config or doc
+fact, and the source finding. Mark which changes were made (reversible, with backups).
+Say what was measured and what is inferred from a source whose setting differs from
+the user's.

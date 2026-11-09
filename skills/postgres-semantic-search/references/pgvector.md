@@ -23,7 +23,7 @@ up to 16,000 dimensions.
 | Dimensions N | Column | Index |
 | --- | --- | --- |
 | N ≤ 2,000 | `vector(N)` | `vector_cosine_ops` |
-| 2,000 < N ≤ 4,000 | `vector(N)`, or `halfvec(N)` when storage is tight | halfvec expression index |
+| 2,000 < N ≤ 4,000 | `vector(N)`, or `halfvec(N)` when storage is tight | `halfvec_cosine_ops` on a halfvec cast, or directly on a halfvec column |
 | N > 4,000 | `vector(N)` | binary quantization to `bit`, or a Matryoshka `subvector` |
 
 Keeping full precision in the column and indexing a cast leaves room to

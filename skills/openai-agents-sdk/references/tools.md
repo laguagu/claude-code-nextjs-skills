@@ -6,7 +6,7 @@ authorization. Tool errors returned to the model or UI need the app's safe
 formatting policy. By default `@function_tool` catches exceptions.
 Through 0.22.x the exception text reached the model; from 0.23.0 the model gets
 a fixed generic message. Return an error string or pass `failure_error_function`
-for model-visible detail; `None` re-raises. `timeout=` bounds a call; it does not make side effects
+for model-visible detail (from 0.24.0 also run-wide with `RunConfig(tool_error_formatter=...)`, which explicit per-tool handlers override); `None` re-raises. `timeout=` bounds a call; it does not make side effects
 transactional. `from agents.decorators import tool` is an alias in current
 releases (verified in 0.22.3).
 

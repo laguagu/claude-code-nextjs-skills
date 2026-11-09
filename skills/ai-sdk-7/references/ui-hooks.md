@@ -10,7 +10,7 @@ Configure `DefaultChatTransport` for ordinary HTTP chat and return matching
 UI-message chunks. Infer tool types; narrow part state before reading
 input/output, and handle dynamic parts separately.
 
-Manual approval requests are parts in `approval-requested` state; answer with
+Manual approval requests are parts in `approval-requested` state whose `part.approval.isAutomatic` is not true (automatic decisions pass through the same state); answer with
 `addToolApprovalResponse({ id: part.approval.id, approved })`. Automatic policy
 decisions do not need a fabricated user response. Continue with
 `sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses`

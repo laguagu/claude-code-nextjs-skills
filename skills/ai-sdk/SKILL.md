@@ -1,6 +1,6 @@
 ---
 name: ai-sdk
-description: 'Answer questions about the AI SDK and help build AI-powered features. Use when developers ask about Vercel AI SDK, generateText, streamText, ToolLoopAgent, useChat, providers, tools, structured output, embeddings, streaming, or adding AI to an app. First identify the installed major version and route version-specific work: use ai-sdk-7 for AI SDK 7 features/migrations such as WorkflowAgent, HarnessAgent, reasoning, runtime/tools context, toolApproval, telemetry, realtime, or v6-to-v7 upgrades; use ai-sdk-6 for v6 code.'
+description: 'Answer questions about the AI SDK and help build AI-powered features. Use when developers ask about Vercel AI SDK, generateText, streamText, ToolLoopAgent, useChat, providers, tools, structured output, embeddings, streaming, or adding AI to an app. First identify the installed major version and route version-specific work: use ai-sdk-7 for AI SDK 7 features/migrations such as WorkflowAgent, HarnessAgent, reasoning, runtime/tools context, toolApproval, telemetry, realtime, or v6-to-v7 upgrades; for v6 code read the docs shipped in the installed package.'
 ---
 
 # AI SDK version and documentation routing
@@ -10,7 +10,7 @@ manifest, lockfile or installed package. Keep the installed major unless an
 upgrade is requested.
 
 - AI SDK 7 implementation or migration: use `ai-sdk-7`.
-- AI SDK 6 maintenance: use `ai-sdk-6`.
+- AI SDK 6 maintenance: read the installed package's `docs/`, types and `src/`.
 - Unknown, mixed or older versions: resolve them before applying either API set.
 - New apps: start on the current major (7 when written; `npm view ai dist-tags`
   confirms). `ai@7` pairs with `@ai-sdk/react@4`, `ai@6` with `@ai-sdk/react@3`.
@@ -34,16 +34,15 @@ to obtain docs.
 When local documentation is unavailable, use the matching repository tag
 (`vercel/ai`, tag `ai@<version>`, `content/docs/`) or docs version. The
 [documentation search](https://ai-sdk.dev/api/search?query=useChat)
-and Markdown page variants help locate the relevant feature. Repository main
+and Markdown page variants help locate the relevant feature; append `&tag=v6`
+(`v5`, `v6` or `v7`) to scope search results to a major. Repository main
 and the default website can target a newer major than the app. With neither
 local docs nor network, say which API facts remain unverified.
-Append `&tag=v6` (`v5`, `v6` or `v7`) to scope search
-results to a major.
 
 Choose model IDs from the app's provider configuration or current provider
 catalog. The [Gateway catalog](https://ai-gateway.vercel.sh/v1/models) can aid
 discovery; its IDs and capability availability do not imply that another
-provider accepts them. Choose capability, latency and cost for the task.
+provider accepts them.
 
 ## Targeted references
 

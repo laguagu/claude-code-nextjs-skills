@@ -51,7 +51,7 @@ Google Search and its AI features use Googlebot controls; `noindex`, `nosnippet`
 has no separate HTTP user agent: it is a robots product token controlling both
 Gemini training and certain Gemini/Vertex AI grounding uses. It does not control
 Google Search inclusion or ranking. Do not call it a training-only switch or
-promise that blocking it has no effect on all AI referral channels.
+promise that blocking it leaves Gemini grounding and its referrals unaffected.
 
 Search Console's [Search generative AI control](https://support.google.com/webmasters/answer/16908024) (Settings > Search generative AI)
 offers include/exclude/inherit for AI Overviews, AI Mode and Discover AI features; top-level properties default to include, child properties inherit.

@@ -1,13 +1,13 @@
 ---
 name: ai-sdk-7
-description: "Vercel AI SDK v7 development and migration. Use when building or upgrading AI SDK 7 apps, especially ToolLoopAgent, WorkflowAgent, HarnessAgent, Claude Code/Codex/Pi harnesses, runtimeContext, toolsContext, toolApproval, telemetry, reasoning, file or skill uploads, realtime, video generation, or v6-to-v7 breaking changes. For AI SDK v6 code use ai-sdk-6; for version discovery and general doc lookup use ai-sdk."
+description: "Vercel AI SDK v7 development and migration. Use when building or upgrading AI SDK 7 apps, especially ToolLoopAgent, WorkflowAgent, HarnessAgent, Claude Code/Codex/Pi harnesses, runtimeContext, toolsContext, toolApproval, telemetry, reasoning, file or skill uploads, realtime, video generation, or v6-to-v7 breaking changes. For version discovery, v6 code and general doc lookup use ai-sdk."
 compatibility: "TypeScript/JavaScript projects using AI SDK 7; Node.js >=22; AI SDK packages are ESM-only."
 ---
 
 # AI SDK 7 implementation and migration
 
 Apply this skill to `ai@7`; use `ai-sdk` to resolve unknown versions and
-`ai-sdk-6` for v6 maintenance. Match provider and UI package versions to the
+for v6 maintenance. Match provider and UI package versions to the
 project. AI SDK 7 requires Node.js 22+ and AI SDK packages are ESM-only.
 
 Read the resolved `ai/docs/`, provider docs and installed source/types first;

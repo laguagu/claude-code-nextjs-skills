@@ -9,9 +9,12 @@ metadata:
 
 Keep the project's caching mode unless migration is requested. Confirm the
 installed Next.js version and `cacheComponents`/`partialPrefetching` configuration before applying
-these patterns. Use Cache Components on next 16.4.1+: 16.0.0–16.4.0 allow
+these patterns. Use Cache Components on next 16.4.5+: 16.0.0–16.4.0 allow
 unauthenticated RCE through `use cache` functions returning typed arrays
-(GHSA-673q-mjm6-r5xr; no workaround, upgrade even without such functions).
+(GHSA-673q-mjm6-r5xr; no workaround, upgrade even without such functions), and
+releases through 16.4.4 can leak or poison cached output across users
+(GHSA-rhh4-g77r-r9qj binary arguments, GHSA-vvgp-ww4w-46vf shared fallback
+shells, GHSA-vc7v-qv4w-wrv8 and GHSA-mfr8-8qww-v76h root params).
 Flag an affected install before cache work.
 
 Read the relevant guide in `node_modules/next/dist/docs/` first (bundled since

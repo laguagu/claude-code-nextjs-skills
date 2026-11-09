@@ -9,10 +9,10 @@ Register a telemetry integration once at app startup. For OpenTelemetry use
 `@ai-sdk/otel` with `registerTelemetry`; a Next.js app may register from its
 instrumentation entry point.
 
-Telemetry is enabled by default in v7. Without a global
-registration, per-call `telemetry.integrations` and Node.js `ai:telemetry`
-tracing-channel subscribers still receive events; `telemetry: { isEnabled: false }`
-is the per-call off switch. Verify input and
+In v7 telemetry is opt-out once an integration is registered: every call then
+emits events, and `telemetry: { isEnabled: false }` is the per-call off switch.
+Without a global registration, per-call `telemetry.integrations` and Node.js
+`ai:telemetry` tracing-channel subscribers still receive events. Verify input and
 output capture settings for the app's data policy: `recordInputs` and
 `recordOutputs` default to `true`.
 

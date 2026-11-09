@@ -27,7 +27,7 @@ Update context through supported preparation hooks, rather than mutating
 shared tool state. Workflow context must serialize; a live
 `experimental_sandbox` handle belongs to execution, not persisted context.
 
-MCP Apps use `experimental_MCPAppRenderer` from `@ai-sdk/react` and app-only
+MCP Apps use `MCPAppRenderer` from `@ai-sdk/react` (`experimental_MCPAppRenderer` is a deprecated alias) and app-only
 resource/tool metadata.
 Validate server identity/resource loading and distinguish app-only tools from
 model-visible ones.

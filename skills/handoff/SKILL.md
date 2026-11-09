@@ -9,7 +9,7 @@ Write or update a handoff document so the next agent with fresh context can cont
 
 1. If `HANDOFF.md` exists in the project root, read it first.
 2. Do not duplicate content already in PRDs, plans, ADRs, issues, commits, or diffs — reference them by path or URL.
-3. Write or update `HANDOFF.md` in the project root with:
+3. Write or update `HANDOFF.md` in the project root (or the one the repo's instructions name for this work), keeping an existing file's structure and other sessions' entries, with:
    - **Goal** — what we're trying to accomplish
    - **Current Progress** — what's done (link commits/PRs)
    - **In flight** — running or cut work, if any: run id and resume command, branch or worktree, uncommitted paths and their owner, submitted remote jobs

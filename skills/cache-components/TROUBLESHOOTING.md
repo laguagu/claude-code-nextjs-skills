@@ -17,7 +17,7 @@ prove freshness, authorization or runtime-only helper paths.
 | Repeated reads | Key inputs, handler lifetime, process/deploy identity and deliberate bypasses |
 | Stale after mutation | Write completion, tag/path coverage, invalidation profile and client freshness |
 | Different values across instances | Backing store and cross-instance invalidation; one-process tests cannot prove it |
-| Cross-account output | Authorized identity/filter keying, global mutable state and policy changes; on Next.js 16.0.0-16.4.0 upgrade to 16.4.1+ first (16.3.8 fixed GHSA-h694-7cp9-m8p3 root-param keying and GHSA-3w37-wq28-93x7 Draft Mode fills; 16.4.1 fixes the `use cache` RCE GHSA-673q-mjm6-r5xr) |
+| Cross-account output | Authorized identity/filter keying, global mutable state and policy changes; on Next.js 16.0.0-16.4.4 upgrade to 16.4.5+ first (16.3.8 fixed GHSA-h694-7cp9-m8p3 root-param keying and GHSA-3w37-wq28-93x7 Draft Mode fills; 16.4.1 fixes the `use cache` RCE GHSA-673q-mjm6-r5xr; 16.4.5 fixes cross-user disclosure through binary arguments GHSA-rhh4-g77r-r9qj, shared fallback shells GHSA-vvgp-ww4w-46vf and root params GHSA-vc7v-qv4w-wrv8, GHSA-mfr8-8qww-v76h) |
 | Metadata or sitemap stale | Its own data loader and refresh path, not merely the page's cache |
 
 With Cache Components, `empty-generate-static-params` means the export returned

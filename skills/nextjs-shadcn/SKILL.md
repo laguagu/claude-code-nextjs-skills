@@ -1,6 +1,6 @@
 ---
 name: nextjs-shadcn
-description: Builds distinctive Next.js interfaces with shadcn/ui, choosing typography, styling and purposeful visual effects for the product. Use when creating or polishing a Next.js + shadcn app, page or component, including themes, presets, backgrounds and design-system lint. Uses frontend-design for substantial visual direction and icons for asset sourcing.
+description: Builds distinctive Next.js interfaces with shadcn/ui, choosing typography, styling and purposeful visual effects for the product. Use when creating or polishing a Next.js + shadcn app, page or component, including themes, presets, backgrounds and design-system lint. Uses frontend-design for substantial visual direction, icons for asset sourcing and shadcn for component installation, registries and CLI details.
 ---
 
 # Next.js + shadcn/ui
@@ -57,5 +57,3 @@ Read [architecture.md](references/architecture.md) for routing, Server/Client bo
 Inspect the rendered view at relevant mobile and desktop widths. Check composition, wrapping, overflow, controls and the states affected by the change. Preserve accessibility, focus and reduced-motion behavior; screenshots and DOM inspection answer different questions. Own the visual finish: compare the real view and animation intermediates with the project's direction, and fix observed defects before delivery.
 
 Run the project's checks. If `@shadcn/lint` is configured, use its feedback to keep the design system coherent. For a new Tailwind v4 project, or recurring theme drift, consider integrating it with the existing linter. Configure rules for the intended design; custom backgrounds and media may need deliberate exceptions. See [shadcn-platform.md](references/shadcn-platform.md) for lint setup and optional shadcn utilities.
-
-Report what changed and what was verified.

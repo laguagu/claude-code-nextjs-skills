@@ -1,11 +1,11 @@
 ---
 name: go
-description: Opens the running app in a browser and verifies that recent UI changes actually work. Use for any quick smoke test of recent work — "go", "test in browser", "check in browser", "make sure it works", "verify it works", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For design critique, use web-design-guidelines.
+description: Opens the running app in a browser and verifies that recent UI changes actually work. Use for a quick browser smoke test of recent web work — "go", "test in browser", "check in browser", "make sure it works", "verify it works", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For a UI/UX review or polish pass of the running app, use a UI-review skill such as go-ui when it is installed; for a code audit against the Web Interface Guidelines, use web-design-guidelines.
 ---
 
 # /go — Browser check
 
-Verify the work in a real browser instead of trusting that it compiles. Use whichever browser tooling is available and fits the check best.
+Verify the work in a real browser instead of trusting that it compiles.
 
 Easy to miss:
 - **Functional result** — the page does what was intended, not just renders. A search for "X" shows results about X.

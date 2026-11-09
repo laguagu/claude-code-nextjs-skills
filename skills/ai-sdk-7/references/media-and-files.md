@@ -24,6 +24,16 @@ Realtime APIs are experimental. Create scoped ephemeral browser credentials on
 the server; keep long-lived provider keys there. Verify reconnect and
 client-driven tool execution behavior for the chosen provider.
 
+Realtime facts the docs do not state (`experimental_useRealtime`, 7.0.159, OpenAI token sessions):
+
+- `connect({ stream })` only stores the stream. Call `startAudioCapture(stream)` once `status` is
+  `connected`, or no `input_audio_buffer.append` frame is ever sent and no error comes.
+- `response-create` with `instructions` replaces the session's instructions for that response.
+- `sessionConfig.providerOptions` is copied into the session as it is, so options go at its top level:
+  `providerOptions: { reasoning: { effort: "minimal" } }`, not under `openai`. On `gpt-realtime-2.1`
+  this took the wait before a tool call from about 3.3 s to under a second.
+- The hook gives no audio levels. Take them from the PCM in `audio-delta` events through `onEvent`.
+
 Video generation and media downloads need the actual provider limits, bounded
 sizes and cancellation. Do not bake demo model IDs or download behavior into a
 shared wrapper.

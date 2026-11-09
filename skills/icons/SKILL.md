@@ -20,11 +20,15 @@ when the mark represents a brand, country or file type, then check it in context
 | Monochrome brand logo | Iconify: `simple-icons` |
 | Tech or infrastructure logo | Iconify: `logos`, `devicon`, `skill-icons` |
 | A mark absent from catalogs | The organization's official brand assets |
+| Custom glyph or spot illustration no catalog has | Generate it with an image model, through a media-generation skill when one is installed (SVG output where the model offers it) |
 
 These are search starting points, not guaranteed coverage or blanket licences.
 Check the selected set's licence in its own repository, not only in Iconify's
 metadata, and check the brand's usage requirements. Do not invent a logo for a real
-organization when an official asset is unavailable.
+organization when an official asset is unavailable, and never generate one.
+A generated SVG is a draft, and can come back as a filled shape when a line icon was
+asked for: set its `viewBox`, stroke and `currentColor` to the family's grid and compare
+it beside a catalog icon at 16–24 px before use.
 
 ## Iconify
 
@@ -98,5 +102,10 @@ placeholder; do not draw one.
 - Inline SVG masks, gradients and clip paths need IDs unique per rendered
   instance, with every reference updated. A brand-name suffix still collides
   when the same logo appears twice.
+- Iconify's `simple-icons` set keeps marks whose owners asked for removal as
+  `hidden: true` in its set JSON (LinkedIn, for example): they still download but are
+  missing from search. Take those from svgl or the brand's own assets.
 - Put an accessible name on icon-only controls; hide decorative SVGs next to
-  equivalent text. Verify the rendered control and downloaded asset.
+  equivalent text. A missing icon downloads as `Not found` text (Iconify) or
+  an HTML page (svgl), so check that each saved file starts with `<svg`, and
+  view the control at its displayed size.

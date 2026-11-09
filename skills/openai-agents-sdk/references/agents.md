@@ -10,10 +10,6 @@ plain `ModelSettings()` and the API's default reasoning effort, so set
 `reasoning` explicitly. The installed `agents/models/default_models.py` shows
 the current rules.
 
-Use the [current API model catalog](https://developers.openai.com/api/docs/models)
-and [model-selection guidance](https://developers.openai.com/api/docs/guides/model-selection)
-for a new choice; check account/provider access and the chosen model's API page.
-
 Configure only settings supported by the selected provider/model. Reasoning,
 sampling and tool support differ by endpoint. Do not infer capabilities or a
 model family from an Azure deployment's user-defined name.
@@ -24,7 +20,7 @@ per agent via `OpenAIResponsesModel` or
 process-wide via `set_default_openai_client(client, use_for_tracing=False)`
 plus `set_default_openai_api("chat_completions")` when the deployment lacks
 Responses. Choose Responses/Chat Completions from deployed capabilities and the
-current Azure API contract. GPT-6 Astra and GPT-6.1 Sol require Responses for
+current Azure API contract. GPT-6 Astra, GPT-6.1 Sol and GPT-6.1 Terra require Responses for
 tool calling; GPT-6 Sol and Luna allow function calling on Chat
 Completions only with reasoning effort `none`; an agent needing tools and
 reasoning must use Responses (`LitellmModel` always uses Chat Completions).

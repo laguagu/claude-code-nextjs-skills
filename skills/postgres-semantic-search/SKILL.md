@@ -154,7 +154,9 @@ assume `documents(id, title, content, metadata, embedding vector(1536))` and
 and dimension in every file together. Some function files drop older signatures;
 review dependent objects before applying them. These are building blocks, not a
 complete production migration/authorization policy. None sets `hnsw.ef_search`;
-the caller does.
+the caller does, to at least the vector arm's candidate count: by default
+`hybrid_search_chunks_bm25` and `hybrid_search_fuzzy_semantic` ask for 50,
+so the default 40 silently trims them.
 
 | File | Functions (real parameter names) |
 | --- | --- |
@@ -162,7 +164,7 @@ the caller does.
 | [hybrid_search_fts.sql](scripts/hybrid_search_fts.sql) | `hybrid_search_fts(query_embedding, query_text, match_count, rrf_k, fts_language, vector_weight, keyword_weight)`; either input may be NULL |
 | [hybrid_search_bm25.sql](scripts/hybrid_search_bm25.sql) | `hybrid_search_bm25(...)`, `hybrid_search_chunks_bm25(...)`: same parameters without `fts_language`; needs `pg_search` |
 | [fuzzy_search.sql](scripts/fuzzy_search.sql) | `fuzzy_search_trigram(query_text, similarity_threshold, max_results)`, `autocomplete_search(search_prefix, max_results)`, `hybrid_search_fuzzy_semantic(query_text, query_embedding, max_results, rrf_k)` |
-| [prefix_tsquery.sql](scripts/prefix_tsquery.sql) | `prefix_tsquery(config, text [, join])` |
+| [prefix_tsquery.sql](scripts/prefix_tsquery.sql) | `prefix_tsquery(p_config, p_text [, p_join])` |
 | [setup.sql](scripts/setup.sql), [indexes.sql](scripts/indexes.sql) | Extensions, example tables, indexes |
 
 Supabase `.rpc()` binds arguments by name, so a misspelled key fails at call
@@ -199,10 +201,10 @@ await db.execute(sql`SELECT * FROM match_documents(${JSON.stringify(embedding)}:
   `SELECT extversion FROM pg_extension WHERE extname = 'vector'`. 0.8.0+ for
   iterative scans. Check current stable releases: 0.8.2 fixed a
   buffer overflow in parallel HNSW builds, 0.8.3 and 0.8.4 HNSW vacuum
-  corruption and errors, 0.8.7 a buffer overflow in IVFFlat builds. Read the current index-fix and upgrade notes before
-  upgrading. Releases ship as git tags only, so read the
-  [CHANGELOG](https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md),
-  not the empty Releases tab.
+  corruption and errors, 0.8.7 a buffer overflow in IVFFlat builds. Before
+  upgrading, read the
+  [CHANGELOG](https://github.com/pgvector/pgvector/blob/master/CHANGELOG.md);
+  releases ship as git tags only, so the Releases tab is empty.
 - **pg_search**: 0.25+ depends on pgvector; install pgvector first. ParadeDB's
   API moves quickly; see [keyword-search.md](references/keyword-search.md#paradedb-pg_search).
 
