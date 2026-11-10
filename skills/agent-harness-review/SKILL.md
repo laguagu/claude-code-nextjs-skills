@@ -21,6 +21,8 @@ needs one answer, a whole-setup audit needs the inventory below.
   skill calls (`"name":"Skill"`), subagent types (`"subagent_type"`) and MCP calls
   (`mcp__<server>__`); Codex keeps sessions under `~/.codex/sessions`. Low use is a lead,
   not a verdict: a rarely needed domain skill can still be the right one.
+  `claude plugin details <plugin>` lists a plugin's skills, agents, hooks and MCP servers
+  with the tokens it adds to every session and per invocation.
 - **How the client behaves:** read its current docs for what a setting covers and what
   disabling something removes. In Claude Code, `skillOverrides` does not apply to plugin
   skills, and disabling a plugin also disconnects its MCP servers; a plugin's MCP server
@@ -81,7 +83,9 @@ same task.
 which links each model's own guide). Effort is the main control and its starting level
 differs by model (Opus 5.5 `medium`, Fable 5.2 `high`): read the guide for the model
 the harness runs, and keep `xhigh` and `max` for work where a quality gain was measured.
-Remove "think carefully" lines. Name the early stops to avoid and the stops wanted, keep
+Steer thinking with effort, not prompt lines: remove "think carefully" lines, and
+"answer without deliberating" lines, which Fable 5.2 no longer follows at `medium` and
+above. Name the early stops to avoid and the stops wanted, keep
 confirmation for destructive actions, name the exact actions an approval rule covers, and
 mark pasted text. Make the agent loop treat a text-only end of turn as a report, not
 completion, and wait for running background commands and subagents before it ends the task.
@@ -91,7 +95,16 @@ Check standing instructions to delegate and which model subagents run on by defa
 "treat that answer as done" lines, which belong in chat and make the model less likely
 to point out its own earlier mistakes in agentic work; a token budget written into the
 prompt; and cautions that have piled up in memory files, notes and messages between
-agents, which make the model ask for approvals it does not need.
+agents, which make the model ask for approvals it does not need. At `xhigh` and `max`
+Fable 5.2 also starts subagents to review its own work. If it still starts more than
+needed, state first in the subagent tool's description what a subagent adds to session
+cost, then when delegating pays off and how to brief one: in Anthropic's test that cut
+delegation by about a third at the same task success. A client that renders only `text`
+blocks can look silent during long tool runs, because Fable 5.2's updates between tool
+calls arrive as thinking blocks whose text is empty at the default `display: "omitted"`.
+An ownership line ("This codebase is yours") makes it restructure rather than add to
+existing code, at about 1.5× the output tokens and with unrequested changes, so leave it
+out where minimal change is wanted.
 
 ## Report
 
