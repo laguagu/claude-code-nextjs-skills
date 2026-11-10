@@ -95,16 +95,18 @@ Check standing instructions to delegate and which model subagents run on by defa
 "treat that answer as done" lines, which belong in chat and make the model less likely
 to point out its own earlier mistakes in agentic work; a token budget written into the
 prompt; and cautions that have piled up in memory files, notes and messages between
-agents, which make the model ask for approvals it does not need. At `xhigh` and `max`
-Fable 5.2 also starts subagents to review its own work. If it still starts more than
-needed, state first in the subagent tool's description what a subagent adds to session
-cost, then when delegating pays off and how to brief one: in Anthropic's test that cut
-delegation by about a third at the same task success. A client that renders only `text`
+agents, which make the model ask for approvals it does not need. At higher effort
+(`xhigh`, `max`) Fable 5.2 was also seen starting subagents to review its own work. If it
+still starts more than needed, have the subagent tool's description say, cost first, what
+a subagent adds to the session, when delegating pays off and how to brief one: on short
+tasks that cut delegation by about a third against a description that mostly listed
+reasons to delegate, at the same task success. A client that renders only `text`
 blocks can look silent during long tool runs, because Fable 5.2's updates between tool
 calls arrive as thinking blocks whose text is empty at the default `display: "omitted"`.
-An ownership line ("This codebase is yours") makes it restructure rather than add to
-existing code, at about 1.5× the output tokens and with unrequested changes, so leave it
-out where minimal change is wanted.
+An ownership line ("This codebase is yours: …") made it merge repeated code in about half
+of tries instead of under a tenth on small coding tasks, at about 1.5× the output tokens
+and with unrequested changes (new tests and docs, sometimes changed feature behaviour),
+so leave it out where minimal change is wanted.
 
 ## Report
 
