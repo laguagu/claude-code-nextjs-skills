@@ -17,7 +17,7 @@ guardrails run after approval, just before execution.
 `RunConfig(tool_execution=ToolExecutionConfig(pre_approval_tool_input_guardrails=True))`
 also runs them before the approval interruption, where a rejection replaces the
 approval prompt; an approved call then runs them again, so each guardrail runs
-twice and its side effects must tolerate that (verified in 0.22.3).
+twice and its side effects must tolerate that (verified in 0.24.0).
 
 Output guardrails combined with Responses server-managed history
 (`conversation_id`, `previous_response_id` or `auto_previous_response_id`)

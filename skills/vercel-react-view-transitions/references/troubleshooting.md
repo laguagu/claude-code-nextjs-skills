@@ -6,7 +6,7 @@
 
 **Unrelated content crossfades:** A bare VT uses the browser crossfade for every trigger. Set `default="none"` and opt in only to the triggers that boundary should handle.
 
-**Scrolling hangs while a transition animates:** the `::view-transition` overlay is `position: fixed` and its snapshots don't scroll — a browser limitation, not fixable in React (skipping snaps to the end). Keep reveal durations short; for scroll-driven UI use gesture transitions (experimental `useSwipeTransition`, if available).
+**Scrolling hangs while a transition animates:** the `::view-transition` overlay is `position: fixed` and its snapshots don't scroll — a browser limitation, not fixable in React (skipping snaps to the end). Keep reveal durations short. For scroll-driven UI, gesture transitions exist only in React's experimental channel as `unstable_startGestureTransition(timeline, update)`, driven by an `AnimationTimeline` such as a `ScrollTimeline`. In Next.js it ships only when the app opts into experimental React (`experimental.gestureTransition`). Use it only if the installed runtime exports it.
 
 **Open popover flickers when a background transition settles:** it's captured in `root`. Give it a real `view-transition-name` + isolation (not `none`) — see [Isolate Elements from Parent Animations](patterns.md#isolate-elements-from-parent-animations).
 

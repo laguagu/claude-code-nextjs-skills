@@ -25,23 +25,23 @@ Components reference semantic CSS variable tokens. Change the variables to chang
 
 ## Color Variables
 
-Every color follows the `name` / `name-foreground` convention. The base variable is for backgrounds, `-foreground` is for text/icons on that background.
+Most colors follow the `name` / `name-foreground` convention. The base variable is for backgrounds, `-foreground` is for text/icons on that background. `--destructive`, `--border`, `--input`, `--ring` and `--chart-*` have no foreground pair.
 
 | Variable                                     | Purpose                          |
 | -------------------------------------------- | -------------------------------- |
 | `--background` / `--foreground`              | Page background and default text |
 | `--card` / `--card-foreground`               | Card surfaces                    |
+| `--popover` / `--popover-foreground`         | Popovers, menus and overlays     |
 | `--primary` / `--primary-foreground`         | Primary buttons and actions      |
 | `--secondary` / `--secondary-foreground`     | Secondary actions                |
 | `--muted` / `--muted-foreground`             | Muted/disabled states            |
 | `--accent` / `--accent-foreground`           | Hover and accent states          |
-| `--destructive` / `--destructive-foreground` | Error and destructive actions    |
+| `--destructive`                              | Error and destructive actions (older HSL-based themes also define `--destructive-foreground`) |
 | `--border`                                   | Default border color             |
 | `--input`                                    | Form input borders               |
 | `--ring`                                     | Focus ring color                 |
 | `--chart-1` through `--chart-5`              | Chart/data visualization         |
 | `--sidebar-*`                                | Sidebar-specific colors          |
-| `--surface` / `--surface-foreground`         | Secondary surface                |
 
 Colors use OKLCH: `--primary: oklch(0.205 0 0)` where values are lightness (0–1), chroma (0 = gray), and hue (0–360).
 
@@ -86,7 +86,7 @@ Or edit CSS variables directly in `globals.css`.
 
 ## Adding Custom Colors
 
-Add variables to the file at `tailwindCssFile` from `npx shadcn@latest info` (typically `globals.css`). Never create a new CSS file for this.
+Add variables to the file at `project.tailwindCss` from `npx shadcn@latest info --json` (typically `globals.css`). Never create a new CSS file for this.
 
 ```css
 /* 1. Define in the global CSS file. */
@@ -136,7 +136,7 @@ For Tailwind v3 opacity modifiers (e.g. `bg-warning/90`), define separate channe
 
 ## Border Radius
 
-`--radius` controls border radius globally. In the current theme (2026-10-11), components derive values from it (`rounded-lg` = `var(--radius)`, `rounded-md` = `calc(var(--radius) * 0.8)`). Inspect the installed theme; older projects may retain additive scales.
+`--radius` controls border radius globally. Components derive values from it (`rounded-lg` = `var(--radius)`, `rounded-md` = `calc(var(--radius) * 0.8)`). Inspect the installed theme; older projects may retain additive scales.
 
 When a brand spec defines its own radius scale, pin each step in `@theme inline` (`--radius-sm` … `--radius-4xl`) instead of deriving from `--radius`. See [design-system.md](./design-system.md#radius).
 
@@ -176,10 +176,22 @@ warning: "bg-warning text-warning-foreground hover:bg-warning/90",
 Compose shadcn/ui primitives into higher-level components:
 
 ```tsx
-export function ConfirmDialog({ title, description, onConfirm, children }) {
+// Base UI (the default). Radix: <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+// Add nativeButton={false} when children is not a <button>. See rules/base-vs-radix.md.
+export function ConfirmDialog({
+  title,
+  description,
+  onConfirm,
+  children,
+}: {
+  title: string
+  description: string
+  onConfirm: () => void
+  children: React.ReactElement
+}) {
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+      <AlertDialogTrigger render={children} />
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

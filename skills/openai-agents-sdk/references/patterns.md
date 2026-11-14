@@ -20,7 +20,7 @@ provider. Disable with `set_tracing_disabled` or the documented environment
 setting (`OPENAI_AGENTS_DISABLE_TRACING=1`), or configure a different processor.
 `add_trace_processor` retains the existing OpenAI exporter;
 `set_trace_processors` replaces processors. A missing key skips exports with a
-warning in 0.22.3; an unsuitable supplied key can fail authentication.
+warning in 0.24.0; an unsuitable supplied key can fail authentication.
 
 Read [orchestration](https://openai.github.io/openai-agents-python/multi_agent/),
 [running agents](https://openai.github.io/openai-agents-python/running_agents/)

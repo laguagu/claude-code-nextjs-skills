@@ -10,7 +10,7 @@ This comparison covers those two bases. For `aria`, read the React Aria componen
 - Button / trigger as non-button element
 - Select (items prop, placeholder, positioning, multiple, object values)
 - ToggleGroup (type vs multiple)
-- Slider (scalar vs array)
+- Slider (arrays in both bases)
 - Accordion (type and defaultValue)
 
 ---
@@ -239,18 +239,18 @@ const [value, setValue] = React.useState("normal")
 
 ## Slider
 
-Base accepts a plain number or a one-element array for a single thumb (2026-10-11). Radix always requires an array.
+Use an array in both bases, also for a single thumb. Base UI's `Slider.Root` accepts a plain number, but the shadcn wrapper renders one thumb per entry of the `value`/`defaultValue` array. When neither is an array it falls back to `[min, max]`, which gives two thumbs stacked at the same value. Radix always requires an array.
 
-**Correct (base, array):**
-
-```tsx
-<Slider defaultValue={[50]} max={100} step={1} />
-```
-
-**Correct (base, scalar):**
+**Incorrect (base):** renders two overlapping thumbs.
 
 ```tsx
 <Slider defaultValue={50} max={100} step={1} />
+```
+
+**Correct (base):**
+
+```tsx
+<Slider defaultValue={[50]} max={100} step={1} />
 ```
 
 **Correct (radix):**
@@ -259,7 +259,7 @@ Base accepts a plain number or a one-element array for a single thumb (2026-10-1
 <Slider defaultValue={[50]} max={100} step={1} />
 ```
 
-Both use arrays for range sliders. Controlled `onValueChange` in base may need a cast:
+Controlled `onValueChange` in base may need a cast:
 
 ```tsx
 // base.

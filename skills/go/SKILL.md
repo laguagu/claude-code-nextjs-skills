@@ -1,11 +1,11 @@
 ---
 name: go
-description: Opens the running app in a browser and verifies that recent UI changes actually work. Use for a quick browser smoke test of recent web work — "go", "test in browser", "check in browser", "make sure it works", "verify it works", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For a UI/UX review or polish pass of the running app, use a UI-review skill such as go-ui when it is installed; for a code audit against the Web Interface Guidelines, use web-design-guidelines.
+description: Opens the app in a browser, starting it first if it is not running, and verifies that recent UI changes actually work. Use for a quick browser smoke test of recent web work — "go", "test in browser", "check in browser", "make sure it works", "verify it works", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For a UI/UX review or polish pass of the running app, use a UI-review skill such as go-ui when it is installed; for a code audit against the Web Interface Guidelines, use web-design-guidelines. For a web UI, this skill does the check even where Claude Code's run or verify skill is installed; for a CLI, TUI or desktop app, use one of those.
 ---
 
 # /go — Browser check
 
-Verify the work in a real browser instead of trusting that it compiles.
+Verify the work in a real browser instead of trusting that it compiles. If the app is not running, start it the way the project documents (README, package scripts or the project's own launch skill).
 
 Easy to miss:
 - **Functional result** — the page does what was intended, not just renders. A search for "X" shows results about X.
@@ -13,4 +13,4 @@ Easy to miss:
 
 A login wall is not a reason to stop. Prefer a browser where the user is already signed in; that also covers SSO, OAuth and MFA. Otherwise use a test account from the project's seed, fixture or example config, or the user's secrets manager. Do not open, print or search an env file for credentials: if a test login exists only there, load it inside the script that signs in (for example a Playwright script reading process.env), never through chat or tool arguments. On a deployed site a signed-in session is the user's real account, so check without changing data.
 
-If something is broken, fix and verify again; when the same issue keeps failing, ask for direction.
+If something is broken, fix and verify again. When the same issue survives two fixes, change approach or get a second reader (another model or agent, when one is available); ask for direction only if it still fails.

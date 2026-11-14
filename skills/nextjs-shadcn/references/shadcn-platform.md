@@ -10,7 +10,7 @@ Inspect the primitive base, aliases, theme and installed components through `com
 
 Use the existing alias convention, including Node package imports when configured. Prefer logical spacing utilities for RTL-aware layouts.
 
-To switch icon family across installed components, `shadcn migrate icons --from <id> --to <id>` takes the library ids `lucide`, `tabler`, `hugeicons`, `phosphor` and `remixicon`. Hugeicons now ships as `@hugeicons/react` with `@hugeicons/core-free-icons`; `hugeicons-react` is deprecated.
+To switch icon family across installed components, `shadcn migrate icons --from <id> --to <id>` takes the library ids `lucide`, `tabler`, `hugeicons`, `phosphor` and `remixicon`, plus the legacy `radix` (`@radix-ui/react-icons`), which works as a source or target but is not offered to new projects. Hugeicons now ships as `@hugeicons/react` with `@hugeicons/core-free-icons`; `hugeicons-react` is deprecated.
 
 ## Rendered markdown and loading
 

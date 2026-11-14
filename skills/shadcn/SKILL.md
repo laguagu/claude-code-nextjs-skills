@@ -8,7 +8,7 @@ allowed-tools: Bash(npx shadcn@latest *) Bash(pnpm dlx shadcn@latest *) Bash(bun
 
 A framework for building ui, components and design systems. Components are added as source code to the user's project via the CLI.
 
-> **IMPORTANT:** Run all CLI commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest` — based on the project's `packageManager`. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
+> Run all CLI commands with the project's package runner, chosen from its lockfile or the `packageManager` field in `package.json`: `npx shadcn@latest`, `pnpm dlx shadcn@latest` or `bunx --bun shadcn@latest`. The examples below use `npx shadcn@latest`; substitute the project's runner.
 
 For a new project, use Bun by default. Existing projects retain their configured package manager.
 
@@ -44,7 +44,7 @@ Use these as defaults for this design system; preserve explicit project requirem
 
 - **Forms use `FieldGroup` + `Field`.** Never use raw `div` with `space-y-*` or `grid gap-*` for form layout.
 - **`InputGroup` uses `InputGroupInput`/`InputGroupTextarea`.** Never raw `Input`/`Textarea` inside `InputGroup`.
-- **Buttons inside inputs use `InputGroup` + `InputGroupAddon`.**
+- **Buttons inside inputs use `InputGroupButton` in an `InputGroupAddon`.** Place the addon after the input and set `align="inline-end"` for a trailing button; don't use a plain `Button`.
 - **Option sets (2–7 choices) use `ToggleGroup`.** Don't loop `Button` with manual active state.
 - **`FieldSet` + `FieldLegend` for grouping related checkboxes/radios.** Don't use a `div` with a heading.
 - **Field validation uses `data-invalid` + `aria-invalid`.** `data-invalid` on `Field`, `aria-invalid` on the control. For disabled: `data-disabled` on `Field`, `disabled` on the control.
@@ -106,7 +106,7 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 <Field data-invalid>
   <FieldLabel>Email</FieldLabel>
   <Input aria-invalid />
-  <FieldDescription>Invalid email.</FieldDescription>
+  <FieldError>Enter a valid email address.</FieldError>
 </Field>
 
 // Icons in buttons: data-icon, no sizing classes.
@@ -134,7 +134,7 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 | -------------------------- | --------------------------------------------------------------------------------------------------- |
 | Button/action              | `Button` with appropriate variant                                                                   |
 | Form inputs                | `Input`, `Select`, `Combobox`, `Switch`, `Checkbox`, `RadioGroup`, `Textarea`, `InputOTP`, `Slider` |
-| Toggle between 2–5 options | `ToggleGroup` + `ToggleGroupItem`                                                                   |
+| Toggle between 2–7 options | `ToggleGroup` + `ToggleGroupItem`                                                                   |
 | Data display               | `Table`, `Card`, `Badge`, `Avatar`                                                                  |
 | Navigation                 | `Sidebar`, `NavigationMenu`, `Breadcrumb`, `Tabs`, `Pagination`                                     |
 | Overlays                   | `Dialog` (modal), `Sheet` (side panel), `Drawer` (bottom sheet), `AlertDialog` (confirmation)       |
@@ -149,18 +149,18 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 
 ## Key Fields
 
-The `info --json` project context contains these key fields:
+The `info --json` output has top-level `project`, `config`, `preset`, `components` and `links`. Key fields:
 
-- **`aliases`** → use the actual alias prefix for imports (e.g. `@/`, `~/`), never hardcode.
-- **`isRSC`** → when `true`, components using `useState`, `useEffect`, event handlers, or browser APIs need `"use client"` at the top of the file. Always reference this field when advising on the directive.
-- **`tailwindVersion`** → `"v4"` uses `@theme inline` blocks; `"v3"` uses `tailwind.config.js`.
-- **`tailwindCssFile`** → the global CSS file where custom CSS variables are defined. Always edit this file, never create a new one.
-- **`style`** → component visual treatment (e.g. `nova`, `vega`).
-- **`base`** → primitive library (`radix`, `base` or `aria`). Affects component APIs and available props.
-- **`iconLibrary`** → determines icon imports. Use `lucide-react` for `lucide`, `@tabler/icons-react` for `tabler`, etc. Never assume `lucide-react`.
-- **`resolvedPaths`** → exact file-system destinations for components, utils, hooks, etc.
-- **`framework`** → routing and file conventions (e.g. Next.js App Router vs Vite SPA).
-- **`packageManager`** → use this for any non-shadcn dependency installs (e.g. `pnpm add date-fns` vs `npm install date-fns`).
+- **`config.aliases`** → use the actual alias prefix for imports (e.g. `@/`, `~/`), never hardcode.
+- **`project.rsc`** → when `true`, components using `useState`, `useEffect`, event handlers, or browser APIs need `"use client"` at the top of the file. Always reference this field when advising on the directive.
+- **`project.tailwindVersion`** → `"v4"` uses `@theme inline` blocks; `"v3"` uses `tailwind.config.js`.
+- **`project.tailwindCss`** → the global CSS file where custom CSS variables are defined (absolute path: `config.resolvedPaths.tailwindCss`). Always edit this file, never create a new one.
+- **`config.style`** → component visual treatment (e.g. `nova`, `vega`).
+- **`config.base`** → primitive library (`radix`, `base` or `aria`). Affects component APIs and available props.
+- **`config.iconLibrary`** → determines icon imports. Use `lucide-react` for `lucide`, `@tabler/icons-react` for `tabler`, etc. Never assume `lucide-react`.
+- **`config.resolvedPaths`** → exact file-system destinations for components, utils, hooks, etc.
+- **`project.framework`** / **`project.frameworkName`** → routing and file conventions (e.g. `next-app` vs `vite`).
+- **Package manager** → not in the `info` output. Read the lockfile or the `packageManager` field in `package.json` for non-shadcn dependency installs (e.g. `pnpm add date-fns` vs `npm install date-fns`).
 - **`preset`** → resolved preset code and values for the current project. Use `npx shadcn@latest preset resolve --json` when you only need preset information.
 
 See [cli.md — `info` command](./cli.md) for the full field reference.
@@ -173,7 +173,7 @@ Run `npx shadcn@latest docs <component>` to get the URLs for a component's docum
 npx shadcn@latest docs button dialog select
 ```
 
-**When creating, fixing, debugging, or using a component, always run `npx shadcn@latest docs` and fetch the URLs first.** This ensures you're working with the correct API and usage patterns rather than guessing.
+**Before you write or change code that uses a component's props or composition you have not checked in this session, run `npx shadcn@latest docs <component>` and fetch the URLs.** The installed file wraps a primitive whose props and composition differ between bases (`radix`, `base`, `aria`), so read the docs rather than guess.
 
 ## Workflow
 
@@ -200,14 +200,14 @@ When the user asks for a design system from a `DESIGN.md` (or a brand spec), wit
 
 1. `init --preset <code> --template <vite|next> --name <app> --no-monorepo -y`. Without a preset code, pick the closest style and pass `--base base --preset <style>`. Then `add --all -y`.
 2. Read the DESIGN.md frontmatter, Do's and Don'ts, and Known Gaps before editing.
-3. Map its tokens onto the shadcn variables in `tailwindCssFile`. Pin the radius scale, shadows, fonts and `type-*` utilities.
+3. Map its tokens onto the shadcn variables in the CSS file at `project.tailwindCss`. Pin the radius scale, shadows, fonts and `type-*` utilities.
 4. Restyle components by editing their `cva` variants. Change control heights together.
 5. Build the design system page per [design-system-page.md](./design-system-page.md): contrast-checked color roles, type specimens, pinned state matrices, edge cases, do/don't pairs, recipes. Check coverage with `scripts/showcase-coverage.mjs`.
 6. Verify in a browser: typecheck, no console errors, loads at the top, no horizontal overflow, dark mode.
 
 ## Updating Components
 
-When the user asks to update a component from upstream while keeping their local changes, use `--dry-run` and `--diff` to intelligently merge. **NEVER fetch raw files from GitHub manually — always use the CLI.**
+When the user asks to update a component from upstream while keeping their local changes, use `--dry-run` and `--diff` to intelligently merge. Use the CLI rather than fetching raw files from GitHub: it handles registry resolution, file paths and CSS diffing, and `--diff` shows what would replace the local changes.
 
 1. Run `npx shadcn@latest add <component> --dry-run` to see all files that would be affected.
 2. For each file, run `npx shadcn@latest add <component> --diff <file>` to see what changed upstream vs local.
@@ -277,7 +277,7 @@ npx shadcn@latest view @shadcn/button
 npx shadcn@latest view owner/repo/item
 ```
 
-**Named presets:** `nova`, `vega`, `maia`, `lyra`, `mira`, `luma`, `sera`, `rhea` (checked 2026-10-01; see the [current preset definitions](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/preset/defaults.ts)).
+**Named presets:** `nova`, `vega`, `maia`, `lyra`, `mira`, `luma`, `sera`, `rhea` (see the [current preset definitions](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/preset/defaults.ts)).
 **Templates:** `next`, `vite`, `start`, `react-router`, `astro` (all support `--monorepo`) and `laravel` (not supported for monorepo)
 **Preset codes:** Version-prefixed base62 strings (e.g. `a2r6bw` or `b0`), from [ui.shadcn.com](https://ui.shadcn.com).
 
@@ -291,6 +291,7 @@ npx shadcn@latest view owner/repo/item
 - [rules/base-vs-radix.md](./rules/base-vs-radix.md) — asChild vs render, Select, ToggleGroup, Slider, Accordion
 - [cli.md](./cli.md) — Commands, flags, presets, templates
 - [registry.md](./registry.md) — Authoring source registries, `include`, item definitions, dependencies, GitHub registry rules
+- [mcp.md](./mcp.md) — shadcn MCP server: `shadcn mcp init` editor config, MCP tools, configuring registries in `components.json`
 - [customization.md](./customization.md) — Theming, CSS variables, extending components
 - [design-system.md](./design-system.md): DESIGN.md (with or without a preset) to a themed app: style picking, token mapping, radius, fonts, type scale, control heights, showcase traps, verification
 - [design-system-page.md](./design-system-page.md): What goes on a design system page and how: foundations, component tiers, pinned state matrices, contrast pairs, edge cases, do/don't, recipes

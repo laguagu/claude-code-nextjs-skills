@@ -40,6 +40,14 @@ user-initiated fetching are different purposes; a vendor may use separate bots
 or a product-control token. Preserve the owner's policy instead of copying a
 blanket allow/block list.
 
+A `User-Agent: __usage_ai-training` group (individual IETF draft
+`draft-kelley-aipref-training-preference-signal`, based on aipref working-group
+work) states a per-path preference about AI-training use. It does not restrict
+crawling, and a `User-Agent: *` group does not count as such a preference.
+Anthropic honors it, and a group naming ClaudeBot takes priority over it. Check
+whether other vendors honor it before relying on it; their documented training
+tokens (GPTBot, Google-Extended) still apply.
+
 | Vendor | Training | Search | User-initiated retrieval |
 |--------|----------|--------|--------------------------|
 | OpenAI | GPTBot | OAI-SearchBot | ChatGPT-User |
@@ -61,8 +69,13 @@ Blocking a search crawler can prevent direct content retrieval; it does not
 prove that a URL or brand can never be mentioned through other sources.
 User-initiated fetchers differ: OpenAI says robots.txt "may not apply" to
 ChatGPT-User, Perplexity-User generally ignores it, and Anthropic says all three
-of its bots honor it. Each vendor's settings are independent, so allowing
-OAI-SearchBot while disallowing GPTBot is a valid policy.
+of its bots honor it. Anthropic's hosted agent browsers are separate from those
+bots: they send a normal browser User-Agent with a `Claude-Agent` token,
+Anthropic manages them apart from its robots and does not say robots.txt
+applies, and their traffic is verified against the IPs listed under
+`Claude-Agent` at `https://claude.com/.well-known/sail`. Each vendor's settings
+are independent, so allowing OAI-SearchBot while disallowing GPTBot is a valid
+policy.
 
 Inspect hosting firewall rules separately when diagnosing denied public crawls. A
 User-Agent string can be spoofed; use vendor-documented verification methods
@@ -121,5 +134,7 @@ Sources to re-check for changing policies:
 - [Google-Extended](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers#google-extended)
 - [OpenAI crawlers](https://developers.openai.com/api/docs/bots)
 - [Anthropic crawlers](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler)
+- [Anthropic agent browsers](https://support.claude.com/en/articles/18234133-how-do-anthropic-hosted-browsers-identify-themselves-when-they-browse-the-web-on-a-user-s-behalf)
+- [Training preference signal draft](https://datatracker.ietf.org/doc/draft-kelley-aipref-training-preference-signal/)
 - [Perplexity crawlers](https://docs.perplexity.ai/guides/bots)
 - [llms.txt proposal](https://llmstxt.org/)

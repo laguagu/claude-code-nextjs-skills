@@ -27,7 +27,7 @@ source is `docs/` at repository tag `v<version>`.
 notebooks); use `await Runner.run(...)`. `Runner.run_streamed(...)` itself
 is not awaited; consume its `stream_events()` async iterator to completion.
 
-Checked with openai-agents 0.22.3; confirm names in the installed source for
+Checked with openai-agents 0.24.0; confirm names in the installed source for
 another version:
 
 ```python
@@ -92,7 +92,7 @@ reasoning effort.
 
 ## Read for the feature
 
-- [Agents/providers](references/agents.md): model defaults, Azure and adapters.
+- [Agents/providers](references/providers.md): model defaults, Azure and adapters.
 - [Tools](references/tools.md): local/hosted execution, delegation and approval/resume.
 - [Structured output](references/structured-output.md): schema and capability constraints.
 - [Streaming](references/streaming.md): event types, failures and guardrails.
@@ -112,7 +112,7 @@ from a compatible tag, not a copied catalog of demos.
 ## Verification
 
 Verify changed tools, multi-turn history, approval/denial and failure recovery.
-Use installed `agents.testing` (verified in 0.22.3) for offline orchestration:
+Use installed `agents.testing` (verified in 0.24.0) for offline orchestration:
 `ScriptedModel`, `ModelStep`, `assistant_message`, `function_call` and
 `model.assert_complete()`, with `RunConfig(tracing_disabled=True)`; assigning
 `agent.model = ScriptedModel([...])` runs the core shape offline. Run the

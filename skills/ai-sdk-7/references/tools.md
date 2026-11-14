@@ -13,14 +13,17 @@ ToolLoopAgent/core generation use `toolApproval`, per tool or as one callback;
 a rule returns `'user-approval'`, `'approved'`, `'denied'` or
 `'not-applicable'` (`undefined` means not applicable). Object outcomes can
 include `reason` for approved, denied or user-approval; not-applicable cannot.
-WorkflowAgent instead uses tool-level `needsApproval` for
-durable suspension. Subagent, provider-executed and harness built-in tools
-have separate constraints: subagent tools cannot use `toolApproval`.
+WorkflowAgent takes tool-level `needsApproval` and, from `@ai-sdk/workflow`
+2.0.105, the same `toolApproval` (constructor or per call), which takes
+precedence and runs in workflow context. A `'user-approval'` outcome suspends
+the workflow durably; approved or denied outcomes do not pause it. Subagent,
+provider-executed and harness built-in tools have separate constraints:
+subagent tools cannot use `toolApproval`.
 
 Browser history can fabricate an approval response. Bind sensitive decisions to
 server-issued state. `experimental_toolApprovalSecret` takes string/bytes
 on core functions and ToolLoopAgent; WorkflowAgent takes an environment
-variable reference (see [agents.md](agents.md)). Verify installed support and
+variable reference (see [agent-execution.md](agent-execution.md)). Verify installed support and
 recheck authorization at execution.
 
 Update context through supported preparation hooks, rather than mutating

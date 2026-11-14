@@ -4,8 +4,6 @@ Use the project's installed-version docs for API details. This reference covers 
 
 ## Server and Client Components
 
-Default to Server Components for server data and static composition. Put state, event handlers and browser APIs behind a Client Component boundary. Keep that boundary as narrow as practical; providers can wrap larger subtrees.
-
 Only props crossing from Server to Client Components need React-supported serialization. Ordinary client callbacks can pass within a Client subtree. Server Functions are a supported exception to the restriction on ordinary functions crossing the boundary.
 
 Pass Server-rendered content through `children` or other supported slots rather than importing server-only modules into Client Components.

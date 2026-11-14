@@ -212,7 +212,7 @@ Rules:
 - GitHub registries are source registries consumed directly by the CLI. They do
   not require `shadcn build` or generated item JSON files.
 - `include` follows the same source-registry rules as local registries.
-- As of 2026-10-11, GitHub addresses support public and authenticated private `github.com` repositories. Private repos use existing `gh` credentials or `GH_TOKEN`/`GITHUB_TOKEN` with repository read access.
+- GitHub addresses support public and authenticated private `github.com` repositories. Private repos use `GH_TOKEN` or `GITHUB_TOKEN` (`GH_TOKEN` wins) with repository read access, or else existing `gh` credentials for github.com.
 - GitHub Enterprise hosts remain unsupported.
 
 When implementing GitHub registry fetching, resolve refs to a commit SHA before

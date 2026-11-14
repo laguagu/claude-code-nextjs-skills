@@ -2,10 +2,10 @@
 
 Read [model docs](https://openai.github.io/openai-agents-python/models/) and the
 installed package source. Omitting `model` uses SDK defaults, which can change
-(0.22.3 fallback: `gpt-5.6-luna`, not a model recommendation);
+(0.24.0 fallback: `gpt-5.6-luna`, not a model recommendation);
 `OPENAI_DEFAULT_MODEL` is an SDK setting, while a
 custom app variable needs explicit wiring. Tuned default ModelSettings apply
-in 0.22.3 only to supported `gpt-5` names; other IDs, including `gpt-6.1-sol`, get a
+in 0.24.0 only to supported `gpt-5` names; other IDs, including `gpt-6.1-sol`, get a
 plain `ModelSettings()` and the API's default reasoning effort, so set
 `reasoning` explicitly. The installed `agents/models/default_models.py` shows
 the current rules.

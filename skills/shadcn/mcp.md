@@ -81,7 +81,9 @@ Returns a checklist for verifying components (imports, deps, lint, TypeScript).
 
 ## Configuring Registries
 
-Namespaced and authenticated registries are set in `components.json`. The
+Namespaced and authenticated registries are set in `components.json`.
+`npx shadcn@latest registry add @namespace` (or `@namespace=<url>`) writes a
+namespaced entry; add `headers` by hand. The
 `@shadcn` registry is always built-in. Public GitHub registries can also be used
 directly as `owner/repo` registry sources when the repository has a root
 `registry.json`; they do not need `components.json` configuration.

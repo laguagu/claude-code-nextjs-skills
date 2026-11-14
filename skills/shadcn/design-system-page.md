@@ -43,7 +43,7 @@ What goes on a design system page, and how to show it. Distilled from Primer, Ca
 | 7   | Data display               | Card, Table, Chart, Item, Avatar, Accordion, Collapsible, Carousel, ScrollArea, Resizable, AspectRatio, Separator.                   |
 | 8   | Feedback                   | Alert, toast (and Sonner in Base UI projects), Progress, Spinner, Skeleton, Empty.                                                   |
 | 9   | Overlays                   | Dialog, AlertDialog, Sheet, Drawer, Popover, HoverCard, Tooltip, DropdownMenu, ContextMenu, Command.                                 |
-| 10  | Conversation               | MessageScroller, Message, Bubble, Attachment, Marker, Questionnaire. See [rules/chat.md](./rules/chat.md).                           |
+| 10  | Conversation               | MessageScroller, Message, Bubble, Attachment, Marker, Trace, CodeBlock, Questionnaire. See [rules/chat.md](./rules/chat.md).         |
 | 11  | Do and Don't               | Rendered pairs for the DESIGN.md's rules.                                                                                            |
 | 12  | Recipes and example screen | The DESIGN.md's named components, then one realistic screen.                                                                         |
 | 13  | Footer                     | The DESIGN.md footer recipe.                                                                                                         |
@@ -120,7 +120,7 @@ Show motion only if the DESIGN.md defines durations or easings: a table of token
 | Composed     | Card, Table, Item, Avatar, Alert, Empty, toast, Sonner, Accordion, Collapsible, Breadcrumb, Pagination, Progress, Skeleton, Spinner, Carousel, Chart, ScrollArea, Resizable, AspectRatio, Separator, Kbd, ButtonGroup | Typical example, then one element added at a time, then edge cases. |
 | Overlays     | Dialog, AlertDialog, Sheet, Drawer, Popover, HoverCard, Tooltip, DropdownMenu, ContextMenu, Menubar, NavigationMenu, Command                                                                                          | A real trigger per overlay, labeled with what it opens.             |
 | Shell        | Sidebar, DirectionProvider                                                                                                                                                                                            | Inline in a framed preview (`collapsible="none"`).                  |
-| Conversation | MessageScroller, Message, Bubble, Attachment, Marker, Questionnaire                                                                                                                                                   | One realistic thread, then variant rows.                            |
+| Conversation | MessageScroller, Message, Bubble, Attachment, Marker, Trace, CodeBlock, Questionnaire                                                                                                                                 | One realistic thread with Trace and CodeBlock, then variant rows.   |
 
 ### Block anatomy
 
@@ -140,7 +140,7 @@ Wide components (Table, NavigationMenu, Menubar, Sidebar, Chart, MessageScroller
 
 ## States Without Interaction
 
-Pin interaction states with a `data-preview` attribute. Override the hover, focus-visible and active variants so each also matches the attribute. Copy [assets/showcase/preview-states.css](./assets/showcase/preview-states.css) into `tailwindCssFile`:
+Pin interaction states with a `data-preview` attribute. Override the hover, focus-visible and active variants so each also matches the attribute. Copy [assets/showcase/preview-states.css](./assets/showcase/preview-states.css) into the global CSS file at `project.tailwindCss`:
 
 ```css
 @custom-variant hover {

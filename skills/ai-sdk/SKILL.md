@@ -1,6 +1,6 @@
 ---
 name: ai-sdk
-description: 'Answer questions about the AI SDK and help build AI-powered features. Use when developers ask about Vercel AI SDK, generateText, streamText, ToolLoopAgent, useChat, providers, tools, structured output, embeddings, streaming, or adding AI to an app. First identify the installed major version and route version-specific work: use ai-sdk-7 for AI SDK 7 features/migrations such as WorkflowAgent, HarnessAgent, reasoning, runtime/tools context, toolApproval, telemetry, realtime, or v6-to-v7 upgrades; for v6 code read the docs shipped in the installed package.'
+description: 'Answer questions about the AI SDK and help build AI-powered features. Use when developers ask about Vercel AI SDK, generateText, streamText, ToolLoopAgent, useChat, AI SDK providers, tools, structured output, embeddings or streaming, or want to add AI features to a TypeScript or JavaScript app. First identify the installed major version and route version-specific work: use ai-sdk-7 for AI SDK 7 features/migrations such as WorkflowAgent, HarnessAgent, reasoning, runtime/tools context, toolApproval, telemetry, realtime, or v6-to-v7 upgrades; for v6 code read the docs shipped in the installed package.'
 ---
 
 # AI SDK version and documentation routing
@@ -25,7 +25,10 @@ they work without network. `ai` bundles docs from 6.0.32 and in 7.x;
 mirrors the website: `ai-sdk.dev/docs/<section>/<page>`
 is `ai/docs/<nn>-<section>/<nn>-<page>.mdx`, so an `ai-sdk.dev/docs` link in
 these skills can be read from the installed major's copy. Provider packages
-ship `docs/<nn>-<provider>.mdx`. `@ai-sdk/react`, `@ai-sdk/workflow`,
+ship `docs/<nn>-<provider>.mdx` in their AI SDK 7 releases and in later v6
+releases (from `@ai-sdk/openai` 3.0.16, `@ai-sdk/anthropic` 3.0.20,
+`@ai-sdk/google` 3.0.12, `@ai-sdk/gateway` 3.0.21); earlier v6 releases have
+none. `@ai-sdk/react`, `@ai-sdk/workflow`,
 `@ai-sdk/harness`, `@ai-sdk/otel` and `@ai-sdk/mcp` ship no docs; their guides
 are in `ai/docs` and their API in `dist/*.d.ts`. Monorepo hoisting and
 Yarn PnP may change the paths; do not install or upgrade a dependency solely

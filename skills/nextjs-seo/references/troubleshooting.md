@@ -35,12 +35,14 @@ With Cache Components (Next.js 16), check two causes:
   Reading the clock or randomness during its render (`Date.now()`, `new Date()`,
   `Math.random()`, `crypto.randomUUID()`) stops the prerender at that point, and
   the nearest Suspense fallback is what the HTML holds. Libraries do this too:
-  TanStack Query v5 reads `Date.now()` in `useQuery` for a numeric `staleTime`,
+  TanStack Query v5 reads `Date.now()` in `useQuery` for a numeric `staleTime`
+  and when it builds a query from `initialData` without `initialDataUpdatedAt`,
   and `dehydrate()` reads it as well. A `<Suspense>` boundary silences the
   build's prerender error by deferring the content, so the error going away does
   not mean the content is in the HTML. Keep the read out of server render, for
-  example `staleTime: isServer ? "static" : ms` with seeded `initialData` (tested
-  on Next.js 16.3 with TanStack Query 5.103), or move it to an effect.
+  example `staleTime: isServer ? "static" : ms` with seeded `initialData` and an
+  `initialDataUpdatedAt` the server passed in, such as `Date.parse(serverTime)`
+  (tested on Next.js 16.3 with TanStack Query 5.103), or move it to an effect.
 - **The value is in neither.** Check the section's `cacheLife`: `revalidate: 0`,
   `expire` under 5 minutes or `stale` under 30 seconds exclude it from
   prerenders, and it resolves at request time. `stale` under 5 minutes also keeps

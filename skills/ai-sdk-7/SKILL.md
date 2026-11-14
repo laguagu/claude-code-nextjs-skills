@@ -108,7 +108,7 @@ still compile in 7.0.124; `system` and the response method are deprecated.
 
 ## Read for the feature
 
-- [Agents](references/agents.md): in-memory/durable execution and context.
+- [Agents](references/agent-execution.md): in-memory/durable execution and context.
 - [Harnesses](references/harnesses.md): runtime-owned sessions and permissions.
 - [Core functions](references/core-functions.md): output, stream and result contracts.
 - [Tools](references/tools.md): approval boundaries, MCP Apps and sandbox handles.

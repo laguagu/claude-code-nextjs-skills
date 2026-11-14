@@ -16,7 +16,8 @@ Codemods do not cover every semantic change.
 
 ## Renames to search for
 
-- Core: `system` → `instructions` (also `prepareStep` and repair-call returns),
+- Core: `system` → `instructions` (also in `prepareStep` results, the options
+  passed to `experimental_repairToolCall`, and lifecycle event fields),
   `stepCountIs` → `isStepCount`, `experimental_output` → `output`,
   `experimental_prepareStep` → `prepareStep`, `experimental_activeTools` →
   `activeTools`, `experimental_customProvider`/`_generateImage`/`_transcribe`/
@@ -68,7 +69,7 @@ Codemods do not cover every semantic change.
 | Streaming | `onChunk` sees all parts, not only text/tool deltas |
 | Results | Top-level usage/content/tool arrays aggregate; use `finalStep` for final-step access |
 | Context | Shared `runtimeContext`; per-tool `toolsContext` + `contextSchema` |
-| Approval | Core/ToolLoopAgent `toolApproval`; WorkflowAgent still uses `needsApproval` |
+| Approval | Core/ToolLoopAgent `toolApproval` (tool-level `needsApproval` deprecated there); WorkflowAgent keeps `needsApproval` and from `@ai-sdk/workflow` 2.0.105 also takes `toolApproval`, which takes precedence |
 | Telemetry | Opt out with `telemetry.isEnabled: false`; global registration optional; bodies and context excluded unless included |
 | Reasoning | Provider settings override overlapping top-level `reasoning` |
 | Files | Canonical `file` parts; tool outputs use tagged `data`; handle deprecated `file-data` in persisted/legacy outputs and `reasoning-file` |

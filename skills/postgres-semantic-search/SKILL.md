@@ -2,10 +2,11 @@
 name: postgres-semantic-search
 description: >-
   Builds and tunes PostgreSQL retrieval with pgvector, full-text search,
-  pg_trgm, hybrid fusion, ParadeDB BM25 and reranking. Use for search/RAG
-  implementation, weak results, filtered ANN scans, non-English corpora or
-  retrieval evaluation. For general schema, RLS and query tuning unrelated
-  to retrieval, use Supabase's supabase-postgres-best-practices skill.
+  pg_trgm, hybrid fusion, ParadeDB BM25 and reranking. Use for pgvector
+  columns and indexes, search/RAG implementation, weak results, filtered ANN
+  scans, non-English corpora or retrieval evaluation. For general schema, RLS
+  and query tuning unrelated to retrieval, use Supabase's
+  supabase-postgres-best-practices skill.
 ---
 
 # PostgreSQL Semantic Search
@@ -72,9 +73,6 @@ pgvector ([pgvector.md](references/pgvector.md)):
   same transaction, or a function-level `SET`.
 - **Similarity cutoffs are model-specific**: a cutoff tuned for one model
   returns nothing for another. `1 - (a <#> b)` is not cosine similarity.
-- **Clients mangle JS arrays**: node-postgres sends `{0.1,0.2}` and Drizzle's
-  `sql` template expands an array into `($1, $2, ...)`; vector input rejects
-  both. Send `JSON.stringify(embedding)` and cast with `::vector`.
 
 Keyword ([keyword-search.md](references/keyword-search.md)):
 
@@ -168,7 +166,10 @@ so the default 40 silently trims them.
 | [setup.sql](scripts/setup.sql), [indexes.sql](scripts/indexes.sql) | Extensions, example tables, indexes |
 
 Supabase `.rpc()` binds arguments by name, so a misspelled key fails at call
-time:
+time. node-postgres sends a JS array as an array literal (`{"0.1","0.2"}`) and
+Drizzle's `sql` template expands it into `($1, $2, ...)`; both fail with
+`invalid input syntax for type vector` or a cast error, so send
+`JSON.stringify(embedding)` and cast with `::vector`:
 
 ```typescript
 const { data, error } = await supabase.rpc('hybrid_search_fts', {
@@ -212,5 +213,5 @@ await db.execute(sql`SELECT * FROM match_documents(${JSON.stringify(embedding)}:
 
 | Need | Skill |
 | --- | --- |
-| General Postgres schema, indexes, RLS, pooling | `supabase-postgres-best-practices` (Supabase plugin or [supabase/agent-skills](https://github.com/supabase/agent-skills)) |
+| General Postgres schema, non-search indexes, RLS, pooling | `supabase-postgres-best-practices` (Supabase plugin or [supabase/agent-skills](https://github.com/supabase/agent-skills)) |
 | Embedding calls through the AI SDK | `ai-sdk` |

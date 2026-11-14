@@ -9,6 +9,8 @@
 - [Shared Element Morph](#shared-element-morph)
 - [Text Morph](#text-morph)
 - [Scale](#scale)
+- [Interactivity During Transitions](#interactivity-during-transitions)
+- [No Root Cross-Fade (Live Root)](#no-root-cross-fade-live-root)
 - [Persistent Element Isolation](#persistent-element-isolation)
 - [Reduced Motion](#reduced-motion)
 

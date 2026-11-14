@@ -2,15 +2,13 @@
 
 Configuration is read from `components.json`.
 
-> **IMPORTANT:** Always run commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest`. Check `packageManager` from project context to choose the right one. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
+> Run commands with the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest`. Choose it from the project's lockfile or the `packageManager` field in `package.json`; `info` does not report the package manager. Examples below use `npx shadcn@latest`; substitute the project's runner.
 
-> **IMPORTANT:** Do not invent or guess flags. For unlisted flags, check the command's `--help`. The CLI auto-detects the package manager from the project's lockfile; there is no `--package-manager` flag.
-
-Flag and template reference: CLI 4.21.4 (2026-10-11).
+> Use the flags listed here; for an unlisted flag, check the command's `--help` instead of guessing. The CLI auto-detects the package manager from the project's lockfile; there is no `--package-manager` flag.
 
 ## Contents
 
-- Commands: init, apply, add (dry-run, smart merge), search, view, docs, info, build
+- Commands: init, apply, add (dry-run, smart merge), search, view, docs, diff, info, build, preset, registry
 - Templates: next, vite, start, react-router, astro, laravel
 - Presets: named, code, URL formats and fields
 - Switching presets
@@ -67,7 +65,7 @@ If no preset is provided, the CLI offers to open the custom preset builder on `u
 
 ### `add` — Add components
 
-> **IMPORTANT:** To compare local components against upstream or to preview changes, ALWAYS use `npx shadcn@latest add <component> --dry-run`, `--diff`, or `--view`. NEVER fetch raw files from GitHub or other sources manually. The CLI handles registry resolution, file paths, and CSS diffing automatically.
+> To compare local components against upstream or to preview changes, use `npx shadcn@latest add <component> --dry-run`, `--diff`, or `--view` rather than fetching raw files from GitHub or other sources: the CLI handles registry resolution, file paths, and CSS diffing automatically.
 
 ```bash
 npx shadcn@latest add [components...] [options]
@@ -208,39 +206,42 @@ Displays project info and `components.json` configuration. Run this first to dis
 | `--cwd <cwd>` | `-c`  | Working directory | current |
 | `--json`      |       | Output as JSON    | `false` |
 
-**Project Info fields:**
+**Project fields** (`project` in `--json`; `null` when no project is detected):
 
-| Field                | Type      | Meaning                                                            |
-| -------------------- | --------- | ------------------------------------------------------------------ |
-| `framework`          | `string`  | Detected framework (`next`, `vite`, `react-router`, `start`, etc.) |
-| `frameworkVersion`   | `string`  | Framework version (e.g. `15.2.4`)                                  |
-| `isSrcDir`           | `boolean` | Whether the project uses a `src/` directory                        |
-| `isRSC`              | `boolean` | Whether React Server Components are enabled                        |
-| `isTsx`              | `boolean` | Whether the project uses TypeScript                                |
-| `tailwindVersion`    | `string`  | `"v3"` or `"v4"`                                                   |
-| `tailwindConfigFile` | `string`  | Path to the Tailwind config file                                   |
-| `tailwindCssFile`    | `string`  | Path to the global CSS file                                        |
-| `aliasPrefix`        | `string`  | Import alias prefix (e.g. `@`, `~`, `@/`)                          |
-| `packageManager`     | `string`  | Detected package manager (`npm`, `pnpm`, `yarn`, `bun`)            |
+| Field              | Type             | Meaning                                                                                                                                     |
+| ------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `framework`        | `string`         | Framework label (e.g. `Next.js`, `Vite`, `TanStack Start`)                                                                                  |
+| `frameworkName`    | `string`         | Framework id (`next-app`, `next-pages`, `vite`, `react-router`, `tanstack-start`, `astro`, `laravel`, `remix`, `gatsby`, `expo`, `manual`) |
+| `frameworkVersion` | `string \| null` | Framework version (e.g. `15.2.4`)                                                                                                           |
+| `srcDirectory`     | `boolean`        | Whether the project uses a `src/` directory                                                                                                 |
+| `rsc`              | `boolean`        | Whether React Server Components are enabled                                                                                                 |
+| `typescript`       | `boolean`        | Whether the project uses TypeScript                                                                                                         |
+| `tailwindVersion`  | `string \| null` | `"v3"` or `"v4"`                                                                                                                            |
+| `tailwindConfig`   | `string \| null` | Path to the Tailwind config file                                                                                                            |
+| `tailwindCss`      | `string \| null` | Path to the global CSS file — this is where custom CSS variables go                                                                         |
+| `importAlias`      | `string \| null` | Import alias prefix (e.g. `@`, `~`)                                                                                                         |
 
-**Components.json fields:**
+**Configuration fields** (`config` in `--json`, read from `components.json`; `null` when it is missing):
 
-| Field                | Type      | Meaning                                                                                    |
-| -------------------- | --------- | ------------------------------------------------------------------------------------------ |
-| `base`               | `string`  | Primitive library (`radix`, `base` or `aria`) — determines component APIs and available props |
-| `style`              | `string`  | Visual style (e.g. `nova`, `vega`)                                                         |
-| `rsc`                | `boolean` | RSC flag from config                                                                       |
-| `tsx`                | `boolean` | TypeScript flag                                                                            |
-| `tailwind.config`    | `string`  | Tailwind config path                                                                       |
-| `tailwind.css`       | `string`  | Global CSS path — this is where custom CSS variables go                                    |
-| `iconLibrary`        | `string`  | Icon library — determines icon import package (e.g. `lucide-react`, `@tabler/icons-react`) |
-| `aliases.components` | `string`  | Component import alias (e.g. `@/components`)                                               |
-| `aliases.utils`      | `string`  | Utils import alias (e.g. `@/lib/utils`)                                                    |
-| `aliases.ui`         | `string`  | UI component alias (e.g. `@/components/ui`)                                                |
-| `aliases.lib`        | `string`  | Lib alias (e.g. `@/lib`)                                                                   |
-| `aliases.hooks`      | `string`  | Hooks alias (e.g. `@/hooks`)                                                               |
-| `resolvedPaths`      | `object`  | Absolute file-system paths for each alias                                                  |
-| `registries`         | `object`  | Configured custom registries                                                               |
+| Field                | Type             | Meaning                                                                                                   |
+| -------------------- | ---------------- | --------------------------------------------------------------------------------------------------------- |
+| `style`              | `string`         | Visual style (e.g. `nova`, `vega`)                                                                        |
+| `base`               | `string`         | Primitive library (`radix`, `base` or `aria`) — determines component APIs and available props             |
+| `rsc`                | `boolean`        | RSC flag from config                                                                                      |
+| `typescript`         | `boolean`        | TypeScript flag (`tsx` in `components.json`)                                                              |
+| `iconLibrary`        | `string \| null` | Icon library — determines icon import package (e.g. `lucide-react`, `@tabler/icons-react`)                |
+| `rtl`                | `boolean`        | RTL support                                                                                               |
+| `menuColor`          | `string \| null` | Menu color                                                                                                |
+| `menuAccent`         | `string \| null` | Menu accent                                                                                               |
+| `aliases.components` | `string`         | Component import alias (e.g. `@/components`)                                                              |
+| `aliases.utils`      | `string`         | Utils import alias (e.g. `@/lib/utils`)                                                                   |
+| `aliases.ui`         | `string \| null` | UI component alias (e.g. `@/components/ui`)                                                               |
+| `aliases.lib`        | `string \| null` | Lib alias (e.g. `@/lib`)                                                                                  |
+| `aliases.hooks`      | `string \| null` | Hooks alias (e.g. `@/hooks`)                                                                              |
+| `resolvedPaths`      | `object`         | Absolute paths: `cwd`, `tailwindConfig`, `tailwindCss`, `utils`, `components`, `lib`, `hooks`, `ui`       |
+| `registries`         | `object`         | Configured custom registries (name → URL)                                                                 |
+
+**Top-level fields:** `preset` (resolved preset code and values, or `null`), `components` (installed component names) and `links`. From a monorepo root without `components.json`, `--json` prints `{"error": "monorepo_root", "targets": [...]}`; rerun with `-c <workspace>`.
 
 **Links fields:**
 
@@ -261,6 +262,25 @@ GitHub registry behavior, see [registry.md](./registry.md).
 | ----------------- | ----- | ----------------- | ------------ |
 | `--output <path>` | `-o`  | Output directory  | `./public/r` |
 | `--cwd <cwd>`     | `-c`  | Working directory | current      |
+
+### `preset` — Inspect preset codes
+
+```bash
+npx shadcn@latest preset decode <code> [--json]      # values of a preset code
+npx shadcn@latest preset url <code>                  # preset builder URL for the code
+npx shadcn@latest preset open <code>                 # open that URL in the browser
+npx shadcn@latest preset resolve [--json] [-c <cwd>] # preset of the current project (alias: preset info)
+```
+
+### `registry` — Configure and validate registries
+
+```bash
+npx shadcn@latest registry add @acme                                 # looks @acme up in the registry index
+npx shadcn@latest registry add @acme=https://acme.com/r/{name}.json  # explicit URL
+npx shadcn@latest registry validate [./registry.json | owner/repo]
+```
+
+`registry add` writes the entry to `registries` in `components.json`. It skips namespaces that are already configured and refuses built-in ones such as `@shadcn`. A URL must contain `{name}`. With no argument it opens an interactive picker, so pass the namespace. Registries that need auth `headers` are still configured by editing `components.json` (see [mcp.md](./mcp.md#configuring-registries)). `validate` defaults to `./registry.json`; for authoring rules see [registry.md](./registry.md).
 
 ---
 
@@ -287,14 +307,15 @@ Three ways to specify a preset via `--preset`:
 2. **Code:** `--preset a2r6bw` (version-prefixed base62 string, e.g. `a2r6bw` or `b0`)
 3. **URL:** `--preset "https://ui.shadcn.com/init?base=radix&style=nova&..."`
 
-> **IMPORTANT:** Never try to decode, fetch, or resolve preset codes manually. Preset codes are opaque — pass them directly to `npx shadcn@latest init --preset <code>` and let the CLI handle resolution.
+> Preset codes are opaque: pass them directly to `npx shadcn@latest init --preset <code>` and let the CLI handle resolution, rather than decoding, fetching, or resolving them manually.
 > Use `npx shadcn@latest apply --preset <code>` when overwriting an existing project's preset.
 
 ## Switching Presets
 
-Ask the user first: **overwrite**, **merge**, or **skip** existing components?
+Ask the user first: **overwrite**, **partial**, **merge**, or **skip** existing components?
 
 - **Overwrite / Re-install** → `npx shadcn@latest apply --preset <code>`. Overwrites all detected component files with the new preset styles. Use when the user hasn't customized components.
+- **Partial** → `npx shadcn@latest apply --preset <code> --only theme,font`. Updates only the selected preset parts (`theme`, `font`, or `theme,font`) without reinstalling UI components; `icon` is not supported, because icon changes may need a full component reinstall. Use when the user wants the new theme or fonts but keeps the current components.
 - **Merge** → `npx shadcn@latest init --preset <code> --force --no-reinstall`, then run `npx shadcn@latest info` to get the list of installed components and use the [smart merge workflow](./SKILL.md#updating-components) to update them one by one, preserving local changes. Use when the user has customized components.
 - **Skip** → `npx shadcn@latest init --preset <code> --force --no-reinstall`. Only updates config and CSS variables, leaves existing components as-is.
 

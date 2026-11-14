@@ -56,7 +56,9 @@ field measurements address Core Web Vitals. Lighthouse is a lab diagnostic
 and cannot establish field INP. Good field thresholds at the 75th percentile
 are LCP ≤ 2.5 s, INP ≤ 200 ms and CLS ≤ 0.1.
 
-Verify status, headers and complete production HTML, including relevant bot
-responses, then open the route directly and test its interaction. A spoofed
+Verify status, headers and the complete production response for what changed:
+page HTML (including relevant bot responses), the sitemap or robots body, or the
+image URL. When rendering or client code changed, or an audit covers rendering,
+also open the route directly and test its interaction. A spoofed
 User-Agent tests response handling, not actual verified bot access. Report
 unavailable checks explicitly and avoid ranking, indexing or citation promises.

@@ -1,6 +1,6 @@
 ---
 name: hetzner-cloud
-description: Manage Hetzner Cloud infrastructure with the `hcloud` CLI — servers, networks, firewalls, load balancers, volumes, DNS zones, SSH keys, primary/floating IPs, snapshots, certificates, placement groups, storage boxes. Use whenever the user mentions Hetzner, hcloud, VPS provisioning, or Hetzner location codes (fsn1, hel1, nbg1, ash, hil, sin) — even if they don't say "hcloud". CLI-only; not for Hetzner Robot (dedicated servers, separate product and API).
+description: Manage Hetzner Cloud infrastructure with the `hcloud` CLI — servers, networks, firewalls, load balancers, volumes, DNS zones, SSH keys, primary/floating IPs, snapshots, certificates, placement groups, storage boxes. Use whenever the user mentions Hetzner, hcloud or Hetzner location codes (fsn1, hel1, nbg1, ash, hil, sin), or wants a VPS or cloud server in a project that already runs on Hetzner — even if they don't say "hcloud". CLI-only; not for Hetzner Robot (dedicated servers, separate product and API).
 ---
 
 # Hetzner Cloud
@@ -44,13 +44,20 @@ verify the intended service from its actual caller.
   new fingerprint through a trusted console/channel before updating
   known_hosts; `ssh-keyscan` alone does not establish identity.
 - Servers and Primary IPs lost their `datacenter` request/response property on
-  2026-07-01. The CLI's `server create --datacenter` is removed; use `--location`
-  and inspect the server type's per-location availability and prices with
+  2026-07-01. The CLI's `--datacenter` flags on `server create` and
+  `primary-ip create` are removed; use `--location` (or `--assignee-id` for a
+  Primary IP). The datacenter endpoints were removed on 2026-10-01, so the
+  still-shipped `hcloud datacenter list/describe` commands fail with HTTP 410
+  Gone. Inspect the server type's per-location availability and prices with
   `hcloud server-type describe <type> -o json`.
 - Volumes are location-pinned; a server in another location cannot attach them.
   Private networks span locations within one network zone, not across zones.
-- DNS zones do not take effect until the registrar delegates to the correct
-  nameservers. Inspect delegation before debugging records.
+- DNS zones do not take effect until the registrar delegates to the zone's
+  assigned nameservers. Before debugging records, read the Authoritative
+  Nameservers section of `hcloud zone describe <zone>` (JSON:
+  `.authoritative_nameservers`): `delegation_status` should be `valid` and
+  `delegated` should match `assigned`; `delegation_last_check` shows how old
+  that result is.
 - Deletion is immediate. Confirm resource IDs and the requested destructive
   scope; establish recoverable data first. Automatic backups are deleted with
   the server; snapshots survive. Create a Snapshot or
@@ -65,10 +72,14 @@ verify the intended service from its actual caller.
   otherwise-open ports time out, SSH open to `0.0.0.0/0` included, or every
   server on the account fails at once. Such symptoms alone do not prove a
   block; a provider-level block needs Hetzner support, not an app firewall fix.
-- Firewall JSON must match the API schema. `source_ips` is an array of strings;
-  PowerShell serialization needs sufficient JSON depth. A shape error
-  rejects the whole file and leaves the previous rules in place; verify the
-  returned/live rules.
+- `firewall create`/`replace-rules --rules-file` takes a bare JSON array of
+  rule objects (the `rules` value of `hcloud firewall describe <fw> -o json`),
+  not the API's `{"rules": [...]}` body, although the flag help points at the
+  API schema. `source_ips`/`destination_ips` are arrays of CIDR strings
+  (`203.0.113.4/32`, not a bare IP) and `port` is a string (`"22"`, `"80-85"`).
+  In PowerShell serialize with `ConvertTo-Json -InputObject @($rules) -Depth 5`
+  so a single rule stays an array. A parse or CIDR error rejects the whole file
+  and leaves the previous rules in place; verify the returned/live rules.
 
 ## Sources
 

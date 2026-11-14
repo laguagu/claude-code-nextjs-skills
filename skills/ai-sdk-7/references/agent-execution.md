@@ -23,8 +23,13 @@ WorkflowAgent is stream-first; `generate()` works from `@ai-sdk/workflow` 2.0.59
 `ai` 7.0.128 with a 20-step default and throws on older versions. Streaming writes
 `ModelCallStreamPart` chunks to a workflow writable and converts them at the UI
 boundary with `createModelCallToUIChunkTransform()`. Durable tool work uses
-`'use step'`; context must be serializable. Its approval API remains tool-level
-`needsApproval`, while ToolLoopAgent uses `toolApproval`. UI types come from
+`'use step'`; context must be serializable. Approval is tool-level
+`needsApproval`; from `@ai-sdk/workflow` 2.0.105 (`ai` 7.0.173) `toolApproval` is
+also accepted in the constructor or per `generate()`/`stream()` call and takes
+precedence over `needsApproval`. Its functions run in workflow context, outside
+the durable model steps. Only `'user-approval'` suspends the workflow: approved
+calls run in the same step, denied calls get an `execution-denied` result. Older
+versions have only `needsApproval`. UI types come from
 `InferWorkflowAgentUIMessage`. It replaces Workflow DevKit's `DurableAgent`.
 `@ai-sdk/workflow` 2.0.66 onward peer-requires `workflow ^5.1.0`. Install
 `workflow@5`; the `workflow@beta` tag points to an older, incompatible 5.0 beta. Signed approvals use

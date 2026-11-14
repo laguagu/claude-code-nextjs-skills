@@ -14,7 +14,7 @@ when the mark represents a brand, country or file type, then check it in context
 | Need | Starting point |
 |---|---|
 | UI glyph | The project's existing library |
-| Country flag | Iconify: `circle-flags`, `flag`, `flagpack` |
+| Country flag | Iconify: `circle-flags`, `flag`, `flagpack`; `tabler-flags` is keyed by English country name (`tabler-flags:finland`) |
 | Colour file-type mark | Iconify: `vscode-icons`, `catppuccin`, `material-icon-theme` |
 | Colour brand logo or wordmark | svgl, including its light/dark variants |
 | Monochrome brand logo | Iconify: `simple-icons` |
@@ -43,13 +43,15 @@ returns metadata and licences for comma-separated sets.
 The public API rate-limits bursts of requests, so for more than a handful of
 icons fetch per set, not per icon:
 `https://api.iconify.design/<prefix>.json?icons=a,b` returns the named icons' SVG
-bodies in one response, and
+bodies in one response (a requested alias comes back under `aliases` with its
+`parent`, whose body is in `icons`), and
 `https://cdn.jsdelivr.net/npm/@iconify-json/<prefix>/icons.json` is the whole set
 from another host. A body is the inside of the element: wrap it in `<svg xmlns="http://www.w3.org/2000/svg" viewBox="{left} {top} {width} {height}">`,
 each value from the icon when it has one, else from the set, else 0, 0, 16, 16.
 
 The SVG flag sets `circle-flags`, `flagpack` and `flag` use lowercase ISO 3166-1
-alpha-2 codes. A country-name search can return only emoji sets, so build the id
+alpha-2 codes, and a country-name search does not find them (`finland` finds the
+name-keyed `tabler-flags:finland` and emoji sets), so build the id
 directly: `circle-flags:fi`, `flagpack:fi`; `flag` needs a ratio suffix (`flag:fi-4x3`, `flag:fi-1x1`), and
 bare `flag:fi` is a 404. Use SVG flags rather than emoji: Windows' emoji font
 has no flag glyphs and shows the letters (`FI`). For a language selector,
@@ -64,9 +66,10 @@ for the project's chosen integration.
 ## svgl
 
 Use [svgl's API docs](https://svgl.app/docs/api) to find exact titles, categories
-and asset routes. The API base is `https://api.svgl.app` (no key). Its docs state a
-request limit and ask callers to cache: the bare base returns the whole catalogue
-in one response, which serves many lookups better than one search per logo. It
+and asset routes. The API base is `https://api.svgl.app` (no key). Its docs ask callers
+to cache, and the API answers more than five requests in ten seconds from one IP with
+a 429 and a three-minute lockout: the bare base returns the whole catalogue in one
+response, which serves many lookups better than one search per logo. It
 primarily holds software and brand marks, with some file marks such as `PDF`; use Iconify for flag families and consistent file-type sets.
 `?search=` matches titles; a missing title returns "SVG not found". Browse
 categories through `/categories` and use each name exactly as listed there

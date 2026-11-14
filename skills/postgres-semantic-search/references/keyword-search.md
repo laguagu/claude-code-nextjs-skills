@@ -80,14 +80,18 @@ vector search. Results still come back, so it can go unnoticed for
 months.
 
 ```sql
--- attgenerated 's' = stored generated column; empty = plain column
-SELECT attrelid::regclass, attname, attgenerated
-FROM pg_attribute WHERE attname = 'tsv' AND NOT attisdropped;
+-- attgenerated 's' = stored, 'v' = virtual (Postgres 18+, the default without
+-- STORED; cannot be indexed), empty = plain column
+SELECT a.attrelid::regclass, a.attname, a.attgenerated
+FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid
+WHERE a.attname = 'tsv' AND NOT a.attisdropped AND c.relkind IN ('r', 'p');
 SELECT count(*) AS total, count(tsv) AS populated FROM documents;
 ```
 
-Repair is `DROP COLUMN` plus `ADD COLUMN ... GENERATED`, which drops its indexes
-too. If only the application API is available, compare literal-term keyword-only,
+Repair is `DROP COLUMN` plus `ADD COLUMN ... GENERATED ALWAYS AS (...) STORED`,
+which drops its indexes too; without `STORED`, Postgres 18 creates a virtual
+column that cannot be indexed.
+If only the application API is available, compare literal-term keyword-only,
 hybrid and vector-only results. Identical hybrid/vector lists are a symptom,
 not proof of a dead arm: weak weights, overlapping candidates or an unsuitable
 query can also produce them. Inspect population and arm matches when possible.

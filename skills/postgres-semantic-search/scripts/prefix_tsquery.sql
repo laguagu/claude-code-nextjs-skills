@@ -1,4 +1,4 @@
--- prefix_tsquery(config, text [, join]): a tsquery that prefix-matches every
+-- prefix_tsquery(p_config, p_text [, p_join]): a tsquery that prefix-matches every
 -- term, for inflected languages (Finnish, Estonian, Hungarian, Turkish...)
 -- indexed with the 'simple' config. websearch_to_tsquery cannot emit :*.
 --

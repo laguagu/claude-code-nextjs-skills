@@ -56,7 +56,7 @@
         "Uses Attachment (AttachmentMedia, AttachmentContent, AttachmentTitle, AttachmentDescription) for the file and image attachments instead of Item or a custom card",
         "Uses Marker (variant=\"separator\") for the 'Today' divider instead of Separator plus a centered label",
         "Uses semantic color tokens and gap-* spacing; no raw colors like bg-emerald-500 and no space-y-*",
-        "Includes \"use client\" when the component uses state or event handlers (isRSC)"
+        "Includes \"use client\" when the component uses state or event handlers (project.rsc)"
       ]
     },
     {
@@ -70,7 +70,7 @@
         "Uses the shimmer utility class for the 'thinking…' indicator instead of a custom @keyframes or bg-clip-text gradient animation",
         "Wraps each message row in MessageScrollerItem inside MessageScrollerContent",
         "Uses Message + Bubble + BubbleContent for the conversation rows instead of hand-rolled bubble divs",
-        "Uses semantic color tokens and gap-* spacing; includes \"use client\" (isRSC)"
+        "Uses semantic color tokens and gap-* spacing; includes \"use client\" (project.rsc)"
       ]
     },
     {
@@ -82,7 +82,7 @@
         "Creates the app with init --preset b0 --template vite --name <app> and passes the preset code through without decoding it",
         "Installs every component with add --all and reports the component count from disk",
         "Reads the DESIGN.md Do's and Don'ts and Known Gaps before editing the theme",
-        "Maps DESIGN.md colors onto shadcn variables in the existing tailwindCssFile and registers extra tokens in @theme inline instead of creating a new CSS file",
+        "Maps DESIGN.md colors onto shadcn variables in the existing CSS file at project.tailwindCss and registers extra tokens in @theme inline instead of creating a new CSS file",
         "Pins the radius scale in @theme inline and overrides the shadow scale with the documented multi-layer shadows",
         "Implements the 2px outline focus with an offset instead of keeping the default ring",
         "Changes field control heights together with the button height",

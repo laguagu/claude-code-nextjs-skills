@@ -15,12 +15,15 @@ needs one answer, a whole-setup audit needs the inventory below.
 - **What loads every session:** instruction files, the skill list (count, near-duplicate
   names and descriptions), plugins (each can bring skills, hooks, MCP servers and
   agents), MCP servers, custom subagents and hooks that inject context.
-- **What is used:** in Claude Code, `claude -p "/skill-doctor"` (v2.1.252+; in Git Bash
-  prefix `MSYS_NO_PATHCONV=1`) lists each skill's listing cost, uses and last use, and the
-  plugins not used lately. Transcripts (`~/.claude/projects/**/*.jsonl`) record
-  skill calls (`"name":"Skill"`), subagent types (`"subagent_type"`) and MCP calls
-  (`mcp__<server>__`); Codex keeps sessions under `~/.codex/sessions`. Low use is a lead,
-  not a verdict: a rarely needed domain skill can still be the right one.
+- **What is used:** in Claude Code, `claude -p "/skill-doctor"` (v2.1.252+; needs
+  [feature-flag fetching](https://code.claude.com/docs/en/env-vars#features-that-need-feature-flag-fetching),
+  which third-party providers, a Claude apps gateway and the telemetry, nonessential-traffic
+  and feature-flag opt-outs turn off; in Git Bash prefix `MSYS_NO_PATHCONV=1`) lists each
+  skill's listing cost, uses and last use, and the plugins not used lately. Transcripts
+  (`~/.claude/projects/**/*.jsonl`) record skill calls (`"name":"Skill"`), subagent types
+  (`"subagent_type"`) and MCP calls (`mcp__<server>__`); Codex keeps sessions under
+  `~/.codex/sessions`. Low use is a lead, not a verdict: a rarely needed domain skill can
+  still be the right one.
   `claude plugin details <plugin>` lists a plugin's skills, agents, hooks and MCP servers
   with the tokens it adds to every session and per invocation.
 - **How the client behaves:** read its current docs for what a setting covers and what
@@ -83,9 +86,10 @@ same task.
 which links each model's own guide). Effort is the main control and its starting level
 differs by model (Opus 5.5 `medium`, Fable 5.2 `high`): read the guide for the model
 the harness runs, and keep `xhigh` and `max` for work where a quality gain was measured.
-Steer thinking with effort, not prompt lines: remove "think carefully" lines, and
-"answer without deliberating" lines, which Fable 5.2 no longer follows at `medium` and
-above. Name the early stops to avoid and the stops wanted, keep
+Steer thinking with effort, not prompt lines: remove "think carefully" lines and, on Fable 5.2,
+"answer without deliberating" lines, which it no longer follows at `medium` and above (on
+Opus 5.5 at `low`, such a line can still cut thinking when time to first token matters; keep
+it only where quality was measured). Name the early stops to avoid and the stops wanted, keep
 confirmation for destructive actions, name the exact actions an approval rule covers, and
 mark pasted text. Make the agent loop treat a text-only end of turn as a report, not
 completion, and wait for running background commands and subagents before it ends the task.
@@ -98,15 +102,26 @@ prompt; and cautions that have piled up in memory files, notes and messages betw
 agents, which make the model ask for approvals it does not need. At higher effort
 (`xhigh`, `max`) Fable 5.2 was also seen starting subagents to review its own work. If it
 still starts more than needed, have the subagent tool's description say, cost first, what
-a subagent adds to the session, when delegating pays off and how to brief one: on short
-tasks that cut delegation by about a third against a description that mostly listed
-reasons to delegate, at the same task success. A client that renders only `text`
-blocks can look silent during long tool runs, because Fable 5.2's updates between tool
+a subagent adds to the session, when delegating pays off and how to brief one: at `high`
+effort a longer description focused on what a subagent costs roughly halved the number
+of subagents against a shorter one, so test the change on the harness's own tasks. Where
+the app keeps its own message history (not where Claude Code, claude.ai, Managed Agents or
+the Agent SDK with an unchanged system prompt keep it), check that the loop is append-only:
+changing `system`, the tools or an earlier message between requests, removing or rewording
+an injected reminder included, invalidates the thinking blocks after that point, and on
+Fable 5.2 the Messages API then rejects the request with a 400 error by default. Send each
+assistant turn back unchanged, thinking blocks with empty text included, put new
+instructions in a new message at the end, and shorten history only with context editing or
+with compaction that keeps no earlier turns after the summary. A client that renders only
+`text` blocks can look silent during long tool runs, because Fable 5.2's updates between tool
 calls arrive as thinking blocks whose text is empty at the default `display: "omitted"`.
-An ownership line ("This codebase is yours: …") made it merge repeated code in about half
-of tries instead of under a tenth on small coding tasks, at about 1.5× the output tokens
-and with unrequested changes (new tests and docs, sometimes changed feature behaviour),
-so leave it out where minimal change is wanted.
+An ownership line ("You are the owner and long-term maintainer of this codebase, and its
+design is up to you.") made it consolidate duplicated code in about three quarters of runs
+instead of under a tenth on small coding tasks, at about 1.7–1.8× the output tokens and
+with unrequested changes (new tests and docs, sometimes changed feature behaviour). A scope
+rule does not cancel it: with "No drive-by refactors, renames or cleanups" earlier in the
+prompt it still consolidated in more than half of runs, so leave the line out where minimal
+change is wanted.
 
 ## Report
 

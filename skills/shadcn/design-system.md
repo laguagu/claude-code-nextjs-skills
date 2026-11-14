@@ -53,7 +53,7 @@ cd <app>
 npx shadcn@latest info --json
 ```
 
-`init` with neither `--preset` nor `--base` stops at an interactive library prompt, even with `-y`. Always pass one of them, plus `--no-monorepo`.
+`init` without `--preset` stops at interactive prompts even with `-y`: the library prompt when `--base` is missing, and the preset list in any case. Always pass `--preset` with a value (a code, style name or URL), plus `--no-monorepo`.
 
 ### Picking a style
 
@@ -70,7 +70,7 @@ The theme gets replaced by the DESIGN.md anyway. The style decides geometry the 
 | `rhea` | Luma, but more compact.                               | Luma's softness with product-UI density.                               |
 | `sera` | Editorial and typographic.                            | Serif display type, editorial pacing, magazine-like hierarchy.         |
 
-State the choice and the reason in one line ("Picked maia: 40px controls, 12–16px cards, generous padding"). If the user names a style, use it. Read `base`, `style`, `iconLibrary`, `tailwindCssFile` and `aliases` from `info` before writing any code.
+State the choice and the reason in one line ("Picked maia: 40px controls, 12–16px cards, generous padding"). If the user names a style, use it. Read `config.base`, `config.style`, `config.iconLibrary`, `config.aliases` and `project.tailwindCss` (the global CSS file) from `info --json` before writing any code.
 
 ## Step 2: Install Everything
 
@@ -124,7 +124,7 @@ Extract into a working table before editing anything:
 
 ## Step 4: Map Tokens to the Theme
 
-Edit only `tailwindCssFile`. Keep hex values when the DESIGN.md gives hex. Don't convert them to OKLCH.
+Edit only the global CSS file at `project.tailwindCss`. Keep hex values when the DESIGN.md gives hex. Don't convert them to OKLCH.
 
 ### Role mapping
 

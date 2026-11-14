@@ -4,11 +4,11 @@ Use typed function tools for application operations; keep tenant/role checks,
 input validation and idempotency in the executor. Model input/context is not
 authorization. Tool errors returned to the model or UI need the app's safe
 formatting policy. By default `@function_tool` catches exceptions.
-Through 0.22.x the exception text reached the model; from 0.23.0 the model gets
+Through 0.22.x the exception text reached the model; from 0.23 (first on PyPI as 0.23.1) the model gets
 a fixed generic message. Return an error string or pass `failure_error_function`
-for model-visible detail (from 0.24.0 also run-wide with `RunConfig(tool_error_formatter=...)`, which explicit per-tool handlers override); `None` re-raises. `timeout=` bounds a call; it does not make side effects
+for model-visible detail (from 0.24.0 also run-wide with `RunConfig(tool_error_formatter=...)` for `kind="tool_exception"`, where `args.error` is the raw exception and can hold sensitive data; return `None` to keep the default; explicit per-tool handlers override it, and `Agent.as_tool()` and local MCP-factory tools keep their own handlers); `failure_error_function=None` re-raises. `timeout=` bounds a call; it does not make side effects
 transactional. `from agents.decorators import tool` is an alias in current
-releases (verified in 0.22.3).
+releases (verified in 0.24.0).
 
 Hosted tools run under provider contracts; local tools execute in the app's
 runtime or sandbox. Confirm installed tool types and endpoint support in
@@ -17,7 +17,7 @@ function-tool guardrails cover hosted shell, computer, MCP or patch tools.
 
 Tool execution limits and cancellation apply to real side effects too.
 Ordinary function-call dict/Pydantic results, including a structured
-`as_tool()` final output, default to `str(value)` in 0.22.3. Declared output
+`as_tool()` final output, default to `str(value)` in 0.24.0. Declared output
 schemas serialize JSON; recognized `ToolOutputText`/image/file content retains
 its structured format. Programmatic calls have separate JSON serialization.
 Return JSON text or use `custom_output_extractor` when JSON formatting matters.
@@ -40,4 +40,4 @@ policy before executing it; do not trust client-edited run state.
 `await RunState.from_string(original_agent, text)`; that method is async and
 the serialized state includes run context. Pass `context_override=` to replace
 that saved context with trusted server context; approval decisions and usage
-still come from the string (verified in 0.22.3).
+still come from the string (verified in 0.24.0).

@@ -4,7 +4,7 @@
 
 - Forms use FieldGroup + Field
 - InputGroup requires InputGroupInput/InputGroupTextarea
-- Buttons inside inputs use InputGroup + InputGroupAddon
+- Buttons inside inputs use InputGroupAddon + InputGroupButton
 - Option sets (2–7 choices) use ToggleGroup
 - FieldSet + FieldLegend for grouping related fields
 - Field validation and disabled states
@@ -38,7 +38,7 @@ Use `Field orientation="horizontal"` for settings pages. Use `FieldLabel classNa
 - Native HTML select (no JS) → `native-select`
 - Boolean toggle → `Switch` (for settings) or `Checkbox` (for forms)
 - Single choice from few options → `RadioGroup`
-- Toggle between 2–5 options → `ToggleGroup` + `ToggleGroupItem`
+- Toggle between 2–7 options → `ToggleGroup` + `ToggleGroupItem`
 - OTP/verification code → `InputOTP`
 - Multi-line text → `Textarea`
 
@@ -68,9 +68,9 @@ import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 
 ---
 
-## Buttons inside inputs use InputGroup + InputGroupAddon
+## Buttons inside inputs use InputGroupAddon + InputGroupButton
 
-Never place a `Button` directly inside or adjacent to an `Input` with custom positioning.
+Never place a `Button` directly inside or adjacent to an `Input` with custom positioning. Place the addon after the input and set `align` (default `inline-start`); `InputGroupButton` sizes are `xs`, `sm`, `icon-xs` and `icon-sm`.
 
 **Incorrect:**
 
@@ -86,14 +86,14 @@ Never place a `Button` directly inside or adjacent to an `Input` with custom pos
 **Correct:**
 
 ```tsx
-import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
 
 <InputGroup>
   <InputGroupInput placeholder="Search..." />
-  <InputGroupAddon>
-    <Button size="icon">
-      <SearchIcon data-icon="inline-start" />
-    </Button>
+  <InputGroupAddon align="inline-end">
+    <InputGroupButton size="icon-xs" aria-label="Search">
+      <SearchIcon />
+    </InputGroupButton>
   </InputGroupAddon>
 </InputGroup>
 ```
@@ -178,8 +178,8 @@ Both attributes are needed — `data-invalid`/`data-disabled` styles the field (
 // Invalid.
 <Field data-invalid>
   <FieldLabel htmlFor="email">Email</FieldLabel>
-  <Input id="email" aria-invalid />
-  <FieldDescription>Invalid email address.</FieldDescription>
+  <Input id="email" type="email" aria-invalid />
+  <FieldError>Enter a valid email address.</FieldError>
 </Field>
 
 // Disabled.

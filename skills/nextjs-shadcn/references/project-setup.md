@@ -2,24 +2,26 @@
 
 ## New project
 
-The shadcn CLI can scaffold a Next.js app:
+The shadcn CLI can scaffold a Next.js app. Pass a project name and a style or preset code; without them `init` stops at interactive prompts:
 
 ```bash
-bunx --bun shadcn@latest init --template next --base base
+bunx --bun shadcn@latest init --template next --base base --preset <style> --name <app> --no-monorepo
 ```
+
+`<style>` is a named style such as `nova` or `vega`; [styling.md](styling.md) lists them.
 
 For a chosen visual system, obtain a preset code from [shadcn/create](https://ui.shadcn.com/create):
 
 ```bash
-bunx --bun shadcn@latest init --preset <CODE> --template next
+bunx --bun shadcn@latest init --preset <CODE> --template next --base <base|radix|aria> --name <app>
 ```
 
-Pass the code through unchanged. Use the CLI's `preset decode` command when you need to inspect it. Choose fonts, style and primitive base for the product; retain an existing project's base.
+Pass the code through unchanged. Preset codes do not carry the primitive base, so pass `--base`; without it the CLI uses Base UI. Use the CLI's `preset decode` command when you need to inspect it. Choose fonts, style and primitive base for the product; retain an existing project's base.
 
 For example, `b0` selects Nova, neutral colors, Lucide and Inter, with headings inheriting the body font:
 
 ```bash
-bunx --bun shadcn@latest init --preset b0 --template next
+bunx --bun shadcn@latest init --preset b0 --template next --base base --name <app>
 ```
 
 This is an installation example, not the preset to use for every product. Choose the code for the brief in [shadcn/create](https://ui.shadcn.com/create); the available styles, fonts and icon families are summarized in [styling.md](styling.md).

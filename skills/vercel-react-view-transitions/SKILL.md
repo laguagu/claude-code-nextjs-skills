@@ -45,13 +45,13 @@ Reserve directional slides for hierarchical navigation (list → detail) and ord
 - **Next.js:** Since Next.js 16.3 `<ViewTransition>` works in the App Router with no configuration. Do **not** install `react@canary` — the App Router bundles its own React build. Do not add the old `experimental.viewTransition` flag; on 15.x canary–16.2 read the installed version's docs (see `references/nextjs.md`).
 - **Without Next.js:** React 19.3+ exports `ViewTransition` and `addTransitionType` from stable `react`. On older React they exist only in the Canary and Experimental channels.
 - **TypeScript:** `@types/react` 19.3+ declares both in `index.d.ts`. With older types, add `/// <reference types="react/canary" />` instead of hand-writing a module augmentation.
-- Browser support: React's integration uses newer View Transitions API features (transition types, `view-transition-class`) — Chromium 125+, Firefox 144+, Safari 18.2+. Some animations may behave differently in Safari. Graceful degradation on unsupported browsers.
+- Browser support: React's integration uses newer View Transitions API features (the `startViewTransition` options object with transition types, `view-transition-class`) — Chromium 125+, Firefox 147+, Safari 18.2+. Some animations may behave differently in Safari. Graceful degradation on unsupported browsers.
 
 ---
 
 ## Implementation Workflow
 
-When adding view transitions to an existing app, **follow [references/implementation.md](references/implementation.md) step by step.** Start with the audit — do not skip it. Use [references/css-recipes.md](references/css-recipes.md) for the applicable CSS and adapt it to the app.
+When adding view transitions across an app's routes, **follow [references/implementation.md](references/implementation.md) step by step**, starting with the audit. For a single component or interaction, audit only the navigations, Suspense boundaries and persistent or named elements that the change touches, then verify those paths as in Step 7. Use [references/css-recipes.md](references/css-recipes.md) for the applicable CSS, including reduced motion, and adapt it to the app.
 
 ---
 

@@ -46,13 +46,13 @@ Reserve directional slides for hierarchical navigation (list → detail) and ord
 - **Next.js:** Since Next.js 16.3 `<ViewTransition>` works in the App Router with no configuration. Do **not** install `react@canary` — the App Router bundles its own React build. Do not add the old `experimental.viewTransition` flag; on 15.x canary–16.2 read the installed version's docs (see `references/nextjs.md`).
 - **Without Next.js:** React 19.3+ exports `ViewTransition` and `addTransitionType` from stable `react`. On older React they exist only in the Canary and Experimental channels.
 - **TypeScript:** `@types/react` 19.3+ declares both in `index.d.ts`. With older types, add `/// <reference types="react/canary" />` instead of hand-writing a module augmentation.
-- Browser support: React's integration uses newer View Transitions API features (transition types, `view-transition-class`) — Chromium 125+, Firefox 144+, Safari 18.2+. Some animations may behave differently in Safari. Graceful degradation on unsupported browsers.
+- Browser support: React's integration uses newer View Transitions API features (the `startViewTransition` options object with transition types, `view-transition-class`) — Chromium 125+, Firefox 147+, Safari 18.2+. Some animations may behave differently in Safari. Graceful degradation on unsupported browsers.
 
 ---
 
 ## Implementation Workflow
 
-When adding view transitions to an existing app, **follow [references/implementation.md](references/implementation.md) step by step.** Start with the audit — do not skip it. Use [references/css-recipes.md](references/css-recipes.md) for the applicable CSS and adapt it to the app.
+When adding view transitions across an app's routes, **follow [references/implementation.md](references/implementation.md) step by step**, starting with the audit. For a single component or interaction, audit only the navigations, Suspense boundaries and persistent or named elements that the change touches, then verify those paths as in Step 7. Use [references/css-recipes.md](references/css-recipes.md) for the applicable CSS, including reduced motion, and adapt it to the app.
 
 ---
 
@@ -799,7 +799,7 @@ The `types` array (second argument) lets you vary animation based on transition 
 
 **Unrelated content crossfades:** A bare VT uses the browser crossfade for every trigger. Set `default="none"` and opt in only to the triggers that boundary should handle.
 
-**Scrolling hangs while a transition animates:** the `::view-transition` overlay is `position: fixed` and its snapshots don't scroll — a browser limitation, not fixable in React (skipping snaps to the end). Keep reveal durations short; for scroll-driven UI use gesture transitions (experimental `useSwipeTransition`, if available).
+**Scrolling hangs while a transition animates:** the `::view-transition` overlay is `position: fixed` and its snapshots don't scroll — a browser limitation, not fixable in React (skipping snaps to the end). Keep reveal durations short. For scroll-driven UI, gesture transitions exist only in React's experimental channel as `unstable_startGestureTransition(timeline, update)`, driven by an `AnimationTimeline` such as a `ScrollTimeline`. In Next.js it ships only when the app opts into experimental React (`experimental.gestureTransition`). Use it only if the installed runtime exports it.
 
 **Open popover flickers when a background transition settles:** it's captured in `root`. Give it a real `view-transition-name` + isolation (not `none`) — see [Isolate Elements from Parent Animations](references/patterns.md#isolate-elements-from-parent-animations).
 
@@ -852,6 +852,8 @@ The `types` array (second argument) lets you vary animation based on transition 
 - [Shared Element Morph](#shared-element-morph)
 - [Text Morph](#text-morph)
 - [Scale](#scale)
+- [Interactivity During Transitions](#interactivity-during-transitions)
+- [No Root Cross-Fade (Live Root)](#no-root-cross-fade-live-root)
 - [Persistent Element Isolation](#persistent-element-isolation)
 - [Reduced Motion](#reduced-motion)
 
@@ -1176,8 +1178,10 @@ One shared-name indicator morphs between positions. Slide the group; disable old
 - [Next.js Implementation Additions](#nextjs-implementation-additions)
 - [Layout-Level ViewTransition](#layout-level-viewtransition)
 - [The transitionTypes Prop](#the-transitiontypes-prop-on-nextlink)
+- [When Content Must Be Ready](#when-content-must-be-ready)
 - [Programmatic Navigation](#programmatic-navigation)
 - [Server-Side Filtering](#server-side-filtering-with-routerreplace)
+- [Routing-Driven Tabs](#routing-driven-tabs)
 - [Two-Layer Pattern](#two-layer-pattern-directional--suspense)
 - [loading.tsx as Suspense Boundary](#loadingtsx-as-suspense-boundary)
 - [Shared Elements Across Routes](#shared-elements-across-routes)
