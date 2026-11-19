@@ -12,13 +12,19 @@ needs one answer, a whole-setup audit needs the inventory below.
 
 ## Gather evidence before judging
 
+- **The client's own checkup first:** in Claude Code, `claude -p "/doctor" --permission-mode plan`
+  (v2.1.205+; in Git Bash prefix `MSYS_NO_PATHCONV=1`, also for `/skill-doctor`) reports
+  without changing anything: each skill, plugin, MCP server and connector with its context
+  cost and use, failing or slow hooks, what loads every session, and the subagent-model and
+  parallel-session lines from `/usage`. It takes several minutes. Use it as the inventory,
+  and weigh what it suggests removing against the findings below before changing anything.
 - **What loads every session:** instruction files, the skill list (count, near-duplicate
   names and descriptions), plugins (each can bring skills, hooks, MCP servers and
   agents), MCP servers, custom subagents and hooks that inject context.
 - **What is used:** in Claude Code, `claude -p "/skill-doctor"` (v2.1.252+; needs
   [feature-flag fetching](https://code.claude.com/docs/en/env-vars#features-that-need-feature-flag-fetching),
   which third-party providers, a Claude apps gateway and the telemetry, nonessential-traffic
-  and feature-flag opt-outs turn off; in Git Bash prefix `MSYS_NO_PATHCONV=1`) lists each
+  and feature-flag opt-outs turn off) lists each
   skill's listing cost, uses and last use, and the plugins not used lately. Transcripts
   (`~/.claude/projects/**/*.jsonl`) record skill calls (`"name":"Skill"`), subagent types
   (`"subagent_type"`) and MCP calls (`mcp__<server>__`); Codex keeps sessions under

@@ -58,6 +58,7 @@ Start with the project's existing result, disclosure and navigation components. 
 | Size/position changes, a moving active selection or gesture-driven UI | [Motion's layout documentation](https://motion.dev/docs/react-layout-animations) |
 | Coordinated timelines, SVG sequences or scroll-driven storytelling | GSAP and [ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) when needed |
 | A purpose-made vector animation | A suitable Lottie/LottieFiles asset and compatible player; check provenance, payload, reduced motion and fallback |
+| A vector animation that reacts to hover, input or scroll through states | [Rive](https://rive.app/docs/runtimes/web/web-js) (`@rive-app/canvas`, or `@rive-app/react-canvas` in React) with a `.riv` file made in the Rive editor; a ScrollTrigger can drive a state-machine number input. Award sites such as landonorris.com (Webflow) are built this way |
 | A spatial product scene or interactive 3D presentation | Available Three.js guidance and a useful static fallback |
 | Route continuity, shared elements or state changes through React transitions | `vercel-react-view-transitions` and the current [React ViewTransition reference](https://react.dev/reference/react/ViewTransition) |
 
