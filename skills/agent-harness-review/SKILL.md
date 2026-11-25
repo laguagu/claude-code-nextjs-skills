@@ -1,6 +1,6 @@
 ---
 name: agent-harness-review
-description: Reviews an agent harness or agent design against Anthropic's agent and model prompting guidance (Opus 5.5, Fable 5.2), Cognition's context principles and 2026 research on skill routing and skill-induced failures. Covers when subagents or parallel agents pay off, how to brief them, how many skills, plugins, MCP servers and hooks load every session, tool design and proportionate verification. Use when auditing a Claude Code or Codex setup, deciding whether to add subagents or a multi-agent workflow, trimming a skill library, or designing an agent loop in an app. For writing or evaluating a single skill, use skill-creator.
+description: Reviews an agent harness or agent design against Anthropic's agent and model prompting guidance (Opus 5.5, Fable 5.2), Cognition's context principles and 2026 research on skill routing and skill-induced failures. Covers when subagents or parallel agents pay off, how to brief them, how many skills, plugins, MCP servers and hooks load every session, tool design and proportionate verification. Use when auditing a Claude Code or Codex setup, deciding whether to add subagents or a multi-agent workflow, trimming a skill library, or designing an agent loop in an app. For writing a new skill or measuring a skill's trigger rate with evals, use skill-creator.
 ---
 
 # Review an agent harness
