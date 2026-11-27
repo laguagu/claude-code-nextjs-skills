@@ -1,6 +1,6 @@
 ---
 name: go
-description: Opens the app in a browser, starting it first if it is not running, and verifies that recent UI changes actually work. Use for a quick browser smoke test of recent web work — "go", "test in browser", "check in browser", "make sure it works", "verify it works", "did it work", "works on mobile" — including when the user appends "...and make sure it works" to a UI request. For a UI/UX review or polish pass of the running app, use a UI-review skill such as go-ui when it is installed; for a code audit against the Web Interface Guidelines, use web-design-guidelines. For a web UI, this skill does the check even where Claude Code's run or verify skill is installed; for a CLI, TUI or desktop app, use one of those.
+description: Opens the app in a browser, starting it first if it is not running, and verifies that recent UI changes actually work. Use for a quick browser smoke test of recent web work — when the user says "go", asks to test or check the work in a browser (also on mobile), or asks whether it works — including when the user appends "...and make sure it works" to a UI request. For a UI/UX review or polish pass of the running app, use a UI-review skill such as go-ui when it is installed; for a code audit against the Web Interface Guidelines, use web-design-guidelines. For a web UI, this skill does the check even where Claude Code's run or verify skill is installed; for a CLI, TUI or desktop app, use one of those.
 ---
 
 # /go — Browser check

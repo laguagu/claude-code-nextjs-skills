@@ -1,7 +1,3 @@
-<!-- Snapshot of https://github.com/vercel-labs/web-interface-guidelines/blob/4ecfb9f/command.md
-     taken 2026-10-25 for use without web access. MIT License, Copyright (c) 2025 Vercel Labs:
-     see LICENSE in this folder. -->
-
 ---
 description: Review UI code for Vercel Web Interface Guidelines compliance
 argument-hint: <file-or-pattern>

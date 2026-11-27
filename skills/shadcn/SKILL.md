@@ -15,8 +15,7 @@ For a new project, use Bun by default. Existing projects retain their configured
 ## Current Project Context
 
 Run `shadcn@latest info --json` with the project's package runner and read the
-returned config and component list. Do not assume shell interpolation inside a
-skill runs on every client. Use `shadcn@latest docs <component>` for docs resolved
+returned config and component list. Use `shadcn@latest docs <component>` for docs resolved
 to the project's base.
 
 ## Principles
